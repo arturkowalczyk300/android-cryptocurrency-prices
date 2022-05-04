@@ -21,7 +21,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var etCurrencySymbol: EditText
     private lateinit var etDate: EditText
     private lateinit var btnGet: Button
-    private lateinit var tvResponse: TextView
+
+    private lateinit var tvCryptocurrencySymbol: TextView
+    private lateinit var tvCryptocurrencyDate: TextView
+    private lateinit var tvCryptocurrencyPrice: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +33,10 @@ class MainActivity : AppCompatActivity() {
         etCurrencySymbol = findViewById(R.id.etCurrencySymbol)
         etDate = findViewById(R.id.etDate)
         btnGet = findViewById(R.id.btnGet)
-        tvResponse = findViewById(R.id.tvResponse)
+
+        tvCryptocurrencySymbol =findViewById(R.id.tvCryptocurrencySymbol)
+        tvCryptocurrencyDate =findViewById(R.id.tvCryptocurrencyDate)
+        tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
 
         viewModel = ViewModelProvider(this).get(CryptocurrencyPricesViewModel::class.java)
 
@@ -47,7 +53,11 @@ class MainActivity : AppCompatActivity() {
                 ).observe(this, Observer {
                     if (it.entity != null) {
                         Log.v("myApp", "response in MainActivity")
-                        tvResponse.text = it.toString()
+                        //tvResponse.text = it.toString()
+
+                        tvCryptocurrencySymbol.text = it.currencySymbol
+                        tvCryptocurrencyDate.text = it.getFormattedDate()
+                        tvCryptocurrencyPrice.text = "%.3fUSD".format(it.entity?.market_data?.current_price?.usd)
                     }
                 })
             } catch (exc: Exception) {

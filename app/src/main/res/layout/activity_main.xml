@@ -4,37 +4,103 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".View.MainActivity"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context=".View.MainActivity">
 
     <LinearLayout
+        android:id="@+id/llRecords"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
-        <EditText
-            android:id="@+id/etCurrencySymbol"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="Symbol"
-            android:layout_margin="20dp"/>
-        <EditText
-            android:id="@+id/etDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint=" (dd.mm.yyyy)"
-            android:layout_margin="20dp"/>
+        android:gravity="top"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_margin="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="@string/cryptocurrencySymbol"/>
+            <TextView
+                android:layout_margin="20dp"
+                android:id="@+id/tvCryptocurrencySymbol"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="bitcoin"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_margin="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="@string/cryptocurrencyDate"/>
+            <TextView
+                android:layout_margin="20dp"
+                android:id="@+id/tvCryptocurrencyDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="01.05.2022"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_margin="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="@string/cryptocurrencyPrice"/>
+            <TextView
+                android:layout_margin="20dp"
+                android:id="@+id/tvCryptocurrencyPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="34 000USD"/>
+        </LinearLayout>
+
     </LinearLayout>
-    <Button
-        android:id="@+id/btnGet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Get"/>
-    <TextView
-        android:id="@+id/tvResponse"
+
+
+    <LinearLayout
+        android:id="@+id/llRequest"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:textSize="22sp"
-        android:scrollbars="vertical"/>
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/etCurrencySymbol"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:hint="Symbol" />
+
+            <EditText
+                android:id="@+id/etDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:hint=" (dd.mm.yyyy)" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnGet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Get" />
+    </LinearLayout>
 </LinearLayout>

@@ -7,6 +7,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.lang.StringBuilder
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -15,13 +16,22 @@ class RequestWithResponse(
     var date: Date = Date(0),
     var entity: CryptocurrencyPricesEntityApi? = null
 ) {
-    val sdf = SimpleDateFormat("dd-MM-yyyy")
+    val sdf = SimpleDateFormat("dd.MM.yyyy")
+
+    fun formatPrice(price: Double): String{
+        val df = DecimalFormat("#.###")
+        return df.format(price)
+    }
+
+    fun getFormattedDate(): String{
+        return sdf.format(date)
+    }
 
     override fun toString(): String {
         val sb: StringBuilder = StringBuilder()
         sb.append("== Request ==\n")
         sb.append("CurrencySymbol: ${currencySymbol}\n")
-        sb.append("Date: ${sdf.format(date)}\n")
+        sb.append("Date: ${getFormattedDate()}\n")
         sb.append("== Response ==\n")
         sb.append("Price data:\n")
         sb.append("id: ${entity?.id}\n")
