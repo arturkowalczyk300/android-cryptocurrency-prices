@@ -1,4 +1,8 @@
 package com.arturkowalczyk300.cryptocurrencyprices.ViewModel
 
-class CryptocurrencyPricesViewModel {
+import androidx.lifecycle.ViewModel
+import com.arturkowalczyk300.cryptocurrencyprices.Model.CryptocurrencyPricesRepository
+
+class CryptocurrencyPricesViewModel :ViewModel(){
+   var repository: CryptocurrencyPricesRepository = CryptocurrencyPricesRepository()
 }
