@@ -9,10 +9,14 @@ import java.util.*
 class CryptocurrencyPricesViewModel : ViewModel() {
     var repository: CryptocurrencyPricesRepository = CryptocurrencyPricesRepository()
 
-    public fun requestPriceData(
+    fun requestPriceData(
         currencySymbol: String,
         date: Date
     ): MutableLiveData<RequestWithResponse> {
         return repository.requestPriceData(currencySymbol, date)
+    }
+
+    fun clearAllRecords(){
+
     }
 }
