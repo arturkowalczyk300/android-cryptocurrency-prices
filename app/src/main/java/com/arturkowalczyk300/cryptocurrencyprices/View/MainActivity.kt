@@ -10,8 +10,10 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesDatabase
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
+import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
@@ -36,11 +38,13 @@ class MainActivity : AppCompatActivity() {
         etDate = findViewById(R.id.etDate)
         btnGet = findViewById(R.id.btnGet)
 
-        tvCryptocurrencySymbol =findViewById(R.id.tvCryptocurrencySymbol)
-        tvCryptocurrencyDate =findViewById(R.id.tvCryptocurrencyDate)
+        tvCryptocurrencySymbol = findViewById(R.id.tvCryptocurrencySymbol)
+        tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
 
-        viewModel = ViewModelProvider(this).get(CryptocurrencyPricesViewModel::class.java)
+        //viewModel = ViewModelProvider(this).get(CryptocurrencyPricesViewModel::class.java)
+        val factory = CryptocurrencyPricesViewModelFactory(application)
+        viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
 
         btnGet.setOnClickListener {
             var date: Date
@@ -59,7 +63,8 @@ class MainActivity : AppCompatActivity() {
 
                         tvCryptocurrencySymbol.text = it.currencySymbol
                         tvCryptocurrencyDate.text = it.getFormattedDate()
-                        tvCryptocurrencyPrice.text = "%.3fUSD".format(it.entity?.market_data?.current_price?.usd)
+                        tvCryptocurrencyPrice.text =
+                            "%.3fUSD".format(it.entity?.market_data?.current_price?.usd)
                     }
                 })
             } catch (exc: Exception) {
@@ -76,8 +81,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
-            R.id.itemClearRecords ->{
+        when (item.itemId) {
+
+            R.id.itemAddRecord -> {
+                viewModel.addReading()
+            }
+            R.id.itemGetAllRecords -> {
+                viewModel.getAllReadings()
+            }
+            R.id.itemClearRecords -> {
                 viewModel.clearAllRecords()
             }
         }
