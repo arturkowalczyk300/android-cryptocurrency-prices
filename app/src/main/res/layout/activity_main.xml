@@ -52,6 +52,7 @@
                 android:id="@+id/tvCryptocurrencySymbol"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textSize="24sp"
                 tools:text="bitcoin"/>
         </LinearLayout>
 
@@ -68,6 +69,7 @@
                 android:layout_margin="20dp"
                 android:id="@+id/tvCryptocurrencyDate"
                 android:layout_width="wrap_content"
+                android:textSize="24sp"
                 android:layout_height="wrap_content"
                 tools:text="01.05.2022"/>
         </LinearLayout>
@@ -85,6 +87,7 @@
                 android:layout_margin="20dp"
                 android:id="@+id/tvCryptocurrencyPrice"
                 android:layout_width="wrap_content"
+                android:textSize="24sp"
                 android:layout_height="wrap_content"
                 tools:text="34 000USD"/>
         </LinearLayout>
@@ -110,17 +113,18 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/etCurrencySymbol"
+            <Spinner
+                android:id="@+id/spinCurrencyId"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="20dp"
-                android:hint="Symbol" />
+                android:textSize="24sp" />
 
             <EditText
                 android:id="@+id/etDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textSize="24sp"
                 android:layout_margin="20dp"
                 android:hint="Date (dd.mm.yyyy)" />
         </LinearLayout>

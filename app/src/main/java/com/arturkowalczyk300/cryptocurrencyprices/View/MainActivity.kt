@@ -5,25 +5,20 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
+import android.widget.*
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesDatabase
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
 import java.lang.Exception
 import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: CryptocurrencyPricesViewModel
-    private lateinit var etCurrencySymbol: EditText
+    private lateinit var spinCurrencyId: Spinner
     private lateinit var etDate: EditText
     private lateinit var btnGet: Button
     private lateinit var btnPrevRecord: Button
@@ -42,7 +37,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        etCurrencySymbol = findViewById(R.id.etCurrencySymbol)
+        spinCurrencyId = findViewById(R.id.spinCurrencyId)
         etDate = findViewById(R.id.etDate)
         btnGet = findViewById(R.id.btnGet)
         btnPrevRecord = findViewById(R.id.btnPrevRecord)
@@ -54,6 +49,12 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
 
+        ArrayAdapter.createFromResource(this,
+            R.array.cryptocurrencies_list,
+        R.layout.my_spinner_item).also {
+            adapter-> adapter.setDropDownViewResource(R.layout.my_spinner_item)
+            spinCurrencyId.adapter = adapter
+        }
         //viewModel = ViewModelProvider(this).get(CryptocurrencyPricesViewModel::class.java)
         val factory = CryptocurrencyPricesViewModelFactory(application)
         viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
@@ -66,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                 date = sdf.parse(etDate.text.toString())
 
                 viewModel.requestPriceData(
-                    etCurrencySymbol.text.toString(),
+                    spinCurrencyId.selectedItem.toString(),
                     date
                 )
             } catch (exc: Exception) {
@@ -96,10 +97,10 @@ class MainActivity : AppCompatActivity() {
             listOfRecords = it
             maxRecordIndex = it.size - 1
             updateIndexInfo()
+            displayRecordByIndex(currentRecordIndex)
         }
         )
         updateIndexInfo()
-        displayRecordByIndex(currentRecordIndex)
     }
 
     fun updateIndexInfo() {
@@ -118,12 +119,6 @@ class MainActivity : AppCompatActivity() {
                 tvCryptocurrencyPrice.text =
                     "%.3fUSD".format(entity.priceUsd)
             }
-            /*if (it.entity != null) {
-            Log.v("myApp", "response in MainActivity")
-            //tvResponse.text = it.toString()
-
-
-        }*/
         } catch (exc: Exception) {
             Log.e("myApp", exc.toString())
         }
