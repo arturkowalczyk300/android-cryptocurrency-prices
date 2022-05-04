@@ -131,13 +131,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-
-            /*R.id.itemAddRecord -> {
-                //viewModel.addReading()
-            }
-            R.id.itemGetAllRecords -> {
-                viewModel.getAllReadings()
-            }*/
             R.id.itemClearRecords -> {
                 viewModel.clearAllRecords()
                 currentRecordIndex=0

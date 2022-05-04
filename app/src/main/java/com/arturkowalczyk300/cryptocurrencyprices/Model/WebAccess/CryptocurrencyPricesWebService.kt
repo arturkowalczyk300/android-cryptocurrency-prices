@@ -14,7 +14,8 @@ import java.util.*
 class RequestWithResponse(
     var currencySymbol: String = "",
     var date: Date = Date(0),
-    var entity: CryptocurrencyPricesEntityApi? = null
+    var entity: CryptocurrencyPricesEntityApi? = null,
+    var flagDataSet: Boolean = false
 ) {
     val sdf = SimpleDateFormat("dd.MM.yyyy")
 
@@ -86,6 +87,7 @@ class CryptocurrencyPricesWebService {
                 Log.v("myApp", "response")
                 if (waitingForResponse) {
                     mldRequestWithResponse?.value?.entity = response.body()
+                    mldRequestWithResponse?.value?.flagDataSet = true
                     mldRequestWithResponse.value =
                         mldRequestWithResponse.value //notify data changed
                 }
