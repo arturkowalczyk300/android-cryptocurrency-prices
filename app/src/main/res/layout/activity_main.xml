@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center_vertical"
     android:orientation="vertical"
     tools:context=".View.MainActivity">
 
@@ -11,6 +12,7 @@
         android:id="@+id/llRecords"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="200dp"
         android:gravity="top"
         android:orientation="vertical">
 
@@ -94,16 +96,13 @@
 
     </LinearLayout>
 
-    <View
-        android:id="@+id/separator"
-        android:layout_width="match_parent"
-        android:layout_height="10dp"
-        android:background="#A6AFD1"/>
+
 
     <LinearLayout
         android:id="@+id/llRequest"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="200dp"
         android:layout_gravity="bottom"
         android:orientation="vertical">
 
