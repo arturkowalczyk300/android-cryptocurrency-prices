@@ -1,47 +1,81 @@
 package com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess
 
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
+import okhttp3.Request
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.lang.StringBuilder
+import java.text.SimpleDateFormat
 import java.util.*
 
+class RequestWithResponse(
+    var currencySymbol: String = "",
+    var date: Date = Date(0),
+    var entity: CryptocurrencyPricesEntityApi? = null
+) {
+    val sdf = SimpleDateFormat("dd-MM-yyyy")
+
+    override fun toString(): String {
+        val sb: StringBuilder = StringBuilder()
+        sb.append("== Request ==\n")
+        sb.append("CurrencySymbol: ${currencySymbol}\n")
+        sb.append("Date: ${sdf.format(date)}\n")
+        sb.append("== Response ==\n")
+        sb.append("Price data:\n")
+        sb.append("id: ${entity?.id}\n")
+        sb.append("symbol: ${entity?.symbol}\n")
+        sb.append("name: ${entity?.name}\n")
+        sb.append("price: ${entity?.market_data?.current_price?.usd}\n")
+
+        return sb.toString()
+
+    }
+}
+
+
 class CryptocurrencyPricesWebService {
-//    val retrofitClient: CryptocurrencyPricesRetrofitClient.
+    val waitingForResponse: Boolean = false
+
+    var mldRequestWithResponse: MutableLiveData<RequestWithResponse> = MutableLiveData(
+        RequestWithResponse()
+    )
 
     init {
-        Log.v("myApp", "webService init")
         when (CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()) {
             null -> Log.v("myApp", "ApiHandleInstance is null")
             else -> {
                 Log.v("myApp", "ApiHandleInstance is OK!")
-                requestPriceData("", Date(2342))
             }
         }
     }
 
-    public fun requestPriceData(currencyName: String, date: Date) {
+    public fun requestPriceData(
+        currencySymbol: String,
+        date: Date
+    ): MutableLiveData<RequestWithResponse> {
+        mldRequestWithResponse?.value?.date = date
+        mldRequestWithResponse?.value?.currencySymbol = currencySymbol
+
+        val sdf = SimpleDateFormat("dd-MM-yyyy")
+        val formattedDate = sdf.format(date)
+
         val response: Call<CryptocurrencyPricesEntityApi>? =
             CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
-                ?.getPrice(
-                    "bitcoin",
-                    "01-05-2022"
-                )
+                ?.getPrice(currencySymbol, formattedDate)
 
         response?.enqueue(object : Callback<CryptocurrencyPricesEntityApi> {
             override fun onResponse(
                 call: Call<CryptocurrencyPricesEntityApi>,
                 response: Response<CryptocurrencyPricesEntityApi>
             ) {
-                Log.v("myApp", "onResponse, url:${call.request().url().toString()}")
-                val sb: StringBuilder = StringBuilder()
-                sb.append("Price data:\n")
-                sb.append("id: ${response.body()?.id}\n")
-                sb.append("symbol: ${response.body()?.symbol}\n")
-                sb.append("name: ${response.body()?.name}\n")
-                sb.append("price: ${response.body()?.market_data?.current_price?.usd}\n")
-                Log.v("myApp", sb.toString())
+                mldRequestWithResponse?.value?.entity = response.body()
+                mldRequestWithResponse.value = mldRequestWithResponse.value //notify data changed
+                run {
+                    Log.v("myApp", "onResponse, url:${call.request().url().toString()}")
+                    Log.v("myApp", "\n" + mldRequestWithResponse.value.toString())
+                }
             }
 
             override fun onFailure(call: Call<CryptocurrencyPricesEntityApi>, t: Throwable) {
@@ -51,5 +85,6 @@ class CryptocurrencyPricesWebService {
                 )
             }
         })
+        return mldRequestWithResponse
     }
 }
