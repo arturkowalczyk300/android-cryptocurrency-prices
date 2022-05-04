@@ -56,7 +56,8 @@ class MainActivity : AppCompatActivity() {
                 viewModel.requestPriceData(
                     etCurrencySymbol.text.toString(),
                     date
-                ).observe(this, Observer {
+                )
+                    /*.observe(this, Observer {
                     if (it.entity != null) {
                         Log.v("myApp", "response in MainActivity")
                         //tvResponse.text = it.toString()
@@ -66,13 +67,17 @@ class MainActivity : AppCompatActivity() {
                         tvCryptocurrencyPrice.text =
                             "%.3fUSD".format(it.entity?.market_data?.current_price?.usd)
                     }
-                })
+                })*/
             } catch (exc: Exception) {
                 Log.v("myApp", exc.toString())
             }
         }
 
-
+        //observe all readings
+        viewModel.getAllReadings()?.observe(this, Observer {
+            Log.v("myApp", "count: ${it.size}")
+        }
+        )
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -84,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         when (item.itemId) {
 
             R.id.itemAddRecord -> {
-                viewModel.addReading()
+                //viewModel.addReading()
             }
             R.id.itemGetAllRecords -> {
                 viewModel.getAllReadings()
