@@ -6,4 +6,6 @@
     <string name="btnPrev">PREV</string>
     <string name="btnNext">NEXT</string>
     <string name="menuClearRecords">Clear all records</string>
+    <string name="menuGetAllRecords">Get all records</string>
+    <string name="menuAddRecord">Add record</string>
 </resources>

@@ -30,7 +30,7 @@ android {
         jvmTarget = '1.8'
     }
 }
-
+apply plugin: 'kotlin-kapt'
 dependencies {
 
     def lifecycle_version = "2.4.1"
@@ -52,10 +52,17 @@ dependencies {
 
     //Room
     implementation("androidx.room:room-runtime:$room_version")
+    implementation "androidx.room:room-ktx:$room_version"
+    //kapt "androidx.room:room-compiler:2.3.0"
+    kapt "androidx.room:room-compiler:$room_version"
 
     //Retrofit
     implementation ("com.squareup.retrofit2:retrofit:$retrofit_version")
     implementation ("com.squareup.retrofit2:converter-gson:$retrofit_version")
 
 
+
+    //dependencies {
+
+    //}
 }
