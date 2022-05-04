@@ -18,12 +18,12 @@ class RequestWithResponse(
 ) {
     val sdf = SimpleDateFormat("dd.MM.yyyy")
 
-    fun formatPrice(price: Double): String{
+    fun formatPrice(price: Double): String {
         val df = DecimalFormat("#.###")
         return df.format(price)
     }
 
-    fun getFormattedDate(): String{
+    fun getFormattedDate(): String {
         return sdf.format(date)
     }
 
@@ -46,7 +46,7 @@ class RequestWithResponse(
 
 
 class CryptocurrencyPricesWebService {
-    val waitingForResponse: Boolean = false
+    var waitingForResponse: Boolean = false
 
     var mldRequestWithResponse: MutableLiveData<RequestWithResponse> = MutableLiveData(
         RequestWithResponse()
@@ -67,25 +67,29 @@ class CryptocurrencyPricesWebService {
     ): MutableLiveData<RequestWithResponse> {
         mldRequestWithResponse?.value?.date = date
         mldRequestWithResponse?.value?.currencySymbol = currencySymbol
+        mldRequestWithResponse?.value?.entity = null //test line
+        waitingForResponse = true
 
         val sdf = SimpleDateFormat("dd-MM-yyyy")
         val formattedDate = sdf.format(date)
 
         val response: Call<CryptocurrencyPricesEntityApi>? =
             CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
-                ?.getPrice(currencySymbol, formattedDate)
+                ?.getPrice(currencySymbol, formattedDate).also { Log.v("myApp", "getPrice") }
+
 
         response?.enqueue(object : Callback<CryptocurrencyPricesEntityApi> {
             override fun onResponse(
                 call: Call<CryptocurrencyPricesEntityApi>,
                 response: Response<CryptocurrencyPricesEntityApi>
             ) {
-                mldRequestWithResponse?.value?.entity = response.body()
-                mldRequestWithResponse.value = mldRequestWithResponse.value //notify data changed
-                run {
-                    Log.v("myApp", "onResponse, url:${call.request().url().toString()}")
-                    Log.v("myApp", "\n" + mldRequestWithResponse.value.toString())
+                Log.v("myApp", "response")
+                if (waitingForResponse) {
+                    mldRequestWithResponse?.value?.entity = response.body()
+                    mldRequestWithResponse.value =
+                        mldRequestWithResponse.value //notify data changed
                 }
+                waitingForResponse = false
             }
 
             override fun onFailure(call: Call<CryptocurrencyPricesEntityApi>, t: Throwable) {
