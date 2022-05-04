@@ -34,7 +34,7 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
         repository.clearAllRecords()
     }
 
-    fun addReading(cryptocurrencyIdArg: String, dateArg: Date, priceUsdArg: Double) {
+    private fun addReading(cryptocurrencyIdArg: String, dateArg: Date, priceUsdArg: Double) {
         repository.addReading(
             CryptocurrencyPricesEntityDb(
                 cryptocurrencyId = cryptocurrencyIdArg,
