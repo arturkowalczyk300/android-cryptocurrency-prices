@@ -2,6 +2,7 @@ package com.arturkowalczyk300.cryptocurrencyprices.ViewModel
 
 import android.app.Application
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.Model.CryptocurrencyPricesRepository
@@ -15,31 +16,35 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     fun requestPriceData(
         currencySymbol: String,
         date: Date
-    ): MutableLiveData<RequestWithResponse> {
-        return repository.requestPriceData(currencySymbol, date)
+    ) {
+        repository.requestPriceData(currencySymbol, date)
+            .observeForever(androidx.lifecycle.Observer {
+                //it.entity?.market_data?.current_price?.usd.run {
+                if (it.entity != null)
+                    addReading(
+                        it.currencySymbol,
+                        it.date,
+                        it.entity!!.market_data!!.current_price!!.usd
+                    )
+
+            })
     }
 
     fun clearAllRecords() {
         repository.clearAllRecords()
     }
 
-    fun addReading() {
+    fun addReading(cryptocurrencyIdArg: String, dateArg: Date, priceUsdArg: Double) {
         repository.addReading(
             CryptocurrencyPricesEntityDb(
-                cryptocurrencyId = "dsczxa",
-                date = Date(2342),
-                priceUsd = 0.1223
+                cryptocurrencyId = cryptocurrencyIdArg,
+                date = dateArg,
+                priceUsd = priceUsdArg
             )
         )
     }
 
-    fun getAllReadings() {
-        repository.getAllReadings()
-            ?.observeForever(androidx.lifecycle.Observer { t ->
-                t.forEach {
-                    //Log.v("myApp", "element")
-                }
-                Log.v("myApp", "count: ${t.size}")
-            })
+    fun getAllReadings(): LiveData<List<CryptocurrencyPricesEntityDb>>? {
+        return repository.getAllReadings()
     }
 }
