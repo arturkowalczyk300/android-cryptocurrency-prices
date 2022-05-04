@@ -19,16 +19,19 @@
             android:layout_height="wrap_content"
             android:gravity="center">
             <Button
+                android:id="@+id/btnPrevRecord"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/btnPrev"/>
             <TextView
+                android:id="@+id/tvCurrentAndMaxIndex"
                 android:layout_marginHorizontal="60dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="26sp"
                 tools:text="1/1"/>
             <Button
+                android:id="@+id/btnNextRecord"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/btnNext"/>
