@@ -12,6 +12,7 @@ import java.util.*
 
 class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var repository: CryptocurrencyPricesRepository = CryptocurrencyPricesRepository(application)
+    var lastAddedObject: CryptocurrencyPricesEntityDb? = null
 
     fun requestPriceData(
         currencySymbol: String,
@@ -37,13 +38,13 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     }
 
     private fun addReading(cryptocurrencyIdArg: String, dateArg: Date, priceUsdArg: Double) {
-        repository.addReading(
-            CryptocurrencyPricesEntityDb(
-                cryptocurrencyId = cryptocurrencyIdArg,
-                date = dateArg,
-                priceUsd = priceUsdArg
-            )
+        lastAddedObject = CryptocurrencyPricesEntityDb(
+            cryptocurrencyId = cryptocurrencyIdArg,
+            date = dateArg,
+            priceUsd = priceUsdArg
         )
+
+        repository.addReading(lastAddedObject!!)
     }
 
     fun getAllReadings(): LiveData<List<CryptocurrencyPricesEntityDb>>? {

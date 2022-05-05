@@ -1,6 +1,5 @@
 package com.arturkowalczyk300.cryptocurrencyprices.View
 
-import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -51,10 +50,12 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
 
-        ArrayAdapter.createFromResource(this,
+        ArrayAdapter.createFromResource(
+            this,
             R.array.cryptocurrencies_list,
-        R.layout.my_spinner_item).also {
-            adapter-> adapter.setDropDownViewResource(R.layout.my_spinner_item)
+            R.layout.my_spinner_item
+        ).also { adapter ->
+            adapter.setDropDownViewResource(R.layout.my_spinner_item)
             spinCurrencyId.adapter = adapter
         }
         //viewModel = ViewModelProvider(this).get(CryptocurrencyPricesViewModel::class.java)
@@ -99,11 +100,11 @@ class MainActivity : AppCompatActivity() {
             listOfRecords = it
             maxRecordIndex = it.size - 1
             updateIndexInfo()
-            if(it.size>0) {
-                displayRecordByIndex(currentRecordIndex)
+            if (it.size > 0) {
+                navigateToLastInsertedRecord()
+                updateIndexInfo()
                 switchVisibilityOfRecordViewer(View.VISIBLE)
-            }
-            else
+            } else
                 switchVisibilityOfRecordViewer(View.GONE)
         }
         )
@@ -113,6 +114,27 @@ class MainActivity : AppCompatActivity() {
     private fun switchVisibilityOfRecordViewer(visible: Int) {
         val llRecords: LinearLayout = findViewById(R.id.llRecords)
         llRecords.visibility = visible
+    }
+
+    fun navigateToLastInsertedRecord() {
+        try {
+            if (viewModel.lastAddedObject != null) {
+                var foundIndex = -1
+                listOfRecords?.forEachIndexed { index, it -> //skip comparing ID
+                    if (it.cryptocurrencyId == viewModel.lastAddedObject!!.cryptocurrencyId
+                        && it.date == viewModel.lastAddedObject!!.date
+                        && it.priceUsd == viewModel.lastAddedObject!!.priceUsd
+                    )
+                        foundIndex = index
+                }
+                if (foundIndex != -1) currentRecordIndex = foundIndex
+                displayRecordByIndex(currentRecordIndex)
+                Log.v("myApp", "currentRecordIndex: ${currentRecordIndex}")
+            } else
+                displayRecordByIndex(currentRecordIndex)
+        } catch (exc: Exception) {
+
+        }
     }
 
     fun updateIndexInfo() {
@@ -145,9 +167,10 @@ class MainActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.itemClearRecords -> {
                 viewModel.clearAllRecords()
-                currentRecordIndex=0
-                maxRecordIndex =0
+                currentRecordIndex = 0
+                maxRecordIndex = 0
                 updateIndexInfo()
+
             }
         }
         return super.onOptionsItemSelected(item)
