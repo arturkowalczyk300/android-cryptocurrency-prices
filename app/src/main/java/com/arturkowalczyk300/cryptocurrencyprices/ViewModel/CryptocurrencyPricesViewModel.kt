@@ -20,7 +20,6 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     ) {
         repository.requestPriceData(currencySymbol, date)
             .observeForever(androidx.lifecycle.Observer {
-                //it.entity?.market_data?.current_price?.usd.run {
                 if (it.entity != null && it.flagDataSet) {
                     it.flagDataSet = false
                     addReading(

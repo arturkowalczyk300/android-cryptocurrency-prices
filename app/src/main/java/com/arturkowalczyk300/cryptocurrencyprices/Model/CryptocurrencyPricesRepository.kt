@@ -18,7 +18,7 @@ class CryptocurrencyPricesRepository(application: Application) {
     val webService: CryptocurrencyPricesWebService = CryptocurrencyPricesWebService()
 
     fun addReading(reading: CryptocurrencyPricesEntityDb) {
-        database?.userDao()?.addReading(reading).also { Log.v("myApp", "Add Reading") }
+        database?.userDao()?.addReading(reading)
     }
 
     fun clearAllRecords() {

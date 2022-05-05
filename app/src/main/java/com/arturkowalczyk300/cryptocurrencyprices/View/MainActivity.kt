@@ -58,7 +58,6 @@ class MainActivity : AppCompatActivity() {
             adapter.setDropDownViewResource(R.layout.my_spinner_item)
             spinCurrencyId.adapter = adapter
         }
-        //viewModel = ViewModelProvider(this).get(CryptocurrencyPricesViewModel::class.java)
         val factory = CryptocurrencyPricesViewModelFactory(application)
         viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
 
@@ -129,7 +128,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (foundIndex != -1) currentRecordIndex = foundIndex
                 displayRecordByIndex(currentRecordIndex)
-                Log.v("myApp", "currentRecordIndex: ${currentRecordIndex}")
             } else
                 displayRecordByIndex(currentRecordIndex)
         } catch (exc: Exception) {

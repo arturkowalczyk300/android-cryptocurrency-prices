@@ -31,7 +31,7 @@ object CryptocurrencyPricesRetrofitClient {
             cryptocurrencyPricesApiHandle =
                 cryptocurrencyPricesApiHandle ?: retrofitInstance?.create(
                     CryptocurrencyPricesApiHandle::class.java
-                ).also { Log.v("myApp", "api handle build success!") }
+                )
 
 
             okHttpClientInstance!!
