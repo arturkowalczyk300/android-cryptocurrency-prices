@@ -1,10 +1,12 @@
 package com.arturkowalczyk300.cryptocurrencyprices.View
 
+import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.*
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -97,10 +99,20 @@ class MainActivity : AppCompatActivity() {
             listOfRecords = it
             maxRecordIndex = it.size - 1
             updateIndexInfo()
-            displayRecordByIndex(currentRecordIndex)
+            if(it.size>0) {
+                displayRecordByIndex(currentRecordIndex)
+                switchVisibilityOfRecordViewer(View.VISIBLE)
+            }
+            else
+                switchVisibilityOfRecordViewer(View.GONE)
         }
         )
         updateIndexInfo()
+    }
+
+    private fun switchVisibilityOfRecordViewer(visible: Int) {
+        val llRecords: LinearLayout = findViewById(R.id.llRecords)
+        llRecords.visibility = visible
     }
 
     fun updateIndexInfo() {
@@ -135,6 +147,7 @@ class MainActivity : AppCompatActivity() {
                 viewModel.clearAllRecords()
                 currentRecordIndex=0
                 maxRecordIndex =0
+                updateIndexInfo()
             }
         }
         return super.onOptionsItemSelected(item)
