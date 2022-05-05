@@ -1,5 +1,8 @@
 package com.arturkowalczyk300.cryptocurrencyprices.View
 
+import android.app.AlertDialog
+import android.app.DatePickerDialog
+import android.icu.text.DateFormat.DAY
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -29,10 +32,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
 
+    private var datePickerDialog: DatePickerDialog? = null
+
     private var currentRecordIndex: Int = 0
     private var maxRecordIndex: Int = 0
 
     private var listOfRecords: List<CryptocurrencyPricesEntityDb>? = null
+    private val currentSelectedDate: Calendar = Calendar.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,13 +67,15 @@ class MainActivity : AppCompatActivity() {
         val factory = CryptocurrencyPricesViewModelFactory(application)
         viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
 
+        initializeDatePicker()
+        etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
+
         btnGet.setOnClickListener {
             var date: Date
 
             var sdf: SimpleDateFormat = SimpleDateFormat("dd.MM.yyyy")
             try {
                 date = sdf.parse(etDate.text.toString())
-
                 viewModel.requestPriceData(
                     spinCurrencyId.selectedItem.toString(),
                     date
@@ -108,6 +116,23 @@ class MainActivity : AppCompatActivity() {
         }
         )
         updateIndexInfo()
+    }
+
+    private fun initializeDatePicker() {
+        val year:Int =0
+        val month:Int =0
+        val day:Int =0
+        datePickerDialog =
+            DatePickerDialog(this, DatePickerDialog.OnDateSetListener { datePicker, year, monthOfYear, day ->
+                val month = monthOfYear+1
+                etDate.setText("${day}.${month}.${year}")
+            }, currentSelectedDate.get(Calendar.YEAR),
+                currentSelectedDate.get(Calendar.MONTH),
+                currentSelectedDate.get(Calendar.DAY_OF_MONTH))
+    }
+
+    private fun openDatePicker() {
+        datePickerDialog?.show()
     }
 
     private fun switchVisibilityOfRecordViewer(visible: Int) {
