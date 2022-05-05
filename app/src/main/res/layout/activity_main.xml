@@ -147,7 +147,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="24sp"
                 android:layout_margin="20dp"
-                android:hint="Date (dd.mm.yyyy)" />
+                android:hint="Press to set date" />
         </LinearLayout>
 
         <Button

@@ -56,9 +56,7 @@ class CryptocurrencyPricesWebService {
     init {
         when (CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()) {
             null -> Log.v("myApp", "ApiHandleInstance is null")
-            else -> {
-                Log.v("myApp", "ApiHandleInstance is OK!")
-            }
+            else -> {}
         }
     }
 
@@ -76,7 +74,7 @@ class CryptocurrencyPricesWebService {
 
         val response: Call<CryptocurrencyPricesEntityApi>? =
             CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
-                ?.getPrice(currencySymbol, formattedDate).also { Log.v("myApp", "getPrice") }
+                ?.getPrice(currencySymbol, formattedDate)
 
 
         response?.enqueue(object : Callback<CryptocurrencyPricesEntityApi> {
@@ -84,7 +82,6 @@ class CryptocurrencyPricesWebService {
                 call: Call<CryptocurrencyPricesEntityApi>,
                 response: Response<CryptocurrencyPricesEntityApi>
             ) {
-                Log.v("myApp", "response")
                 if (waitingForResponse) {
                     mldRequestWithResponse?.value?.entity = response.body()
                     mldRequestWithResponse?.value?.flagDataSet = true
