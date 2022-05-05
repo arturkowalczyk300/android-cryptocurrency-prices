@@ -6,7 +6,7 @@
 # Description
 **CryptocurrencyPrices** is application for devices with Android operating system to check historical cryptocurrencies price (in USD).
 Main Activity contains components to select currency (now application handles Bitcoin and Ethereum) and date field.
-App contains local database. It is used for caching downloaded records - user can later view them, even without Internet access
+App contains local database. It is used for caching downloaded records - user can later view them, even without Internet access. Records are sorted in descending order - by date.
 
 # Install
 Download and install newest CryptocurrencyPrices*.apk file from **Releases** section (*install from unknown sources* option must be enabled in settings of Android system).
