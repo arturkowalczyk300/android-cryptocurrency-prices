@@ -4,106 +4,128 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center_vertical"
     android:orientation="vertical"
     tools:context=".View.MainActivity">
+
 
     <LinearLayout
         android:id="@+id/llRecords"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="200dp"
-        android:gravity="top"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center">
+
             <Button
                 android:id="@+id/btnPrevRecord"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/btnPrev"/>
+                android:text="@string/btnPrev" />
+
             <TextView
                 android:id="@+id/tvCurrentAndMaxIndex"
-                android:layout_marginHorizontal="60dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="60dp"
                 android:textSize="26sp"
-                tools:text="1/1"/>
+                tools:text="1/1" />
+
             <Button
                 android:id="@+id/btnNextRecord"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/btnNext"/>
+                android:text="@string/btnNext" />
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:layout_margin="20dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:text="@string/cryptocurrencySymbol"/>
-            <TextView
-                android:layout_margin="20dp"
-                android:id="@+id/tvCryptocurrencySymbol"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="24sp"
-                tools:text="bitcoin"/>
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_margin="25dp"
+                    android:text="@string/cryptocurrencySymbol"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_margin="20dp"
+                    android:text="@string/cryptocurrencyDate"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_margin="20dp"
+                    android:text="@string/cryptocurrencyPrice"
+                    android:textSize="20sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvCryptocurrencySymbol"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_margin="20dp"
+                    android:textSize="24sp"
+                    tools:text="bitcoin" />
+
+
+                <TextView
+                    android:id="@+id/tvCryptocurrencyDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="20dp"
+                    android:layout_weight="1"
+                    android:textSize="24sp"
+                    tools:text="01.05.2022" />
+
+
+
+                <TextView
+                    android:id="@+id/tvCryptocurrencyPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_margin="20dp"
+                    android:textSize="24sp"
+                    tools:text="34000 USD" />
+            </LinearLayout>
+
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:layout_margin="20dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:text="@string/cryptocurrencyDate"/>
-            <TextView
-                android:layout_margin="20dp"
-                android:id="@+id/tvCryptocurrencyDate"
-                android:layout_width="wrap_content"
-                android:textSize="24sp"
-                android:layout_height="wrap_content"
-                tools:text="01.05.2022"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:layout_margin="20dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:text="@string/cryptocurrencyPrice"/>
-            <TextView
-                android:layout_margin="20dp"
-                android:id="@+id/tvCryptocurrencyPrice"
-                android:layout_width="wrap_content"
-                android:textSize="24sp"
-                android:layout_height="wrap_content"
-                tools:text="34 000USD"/>
-        </LinearLayout>
 
     </LinearLayout>
-
-
 
     <LinearLayout
         android:id="@+id/llRequest"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="200dp"
-        android:layout_gravity="bottom"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="bottom"
         android:orientation="vertical">
 
         <LinearLayout

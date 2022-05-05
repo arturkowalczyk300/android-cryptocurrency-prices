@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() {
                 tvCryptocurrencySymbol.text = entity.cryptocurrencyId
                 tvCryptocurrencyDate.text = sdf.format(entity.date)
                 tvCryptocurrencyPrice.text =
-                    "%.3fUSD".format(entity.priceUsd)
+                    "%.3f USD".format(entity.priceUsd)
             }
         } catch (exc: Exception) {
             Log.e("myApp", exc.toString())
