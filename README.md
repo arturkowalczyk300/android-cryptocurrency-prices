@@ -12,4 +12,4 @@ App contains local database. It is used for caching downloaded records - user ca
 Download and install newest CryptocurrencyPrices*.apk file from **Releases** section (*install from unknown sources* option must be enabled in settings of Android system).
 
 # Demo
-<img src="res/demo.gif" alt="Light theme" width="40%" height="40%">
+<img src="res/demo.gif" alt="Light theme" width="40%" height="40%"> 
