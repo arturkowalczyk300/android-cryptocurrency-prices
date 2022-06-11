@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
 
                 var date: Date
 
-                var sdf: SimpleDateFormat = SimpleDateFormat("dd.MM.yyyy")
+                var sdf: SimpleDateFormat = SimpleDateFormat(getString(R.string.defaultDateFormat))
                 try {
                     date = sdf.parse(etDate.text.toString())
                     viewModel.requestPriceData(
@@ -137,6 +137,10 @@ class MainActivity : AppCompatActivity() {
         val year: Int = 0
         val month: Int = 0
         val day: Int = 0
+
+        val sdf = SimpleDateFormat(getString(R.string.defaultDateFormat))
+        etDate.setText(sdf.format(Date()))
+
         datePickerDialog =
             DatePickerDialog(
                 this, DatePickerDialog.OnDateSetListener { datePicker, year, monthOfYear, day ->
@@ -186,7 +190,7 @@ class MainActivity : AppCompatActivity() {
             val entity: CryptocurrencyPricesEntityDb? = listOfRecords?.get(currentRecordIndex)
 
             if (entity != null) {
-                val sdf = SimpleDateFormat("dd.MM.yyyy")
+                val sdf = SimpleDateFormat(getString(R.string.defaultDateFormat))
 
                 tvCryptocurrencySymbol.text = entity.cryptocurrencyId
                 tvCryptocurrencyDate.text = sdf.format(entity.date)

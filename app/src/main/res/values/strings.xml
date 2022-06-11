@@ -9,4 +9,5 @@
     <string name="menuGetAllRecords">Get all records</string>
     <string name="menuAddRecord">Add record</string>
     <string name="defaultVsCurrency">USD</string>
+    <string name="defaultDateFormat">dd.MM.yyyy</string>
 </resources>
