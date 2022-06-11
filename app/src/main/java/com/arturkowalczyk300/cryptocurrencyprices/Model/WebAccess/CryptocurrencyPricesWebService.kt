@@ -2,7 +2,6 @@ package com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import okhttp3.Request
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -10,6 +9,7 @@ import java.lang.StringBuilder
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class RequestWithResponse(
     var currencySymbol: String = "",
@@ -52,15 +52,18 @@ class CryptocurrencyPricesWebService {
     var mldRequestWithResponse: MutableLiveData<RequestWithResponse> = MutableLiveData(
         RequestWithResponse()
     )
+    var cryptocurrenciesListSorted: MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>> =
+        MutableLiveData()
 
     init {
         when (CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()) {
             null -> Log.v("myApp", "ApiHandleInstance is null")
-            else -> {}
+            else -> {
+            }
         }
     }
 
-    public fun requestPriceData(
+    fun requestPriceData(
         currencySymbol: String,
         date: Date
     ): MutableLiveData<RequestWithResponse> {
@@ -98,6 +101,35 @@ class CryptocurrencyPricesWebService {
                 )
             }
         })
+
         return mldRequestWithResponse
+    }
+
+    fun requestCryptocurrenciesList(): MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>> {
+        val listResponse: Call<List<CryptocurrencyPriceFromListApi>>? =
+            CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
+                ?.getListOfCryptocurrencies("USD", "market_cap_desc", 100, 1, false)
+
+        listResponse?.enqueue(object : Callback<List<CryptocurrencyPriceFromListApi>> {
+            override fun onResponse(
+                call: Call<List<CryptocurrencyPriceFromListApi>>,
+                response: Response<List<CryptocurrencyPriceFromListApi>>
+            ) {
+                val responseBody = response.body()
+                if (response.body() != null && response.code() != 404) { //valid response
+                    cryptocurrenciesListSorted.value = ArrayList(response.body())
+                } else {
+                    Log.v(
+                        "myApp",
+                        "invalid response! [size=${responseBody?.size}, code=${response.code()}]"
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<CryptocurrencyPriceFromListApi>>, t: Throwable) {
+                Log.v("myApp", "onFailure")
+            }
+        })
+        return cryptocurrenciesListSorted
     }
 }

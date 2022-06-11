@@ -12,7 +12,7 @@ object CryptocurrencyPricesRetrofitClient {
     private var cryptocurrencyPricesApiHandle: CryptocurrencyPricesApiHandle? = null
     private val baseUrlAddress: String = "https://api.coingecko.com"
 
-    public fun getCryptocurrencyPricesApiHandleInstance(): CryptocurrencyPricesApiHandle? {
+    fun getCryptocurrencyPricesApiHandleInstance(): CryptocurrencyPricesApiHandle? {
 
         try {
             okHttpClientInstance =

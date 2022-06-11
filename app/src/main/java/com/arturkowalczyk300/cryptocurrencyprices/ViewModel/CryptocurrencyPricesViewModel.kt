@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.Model.CryptocurrencyPricesRepository
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
+import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPriceFromListApi
 import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.RequestWithResponse
 import java.util.*
 
@@ -30,6 +31,10 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
                 }
 
             })
+    }
+
+    fun requestCryptocurrenciesList(): LiveData<ArrayList<CryptocurrencyPriceFromListApi>> {
+        return repository.requestCryptocurrenciesList()
     }
 
     fun clearAllRecords() {

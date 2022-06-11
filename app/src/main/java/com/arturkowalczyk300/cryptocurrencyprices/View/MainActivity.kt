@@ -19,6 +19,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPrices
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: CryptocurrencyPricesViewModel
@@ -32,6 +33,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
 
+    private var isSpinnerInitialized: Boolean = false
     private var datePickerDialog: DatePickerDialog? = null
 
     private var currentRecordIndex: Int = 0
@@ -56,32 +58,45 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
 
-        ArrayAdapter.createFromResource(
-            this,
-            R.array.cryptocurrencies_list,
-            R.layout.my_spinner_item
-        ).also { adapter ->
-            adapter.setDropDownViewResource(R.layout.my_spinner_item)
-            spinCurrencyId.adapter = adapter
-        }
         val factory = CryptocurrencyPricesViewModelFactory(application)
         viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
+
+        //initialize spinner
+        viewModel.requestCryptocurrenciesList().observe(this, Observer { it ->
+            var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
+
+            it.forEach { nextIt ->
+                listOfCryptocurrenciesNames.add(nextIt.id)
+            }
+
+            ArrayAdapter(this, R.layout.my_spinner_item, listOfCryptocurrenciesNames)
+                .also { adapter ->
+                    adapter.setDropDownViewResource(R.layout.my_spinner_item)
+                    spinCurrencyId.adapter = adapter
+                }
+
+            isSpinnerInitialized = true
+        })
+
 
         initializeDatePicker()
         etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
 
         btnGet.setOnClickListener {
-            var date: Date
+            if (isSpinnerInitialized) {
 
-            var sdf: SimpleDateFormat = SimpleDateFormat("dd.MM.yyyy")
-            try {
-                date = sdf.parse(etDate.text.toString())
-                viewModel.requestPriceData(
-                    spinCurrencyId.selectedItem.toString(),
-                    date
-                )
-            } catch (exc: Exception) {
-                Log.v("myApp", exc.toString())
+                var date: Date
+
+                var sdf: SimpleDateFormat = SimpleDateFormat("dd.MM.yyyy")
+                try {
+                    date = sdf.parse(etDate.text.toString())
+                    viewModel.requestPriceData(
+                        spinCurrencyId.selectedItem.toString(),
+                        date
+                    )
+                } catch (exc: Exception) {
+                    Log.v("myApp", exc.toString())
+                }
             }
         }
 
@@ -119,16 +134,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeDatePicker() {
-        val year:Int =0
-        val month:Int =0
-        val day:Int =0
+        val year: Int = 0
+        val month: Int = 0
+        val day: Int = 0
         datePickerDialog =
-            DatePickerDialog(this, DatePickerDialog.OnDateSetListener { datePicker, year, monthOfYear, day ->
-                val month = monthOfYear+1
-                etDate.setText("${day}.${month}.${year}")
-            }, currentSelectedDate.get(Calendar.YEAR),
+            DatePickerDialog(
+                this, DatePickerDialog.OnDateSetListener { datePicker, year, monthOfYear, day ->
+                    val month = monthOfYear + 1
+                    etDate.setText("${day}.${month}.${year}")
+                }, currentSelectedDate.get(Calendar.YEAR),
                 currentSelectedDate.get(Calendar.MONTH),
-                currentSelectedDate.get(Calendar.DAY_OF_MONTH))
+                currentSelectedDate.get(Calendar.DAY_OF_MONTH)
+            )
     }
 
     private fun openDatePicker() {
