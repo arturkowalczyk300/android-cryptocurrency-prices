@@ -7,9 +7,11 @@ import androidx.lifecycle.MutableLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesDao
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesDatabase
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
+import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPriceFromListApi
 import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPricesWebService
 import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.RequestWithResponse
 import java.util.*
+import kotlin.jvm.internal.MutablePropertyReference
 
 class CryptocurrencyPricesRepository(application: Application) {
 
@@ -34,5 +36,9 @@ class CryptocurrencyPricesRepository(application: Application) {
         date: Date
     ): MutableLiveData<RequestWithResponse> {
         return webService.requestPriceData(currencySymbol, date)
+    }
+
+    fun requestCryptocurrenciesList(): MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>>{
+        return webService.requestCryptocurrenciesList()
     }
 }

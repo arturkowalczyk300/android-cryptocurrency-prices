@@ -8,4 +8,5 @@
     <string name="menuClearRecords">Clear all records</string>
     <string name="menuGetAllRecords">Get all records</string>
     <string name="menuAddRecord">Add record</string>
+    <string name="defaultVsCurrency">USD</string>
 </resources>
