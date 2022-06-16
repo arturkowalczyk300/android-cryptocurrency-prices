@@ -1,25 +1,22 @@
 package com.arturkowalczyk300.cryptocurrencyprices.View
 
-import android.app.AlertDialog
 import android.app.DatePickerDialog
-import android.icu.text.DateFormat.DAY
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
+import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
-import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: CryptocurrencyPricesViewModel
@@ -32,8 +29,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencySymbol: TextView
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
+    private lateinit var tvNoInternetConnection: TextView
 
     private var isSpinnerInitialized: Boolean = false
+    private var hasInternetConnection: Boolean = false
     private var datePickerDialog: DatePickerDialog? = null
 
     private var currentRecordIndex: Int = 0
@@ -57,9 +56,18 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencySymbol = findViewById(R.id.tvCryptocurrencySymbol)
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
+        tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
 
         val factory = CryptocurrencyPricesViewModelFactory(application)
         viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
+
+        //add no network connection info handling
+        val networkAccessLiveData = NetworkAccessLiveData(this)
+        networkAccessLiveData.observe(this) { hasInternetConnection ->
+            this.hasInternetConnection = hasInternetConnection
+            changeNoInternetConnectionInfoVisibility(hasInternetConnection)
+        }
+
 
         //initialize spinner
         viewModel.requestCryptocurrenciesList().observe(this, Observer { it ->
@@ -83,11 +91,9 @@ class MainActivity : AppCompatActivity() {
         etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
 
         btnGet.setOnClickListener {
-            if (isSpinnerInitialized) {
-
+            if (isSpinnerInitialized && hasInternetConnection) {
                 var date: Date
-
-                var sdf: SimpleDateFormat = SimpleDateFormat(getString(R.string.defaultDateFormat))
+                var sdf = SimpleDateFormat(getString(R.string.defaultDateFormat))
                 try {
                     date = sdf.parse(etDate.text.toString())
                     viewModel.requestPriceData(
@@ -219,4 +225,13 @@ class MainActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+
+    private fun changeNoInternetConnectionInfoVisibility(hasInternetConnection: Boolean?) {
+        if (hasInternetConnection == true)
+            tvNoInternetConnection.visibility = View.GONE
+        else
+            tvNoInternetConnection.visibility = View.VISIBLE
+    }
+
 }
+
