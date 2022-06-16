@@ -7,6 +7,16 @@
     android:orientation="vertical"
     tools:context=".View.MainActivity">
 
+    <TextView
+        android:id="@+id/tvNoInternetConnection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:text="@string/no_internet_connection"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        android:background="#5A0707"/>
 
     <LinearLayout
         android:id="@+id/llRecords"
