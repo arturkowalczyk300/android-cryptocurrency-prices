@@ -45,51 +45,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        spinCurrencyId = findViewById(R.id.spinCurrencyId)
-        etDate = findViewById(R.id.etDate)
-        btnGet = findViewById(R.id.btnGet)
-        btnPrevRecord = findViewById(R.id.btnPrevRecord)
-        btnNextRecord = findViewById(R.id.btnNextRecord)
-
-        tvCurrentAndMaxIndex = findViewById(R.id.tvCurrentAndMaxIndex)
-
-        tvCryptocurrencySymbol = findViewById(R.id.tvCryptocurrencySymbol)
-        tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
-        tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
-        tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
-
-        val factory = CryptocurrencyPricesViewModelFactory(application)
-        viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
-
-        //add no network connection info handling
-        val networkAccessLiveData = NetworkAccessLiveData(this)
-        networkAccessLiveData.observe(this) { hasInternetConnection ->
-            this.hasInternetConnection = hasInternetConnection
-            changeNoInternetConnectionInfoVisibility(hasInternetConnection)
-        }
-
-
-        //initialize spinner
-        viewModel.requestCryptocurrenciesList().observe(this, Observer { it ->
-            var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
-
-            it.forEach { nextIt ->
-                listOfCryptocurrenciesNames.add(nextIt.id)
-            }
-
-            ArrayAdapter(this, R.layout.my_spinner_item, listOfCryptocurrenciesNames)
-                .also { adapter ->
-                    adapter.setDropDownViewResource(R.layout.my_spinner_item)
-                    spinCurrencyId.adapter = adapter
-                }
-
-            isSpinnerInitialized = true
-        })
-
-
+        assignViewsVariables()
+        initViewModel()
+        handleNoNetworkInfo()
+        handleCryptocurrencyChoice()
         initializeDatePicker()
-        etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
+        addButtonsOnClickListeners()
+        observeLiveData()
+        updateIndexInfo()
+    }
 
+    private fun addButtonsOnClickListeners() {
         btnGet.setOnClickListener {
             if (isSpinnerInitialized && hasInternetConnection) {
                 var date: Date
@@ -122,8 +88,9 @@ class MainActivity : AppCompatActivity() {
             updateIndexInfo()
             displayRecordByIndex(currentRecordIndex)
         }
+    }
 
-        //observe all readings
+    private fun observeLiveData() {
         viewModel.getAllReadings()?.observe(this, Observer {
             listOfRecords = it
             maxRecordIndex = it.size - 1
@@ -136,7 +103,52 @@ class MainActivity : AppCompatActivity() {
                 switchVisibilityOfRecordViewer(View.GONE)
         }
         )
-        updateIndexInfo()
+    }
+
+    private fun handleCryptocurrencyChoice() {
+        viewModel.requestCryptocurrenciesList().observe(this, Observer { it ->
+            var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
+
+            it.forEach { nextIt ->
+                listOfCryptocurrenciesNames.add(nextIt.id)
+            }
+
+            ArrayAdapter(this, R.layout.my_spinner_item, listOfCryptocurrenciesNames)
+                .also { adapter ->
+                    adapter.setDropDownViewResource(R.layout.my_spinner_item)
+                    spinCurrencyId.adapter = adapter
+                }
+
+            isSpinnerInitialized = true
+        })
+    }
+
+    private fun handleNoNetworkInfo() {
+        val networkAccessLiveData = NetworkAccessLiveData(this)
+        networkAccessLiveData.observe(this) { hasInternetConnection ->
+            this.hasInternetConnection = hasInternetConnection
+            changeNoInternetConnectionInfoVisibility(hasInternetConnection)
+        }
+    }
+
+    private fun initViewModel() {
+        val factory = CryptocurrencyPricesViewModelFactory(application)
+        viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
+    }
+
+    private fun assignViewsVariables() {
+        spinCurrencyId = findViewById(R.id.spinCurrencyId)
+        etDate = findViewById(R.id.etDate)
+        btnGet = findViewById(R.id.btnGet)
+        btnPrevRecord = findViewById(R.id.btnPrevRecord)
+        btnNextRecord = findViewById(R.id.btnNextRecord)
+
+        tvCurrentAndMaxIndex = findViewById(R.id.tvCurrentAndMaxIndex)
+
+        tvCryptocurrencySymbol = findViewById(R.id.tvCryptocurrencySymbol)
+        tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
+        tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
+        tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
     }
 
     private fun initializeDatePicker() {
@@ -156,6 +168,8 @@ class MainActivity : AppCompatActivity() {
                 currentSelectedDate.get(Calendar.MONTH),
                 currentSelectedDate.get(Calendar.DAY_OF_MONTH)
             )
+
+        etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
     }
 
     private fun openDatePicker() {
@@ -167,7 +181,7 @@ class MainActivity : AppCompatActivity() {
         llRecords.visibility = visible
     }
 
-    fun navigateToLastInsertedRecord() {
+    private fun navigateToLastInsertedRecord() {
         try {
             if (viewModel.lastAddedObject != null) {
                 var foundIndex = -1
@@ -187,11 +201,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun updateIndexInfo() {
+    private fun updateIndexInfo() {
         tvCurrentAndMaxIndex.text = "${currentRecordIndex + 1}/${maxRecordIndex + 1}"
     }
 
-    fun displayRecordByIndex(index: Int) {
+    private fun displayRecordByIndex(index: Int) {
         try {
             val entity: CryptocurrencyPricesEntityDb? = listOfRecords?.get(currentRecordIndex)
 
