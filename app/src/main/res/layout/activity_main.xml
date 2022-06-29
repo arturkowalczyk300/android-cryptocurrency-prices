@@ -144,13 +144,13 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <Spinner
-                android:id="@+id/spinCurrencyId"
+            <TextView
+                android:id="@+id/tvSelectedCurrencyId"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="20dp"
                 android:textSize="24sp"
-                android:popupBackground="@color/spinner_background"/>
+                android:hint="Select"
+                android:drawableEnd="@drawable/ic_baseline_arrow_drop_down_24"/>
 
             <EditText
                 android:id="@+id/etDate"
@@ -168,5 +168,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="Get" />
+
     </LinearLayout>
 </LinearLayout>

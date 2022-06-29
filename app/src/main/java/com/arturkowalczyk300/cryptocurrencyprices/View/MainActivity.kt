@@ -1,13 +1,17 @@
 package com.arturkowalczyk300.cryptocurrencyprices.View
 
 import android.app.DatePickerDialog
+import android.app.Dialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
@@ -20,7 +24,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: CryptocurrencyPricesViewModel
-    private lateinit var spinCurrencyId: Spinner
+    private lateinit var tvSelectedCurrencyId: TextView
     private lateinit var etDate: EditText
     private lateinit var btnGet: Button
     private lateinit var btnPrevRecord: Button
@@ -31,7 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
 
-    private var isSpinnerInitialized: Boolean = false
+    private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
     private var datePickerDialog: DatePickerDialog? = null
 
@@ -40,6 +44,8 @@ class MainActivity : AppCompatActivity() {
 
     private var listOfRecords: List<CryptocurrencyPricesEntityDb>? = null
     private val currentSelectedDate: Calendar = Calendar.getInstance()
+
+    private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,13 +63,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun addButtonsOnClickListeners() {
         btnGet.setOnClickListener {
-            if (isSpinnerInitialized && hasInternetConnection) {
+            if (isCurrenciesListInitialized && hasInternetConnection) {
                 var date: Date
                 var sdf = SimpleDateFormat(getString(R.string.defaultDateFormat))
                 try {
                     date = sdf.parse(etDate.text.toString())
                     viewModel.requestPriceData(
-                        spinCurrencyId.selectedItem.toString(),
+                        tvSelectedCurrencyId.text.toString(),
                         date
                     )
                 } catch (exc: Exception) {
@@ -107,20 +113,59 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleCryptocurrencyChoice() {
         viewModel.requestCryptocurrenciesList().observe(this, Observer { it ->
-            var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
+            listOfCryptocurrenciesNames.clear()
 
             it.forEach { nextIt ->
                 listOfCryptocurrenciesNames.add(nextIt.id)
             }
 
-            ArrayAdapter(this, R.layout.my_spinner_item, listOfCryptocurrenciesNames)
-                .also { adapter ->
-                    adapter.setDropDownViewResource(R.layout.my_spinner_item)
-                    spinCurrencyId.adapter = adapter
+            isCurrenciesListInitialized = true
+            tvSelectedCurrencyId.text = listOfCryptocurrenciesNames.first()
+        })
+
+        tvSelectedCurrencyId.setOnClickListener {
+            Toast.makeText(
+                applicationContext,
+                "",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            //display dialog
+            val dialog = Dialog(this)
+            dialog.setContentView(R.layout.dialog_searchable_list)
+            dialog.show()
+            val listView = dialog.findViewById(R.id.dialogListView) as ListView
+
+            //set adapter to list with cryptocurrencies
+            val adapter = ArrayAdapter(this, R.layout.my_spinner_item, listOfCryptocurrenciesNames)
+            adapter.setDropDownViewResource(R.layout.my_spinner_item)
+            listView.adapter = adapter
+            listView.setOnItemClickListener { parent, view, position, id ->
+                tvSelectedCurrencyId.text = listView.adapter.getItem(position).toString()
+                dialog.dismiss()
+            }
+
+            //handle search filter
+            val editTextFilter = dialog.findViewById(R.id.dialogEtFilter) as EditText
+            editTextFilter.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
                 }
 
-            isSpinnerInitialized = true
-        })
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    (listView.adapter as ArrayAdapter<*>).filter.filter(s.toString())
+                }
+
+                override fun afterTextChanged(s: Editable?) {
+
+                }
+            })
+        }
+
     }
 
     private fun handleNoNetworkInfo() {
@@ -137,7 +182,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun assignViewsVariables() {
-        spinCurrencyId = findViewById(R.id.spinCurrencyId)
+        tvSelectedCurrencyId = findViewById(R.id.tvSelectedCurrencyId)
         etDate = findViewById(R.id.etDate)
         btnGet = findViewById(R.id.btnGet)
         btnPrevRecord = findViewById(R.id.btnPrevRecord)
