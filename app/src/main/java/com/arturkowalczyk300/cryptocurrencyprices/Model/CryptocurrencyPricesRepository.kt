@@ -38,7 +38,11 @@ class CryptocurrencyPricesRepository(application: Application) {
         return webService.requestPriceData(currencySymbol, date)
     }
 
-    fun requestCryptocurrenciesList(): MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>>{
+    fun requestCryptocurrenciesList(): MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>> {
         return webService.requestCryptocurrenciesList()
+    }
+
+    fun requestPriceHistoryForLastMonth(currencySymbol: String, vs_currency: String): MutableLiveData<List<List<Double>>?> {
+        return webService.requestPriceHistoryForLastMonth(currencySymbol, vs_currency)
     }
 }

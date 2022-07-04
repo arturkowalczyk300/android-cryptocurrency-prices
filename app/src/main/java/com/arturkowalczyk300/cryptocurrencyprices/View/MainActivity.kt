@@ -65,9 +65,7 @@ class MainActivity : AppCompatActivity() {
         observeLiveData()
         updateIndexInfo()
 
-        //chart
         initializeChart()
-        setChartData()
     }
 
     private fun addButtonsOnClickListeners() {
@@ -118,6 +116,20 @@ class MainActivity : AppCompatActivity() {
                 switchVisibilityOfRecordViewer(View.GONE)
         }
         )
+
+        //chart
+        viewModel.requestPriceHistoryForLastMonth("bitcoin", "usd").observe(this,
+            Observer {
+                if (!it.isNullOrEmpty()) {
+                    //create list
+                    var list = arrayListOf<Entry>()
+                    it.forEachIndexed { index, currentRow ->
+                        Log.v("rawData2", "i=$index, ${currentRow[0]}, ${currentRow[1]}")
+                        list.add(Entry(currentRow[0].toFloat(), currentRow[1].toFloat()))
+                    }
+                    setChartData(list)
+                }
+            })
     }
 
     private fun handleCryptocurrencyChoice() {
@@ -211,17 +223,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun setChartData() {
-        val values: ArrayList<Entry> = arrayListOf(
-            Entry(0F, 1F),
-            Entry(1F, 2F),
-            Entry(2F, 5F),
-            Entry(3F, 10F),
-            Entry(4F, 20F),
-            Entry(5F, 100F),
-            Entry(6F, 300F)
-        )
-
+    private fun setChartData(values: ArrayList<Entry>) {
         val set1 = LineDataSet(values, "Dataset")
         set1.color = Color.BLUE
         val data = LineData(set1)
