@@ -11,12 +11,12 @@
         android:id="@+id/tvNoInternetConnection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAlignment="center"
+        android:background="#5A0707"
         android:text="@string/no_internet_connection"
-        android:textSize="20sp"
+        android:textAlignment="center"
         android:textColor="@color/white"
-        android:visibility="gone"
-        android:background="#5A0707"/>
+        android:textSize="20sp"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/llRecords"
@@ -62,27 +62,28 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="25dp"
                     android:layout_weight="1"
-                    android:layout_margin="25dp"
                     android:text="@string/cryptocurrencySymbol"
                     android:textSize="20sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
                     android:layout_weight="1"
-                    android:layout_margin="20dp"
                     android:text="@string/cryptocurrencyDate"
                     android:textSize="20sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_margin="20dp"
+                    android:layout_weight="1"
                     android:text="@string/cryptocurrencyPrice"
                     android:textSize="20sp" />
 
@@ -98,8 +99,8 @@
                     android:id="@+id/tvCryptocurrencySymbol"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
                     android:layout_weight="1"
-                    android:layout_margin="20dp"
                     android:textSize="24sp"
                     tools:text="bitcoin" />
 
@@ -108,25 +109,40 @@
                     android:id="@+id/tvCryptocurrencyDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="20dp"
+                    android:layout_marginHorizontal="20dp"
                     android:layout_weight="1"
                     android:textSize="24sp"
                     tools:text="01.05.2022" />
-
 
 
                 <TextView
                     android:id="@+id/tvCryptocurrencyPrice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
                     android:layout_weight="1"
-                    android:layout_margin="20dp"
                     android:textSize="24sp"
                     tools:text="34000 USD" />
             </LinearLayout>
 
         </LinearLayout>
 
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llChart"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="bottom"
+        android:orientation="vertical">
+
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/chart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+        <!-- mp android chart here -->
 
     </LinearLayout>
 
@@ -138,6 +154,7 @@
         android:gravity="bottom"
         android:orientation="vertical">
 
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -148,18 +165,18 @@
                 android:id="@+id/tvSelectedCurrencyId"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="24sp"
+                android:drawableEnd="@drawable/ic_baseline_arrow_drop_down_24"
                 android:hint="Select"
-                android:drawableEnd="@drawable/ic_baseline_arrow_drop_down_24"/>
+                android:textSize="24sp" />
 
             <EditText
                 android:id="@+id/etDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="24sp"
-                android:focusable="false"
                 android:layout_margin="20dp"
-                android:hint="Press to set date" />
+                android:focusable="false"
+                android:hint="Press to set date"
+                android:textSize="24sp" />
         </LinearLayout>
 
         <Button

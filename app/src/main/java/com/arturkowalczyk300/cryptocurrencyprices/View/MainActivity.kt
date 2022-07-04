@@ -2,6 +2,7 @@ package com.arturkowalczyk300.cryptocurrencyprices.View
 
 import android.app.DatePickerDialog
 import android.app.Dialog
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,7 +12,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
@@ -19,6 +19,10 @@ import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
+    private lateinit var chart: LineChart
 
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
@@ -59,6 +64,10 @@ class MainActivity : AppCompatActivity() {
         addButtonsOnClickListeners()
         observeLiveData()
         updateIndexInfo()
+
+        //chart
+        initializeChart()
+        setChartData()
     }
 
     private fun addButtonsOnClickListeners() {
@@ -194,6 +203,29 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
         tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
+        chart = findViewById(R.id.chart)
+    }
+
+    private fun initializeChart() {
+        chart.setBackgroundColor(Color.DKGRAY)
+
+    }
+
+    private fun setChartData() {
+        val values: ArrayList<Entry> = arrayListOf(
+            Entry(0F, 1F),
+            Entry(1F, 2F),
+            Entry(2F, 5F),
+            Entry(3F, 10F),
+            Entry(4F, 20F),
+            Entry(5F, 100F),
+            Entry(6F, 300F)
+        )
+
+        val set1 = LineDataSet(values, "Dataset")
+        set1.color = Color.BLUE
+        val data = LineData(set1)
+        chart.data = data
     }
 
     private fun initializeDatePicker() {
