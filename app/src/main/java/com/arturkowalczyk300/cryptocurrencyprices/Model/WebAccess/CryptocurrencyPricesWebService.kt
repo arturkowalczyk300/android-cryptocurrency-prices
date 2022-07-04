@@ -52,6 +52,9 @@ class CryptocurrencyPricesWebService {
     var mldRequestWithResponse: MutableLiveData<RequestWithResponse> = MutableLiveData(
         RequestWithResponse()
     )
+
+    var mldPriceHistory: MutableLiveData<List<List<Double>>?> = MutableLiveData(listOf())
+
     var cryptocurrenciesListSorted: MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>> =
         MutableLiveData()
 
@@ -102,6 +105,9 @@ class CryptocurrencyPricesWebService {
             }
         })
 
+        //TODO: remove
+        requestPriceHistoryForLastMonth("bitcoin", "usd")
+
         return mldRequestWithResponse
     }
 
@@ -131,5 +137,38 @@ class CryptocurrencyPricesWebService {
             }
         })
         return cryptocurrenciesListSorted
+    }
+
+    fun requestPriceHistoryForLastMonth(
+        currencySymbol: String,
+        vs_currency: String
+    ): MutableLiveData<List<List<Double>>?> {
+
+        val response: Call<CryptocurrencyPriceHistoryFromApi>? =
+            CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
+                ?.getHistoryOfPriceForLastMonth(currencySymbol, vs_currency)
+
+
+        response?.enqueue(object : Callback<CryptocurrencyPriceHistoryFromApi> {
+            override fun onResponse(
+                call: Call<CryptocurrencyPriceHistoryFromApi>,
+                response: Response<CryptocurrencyPriceHistoryFromApi>
+            ) {
+                Log.v(
+                    "myApp", "onSuccess, url:${call.request().url().toString()}"
+                )
+
+                mldPriceHistory.value = response.body()?.prices
+            }
+
+            override fun onFailure(call: Call<CryptocurrencyPriceHistoryFromApi>, t: Throwable) {
+                Log.v(
+                    "myApp", "onFailure, url:${call.request().url().toString()}" +
+                            "\n exc: ${t.stackTraceToString()}"
+                )
+            }
+        })
+
+        return mldPriceHistory
     }
 }

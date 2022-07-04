@@ -37,6 +37,10 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
         return repository.requestCryptocurrenciesList()
     }
 
+    fun requestPriceHistoryForLastMonth(currencySymbol: String, vs_currency: String): MutableLiveData<List<List<Double>>?> {
+        return repository.requestPriceHistoryForLastMonth(currencySymbol, vs_currency)
+    }
+
     fun clearAllRecords() {
         repository.clearAllRecords()
     }

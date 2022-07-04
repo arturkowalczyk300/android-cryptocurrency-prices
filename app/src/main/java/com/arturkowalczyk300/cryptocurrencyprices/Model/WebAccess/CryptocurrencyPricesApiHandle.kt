@@ -6,7 +6,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface CryptocurrencyPricesApiHandle {
-    @GET("api/v3/coins/{currency}/history") //date=01-05-2022
+    @GET("api/v3/coins/{currency}/history")
     fun getPrice(
         @Path("currency") currencySymbol: String,
         @Query("date") dateString: String
@@ -20,4 +20,10 @@ interface CryptocurrencyPricesApiHandle {
         @Query("page") currentPage: Int, //e.g. 1
         @Query("sparkline") sparkline: Boolean, //e.g. false
     ): Call<List<CryptocurrencyPriceFromListApi>>
+
+    @GET("api/v3/coins/{currency}/market_chart/range?from=1654368441&to=1656960441")
+    fun getHistoryOfPriceForLastMonth(
+        @Path("currency") currencySymbol: String, //e.g. bitcoin
+        @Query("vs_currency") vsCurrency: String, //e.g. USD
+    ): Call<CryptocurrencyPriceHistoryFromApi>
 }
