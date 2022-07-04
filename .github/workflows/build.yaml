@@ -1,19 +1,28 @@
 name: Android Build
 
-on: pull_request
+on: 
+    push:
+        tags:
+            - "v*"
 
 jobs:
     build:
-    
         runs-on: ubuntu-latest
-        
+        outputs:
+            output_tag_name: ${{steps.stepTag.outputs.tagName}}
         steps:
             - uses: actions/checkout@v3
             - name: Set Up JDK
               uses: actions/setup-java@v1
               with:
                 java-version: 11
-                
+            
+            - name: Write current tag into output variable
+              id: stepTag
+              run: |
+                localTagName=${GITHUB_REF##*/}
+                echo "::set-output name=tagName::$localTagName"
+            
             - name: Run Tests
               run: ./gradlew test
                 
@@ -23,6 +32,36 @@ jobs:
             - name: Upload APK
               uses: actions/upload-artifact@v2
               with:
-                name: CryptocurrencyPrices.apk
+                name: build
                 path: app/build/outputs/apk/debug/**.apk
                 
+    release:
+        name: Release APK
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download APK from build
+              uses: actions/download-artifact@v1
+              with:
+                name: build
+            
+            - name: Create Release
+              id: create_release
+              uses: actions/create-release@v1
+              env: 
+                GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+              with:
+                tag_name: ${{needs.build.outputs.output_tag_name}}
+                release_name: ${{needs.build.outputs.output_tag_name}}
+                prerelease: true
+            
+            - name: Upload release APK
+              id: upload_release_asset
+              uses: actions/upload-release-asset@v1.0.2
+              env: 
+                GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+              with:
+                upload_url: ${{steps.create_release.outputs.upload_url}}
+                asset_path: build/app-debug.apk
+                asset_name: CryptocurrencyPrices_${{needs.build.outputs.output_tag_name}}.apk
+                asset_content_type: application/zip
