@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
     private lateinit var chart: LineChart
+    private lateinit var progressBarChartLoading: ProgressBar
 
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
@@ -84,6 +85,9 @@ class MainActivity : AppCompatActivity() {
                     Log.v("myApp", exc.toString())
                 }
             }
+
+            chart.visibility = View.GONE
+            progressBarChartLoading.visibility = View.VISIBLE
         }
 
         btnPrevRecord.setOnClickListener {
@@ -92,6 +96,8 @@ class MainActivity : AppCompatActivity() {
             if (currentRecordIndex < 0)
                 currentRecordIndex = maxRecordIndex
             updateIndexInfo()
+            chart.visibility = View.GONE
+            progressBarChartLoading.visibility = View.VISIBLE
             displayRecordByIndex(currentRecordIndex)
         }
 
@@ -100,6 +106,8 @@ class MainActivity : AppCompatActivity() {
             if (currentRecordIndex > maxRecordIndex)
                 currentRecordIndex = 0
             updateIndexInfo()
+            chart.visibility = View.GONE
+            progressBarChartLoading.visibility = View.VISIBLE
             displayRecordByIndex(currentRecordIndex)
         }
     }
@@ -109,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             listOfRecords = it
             maxRecordIndex = it.size - 1
             updateIndexInfo()
-            if (it.size > 0) {
+            if (it.isNotEmpty()) {
                 navigateToLastInsertedRecord()
                 updateIndexInfo()
                 switchVisibilityOfRecordViewer(View.VISIBLE)
@@ -131,6 +139,7 @@ class MainActivity : AppCompatActivity() {
         calendar.add(Calendar.MONTH, -1)
         val dateMonthAgo = calendar.time
 
+        progressBarChartLoading.visibility = View.VISIBLE
         viewModel.requestPriceHistoryForDateRange(
             currencyName,
             getString(R.string.defaultVsCurrency),
@@ -234,20 +243,30 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
         tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
         chart = findViewById(R.id.chart)
+        progressBarChartLoading = findViewById(R.id.progressBarChartLoading)
     }
 
     private fun initializeChart() {
         chart.setBackgroundColor(Color.DKGRAY)
-
+        chart.visibility = View.GONE
+        progressBarChartLoading.visibility = View.GONE
     }
 
     private fun setChartData(values: ArrayList<Entry>) {
         val set1 = LineDataSet(values, "Dataset")
         set1.color = Color.BLUE
-        val data = LineData(set1)
-        chart.data = data
-        chart.invalidate()
-        chart.refreshDrawableState()
+        if (chart.data == null) {
+            val data = LineData(set1)
+            chart.data = data
+            chart.invalidate()
+            chart.refreshDrawableState()
+        } else {
+            chart.data.clearValues()
+            chart.data.addDataSet(set1)
+            chart.notifyDataSetChanged()
+        }
+        chart.visibility = View.VISIBLE
+        progressBarChartLoading.visibility = View.GONE
     }
 
     private fun initializeDatePicker() {
@@ -332,7 +351,7 @@ class MainActivity : AppCompatActivity() {
                 currentRecordIndex = 0
                 maxRecordIndex = 0
                 updateIndexInfo()
-
+                chart.visibility = View.GONE
             }
         }
         return super.onOptionsItemSelected(item)
