@@ -105,9 +105,6 @@ class CryptocurrencyPricesWebService {
             }
         })
 
-        //TODO: remove
-        requestPriceHistoryForLastMonth("bitcoin", "usd")
-
         return mldRequestWithResponse
     }
 
@@ -139,14 +136,21 @@ class CryptocurrencyPricesWebService {
         return cryptocurrenciesListSorted
     }
 
-    fun requestPriceHistoryForLastMonth(
+    fun requestPriceHistoryForDateRange(
         currencySymbol: String,
-        vs_currency: String
+        vs_currency: String,
+        unixtimeFrom: Long,
+        unixTimeTo: Long
     ): MutableLiveData<List<List<Double>>?> {
 
         val response: Call<CryptocurrencyPriceHistoryFromApi>? =
             CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
-                ?.getHistoryOfPriceForLastMonth(currencySymbol, vs_currency)
+                ?.getHistoryOfPriceForDateRange(
+                    currencySymbol,
+                    vs_currency,
+                    unixtimeFrom,
+                    unixTimeTo
+                )
 
 
         response?.enqueue(object : Callback<CryptocurrencyPriceHistoryFromApi> {

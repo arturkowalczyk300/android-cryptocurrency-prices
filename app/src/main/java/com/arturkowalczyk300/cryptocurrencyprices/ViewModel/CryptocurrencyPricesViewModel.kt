@@ -1,14 +1,12 @@
 package com.arturkowalczyk300.cryptocurrencyprices.ViewModel
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.Model.CryptocurrencyPricesRepository
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
 import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPriceFromListApi
-import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.RequestWithResponse
 import java.util.*
 
 class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
@@ -37,8 +35,18 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
         return repository.requestCryptocurrenciesList()
     }
 
-    fun requestPriceHistoryForLastMonth(currencySymbol: String, vs_currency: String): MutableLiveData<List<List<Double>>?> {
-        return repository.requestPriceHistoryForLastMonth(currencySymbol, vs_currency)
+    fun requestPriceHistoryForDateRange(
+        currencySymbol: String,
+        vs_currency: String,
+        unixtimeFrom: Long,
+        unixTimeTo: Long
+    ): MutableLiveData<List<List<Double>>?> {
+        return repository.requestPriceHistoryForDateRange(
+            currencySymbol,
+            vs_currency,
+            unixtimeFrom,
+            unixTimeTo
+        )
     }
 
     fun clearAllRecords() {
