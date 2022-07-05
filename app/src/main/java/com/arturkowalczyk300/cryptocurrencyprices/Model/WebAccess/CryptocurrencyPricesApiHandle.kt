@@ -21,9 +21,11 @@ interface CryptocurrencyPricesApiHandle {
         @Query("sparkline") sparkline: Boolean, //e.g. false
     ): Call<List<CryptocurrencyPriceFromListApi>>
 
-    @GET("api/v3/coins/{currency}/market_chart/range?from=1654368441&to=1656960441")
-    fun getHistoryOfPriceForLastMonth(
+    @GET("api/v3/coins/{currency}/market_chart/range")
+    fun getHistoryOfPriceForDateRange(
         @Path("currency") currencySymbol: String, //e.g. bitcoin
         @Query("vs_currency") vsCurrency: String, //e.g. USD
+        @Query("from") unixTimeFrom: Long, //e.g. 1656962519 - 04.07.2022 192:21:59
+        @Query("to") unixTimeTo: Long, //e.g. 1654370519 - 04.06.2022 192:21:59
     ): Call<CryptocurrencyPriceHistoryFromApi>
 }

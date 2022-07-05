@@ -51,10 +51,12 @@ class MainActivity : AppCompatActivity() {
     private val currentSelectedDate: Calendar = Calendar.getInstance()
 
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
+    private lateinit var defaultDateFormatter: SimpleDateFormat
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        defaultDateFormatter = SimpleDateFormat(getString(R.string.defaultDateFormat))
 
         assignViewsVariables()
         initViewModel()
@@ -72,9 +74,8 @@ class MainActivity : AppCompatActivity() {
         btnGet.setOnClickListener {
             if (isCurrenciesListInitialized && hasInternetConnection) {
                 var date: Date
-                var sdf = SimpleDateFormat(getString(R.string.defaultDateFormat))
                 try {
-                    date = sdf.parse(etDate.text.toString())
+                    date = defaultDateFormatter.parse(etDate.text.toString())
                     viewModel.requestPriceData(
                         tvSelectedCurrencyId.text.toString(),
                         date
@@ -117,8 +118,25 @@ class MainActivity : AppCompatActivity() {
         }
         )
 
-        //chart
-        viewModel.requestPriceHistoryForLastMonth("bitcoin", "usd").observe(this,
+
+    }
+
+    private fun observeLiveDataForChart() {
+        val currencyName = tvCryptocurrencySymbol.text.toString()
+
+        //set date range parameters
+        val calendar = Calendar.getInstance()
+        calendar.time = defaultDateFormatter.parse(tvCryptocurrencyDate.text.toString())
+        val dateEnd = calendar.time
+        calendar.add(Calendar.MONTH, -1)
+        val dateMonthAgo = calendar.time
+
+        viewModel.requestPriceHistoryForDateRange(
+            currencyName,
+            getString(R.string.defaultVsCurrency),
+            (dateMonthAgo.time / 1000),
+            (dateEnd.time / 1000)
+        ).observe(this, //TODO: potential memory leak!
             Observer {
                 if (!it.isNullOrEmpty()) {
                     //create list
@@ -228,6 +246,8 @@ class MainActivity : AppCompatActivity() {
         set1.color = Color.BLUE
         val data = LineData(set1)
         chart.data = data
+        chart.invalidate()
+        chart.refreshDrawableState()
     }
 
     private fun initializeDatePicker() {
@@ -235,8 +255,7 @@ class MainActivity : AppCompatActivity() {
         val month: Int = 0
         val day: Int = 0
 
-        val sdf = SimpleDateFormat(getString(R.string.defaultDateFormat))
-        etDate.setText(sdf.format(Date()))
+        etDate.setText(defaultDateFormatter.format(Date()))
 
         datePickerDialog =
             DatePickerDialog(
@@ -289,13 +308,13 @@ class MainActivity : AppCompatActivity() {
             val entity: CryptocurrencyPricesEntityDb? = listOfRecords?.get(currentRecordIndex)
 
             if (entity != null) {
-                val sdf = SimpleDateFormat(getString(R.string.defaultDateFormat))
-
                 tvCryptocurrencySymbol.text = entity.cryptocurrencyId
-                tvCryptocurrencyDate.text = sdf.format(entity.date)
+                tvCryptocurrencyDate.text = defaultDateFormatter.format(entity.date)
                 tvCryptocurrencyPrice.text =
                     "%.3f USD".format(entity.priceUsd)
             }
+
+            observeLiveDataForChart()
         } catch (exc: Exception) {
             Log.e("myApp", exc.toString())
         }
