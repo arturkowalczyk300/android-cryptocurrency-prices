@@ -173,12 +173,6 @@ class MainActivity : AppCompatActivity() {
         })
 
         tvSelectedCurrencyId.setOnClickListener {
-            Toast.makeText(
-                applicationContext,
-                "",
-                Toast.LENGTH_SHORT
-            ).show()
-
             //display dialog
             val dialog = Dialog(this)
             dialog.setContentView(R.layout.dialog_searchable_list)
