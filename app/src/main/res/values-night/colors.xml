@@ -9,4 +9,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="gray">#6B6262</color>
     <color name="spinner_background">#302D2D</color>
+    <color name="chart_font_color">#939292</color>
 </resources>

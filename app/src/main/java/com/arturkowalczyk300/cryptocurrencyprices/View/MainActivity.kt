@@ -12,6 +12,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
@@ -23,6 +24,7 @@ import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.utils.MPPointF
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -85,9 +87,8 @@ class MainActivity : AppCompatActivity() {
                     Log.v("myApp", exc.toString())
                 }
             }
-
-            chart.visibility = View.GONE
-            progressBarChartLoading.visibility = View.VISIBLE
+            setChartVisibility(false)
+            setChartLoadingProgressBarVisibility(true)
         }
 
         btnPrevRecord.setOnClickListener {
@@ -96,8 +97,8 @@ class MainActivity : AppCompatActivity() {
             if (currentRecordIndex < 0)
                 currentRecordIndex = maxRecordIndex
             updateIndexInfo()
-            chart.visibility = View.GONE
-            progressBarChartLoading.visibility = View.VISIBLE
+            setChartVisibility(false)
+            setChartLoadingProgressBarVisibility(true)
             displayRecordByIndex(currentRecordIndex)
         }
 
@@ -106,8 +107,8 @@ class MainActivity : AppCompatActivity() {
             if (currentRecordIndex > maxRecordIndex)
                 currentRecordIndex = 0
             updateIndexInfo()
-            chart.visibility = View.GONE
-            progressBarChartLoading.visibility = View.VISIBLE
+            setChartVisibility(false)
+            setChartLoadingProgressBarVisibility(true)
             displayRecordByIndex(currentRecordIndex)
         }
     }
@@ -247,33 +248,57 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeChart() {
-        chart.setBackgroundColor(Color.DKGRAY)
-        chart.visibility = View.GONE
-        progressBarChartLoading.visibility = View.GONE
+        chart.setBackgroundColor(Color.TRANSPARENT)
+        chart.setTouchEnabled(false)
+        chart.setDrawBorders(false)
+
+        chart.description.text = "One month"
+        chart.description.textColor =
+            ContextCompat.getColor(applicationContext, R.color.chart_font_color)
+        chart.description.textSize += 6 //increase default text size
+
+        chart.legend.isEnabled = false
+
+        chart.xAxis.setDrawGridLines(false)
+        chart.xAxis.setDrawLabels(false)
+        chart.xAxis.setDrawAxisLine(false)
+
+        chart.axisLeft.setDrawAxisLine(false)
+        Log.v("myApp", chart.axisLeft.textSize.toString())
+        chart.axisLeft.textSize = 15f //increase default text size
+        chart.axisLeft.setDrawGridLines(false)
+        chart.axisLeft.textColor =
+            ContextCompat.getColor(applicationContext, R.color.chart_font_color)
+
+        chart.axisRight.setDrawAxisLine(false)
+        chart.axisRight.isEnabled = false
+
+        setChartVisibility(false)
+        setChartLoadingProgressBarVisibility(false)
     }
 
     private fun setChartData(values: ArrayList<Entry>) {
-        val set1 = LineDataSet(values, "Dataset")
+        val set1 = LineDataSet(values, "")
         set1.color = Color.BLUE
+        set1.setDrawCircles(false)
+        set1.setDrawHorizontalHighlightIndicator(false)
+        set1.setDrawVerticalHighlightIndicator(false)
+        set1.lineWidth = 3f
         if (chart.data == null) {
             val data = LineData(set1)
             chart.data = data
-            chart.invalidate()
-            chart.refreshDrawableState()
         } else {
             chart.data.clearValues()
             chart.data.addDataSet(set1)
-            chart.notifyDataSetChanged()
         }
-        chart.visibility = View.VISIBLE
-        progressBarChartLoading.visibility = View.GONE
+        chart.notifyDataSetChanged()
+        chart.invalidate()
+
+        setChartVisibility(true)
+        setChartLoadingProgressBarVisibility(false)
     }
 
     private fun initializeDatePicker() {
-        val year: Int = 0
-        val month: Int = 0
-        val day: Int = 0
-
         etDate.setText(defaultDateFormatter.format(Date()))
 
         datePickerDialog =
@@ -351,7 +376,7 @@ class MainActivity : AppCompatActivity() {
                 currentRecordIndex = 0
                 maxRecordIndex = 0
                 updateIndexInfo()
-                chart.visibility = View.GONE
+                setChartVisibility(false)
             }
         }
         return super.onOptionsItemSelected(item)
@@ -362,6 +387,26 @@ class MainActivity : AppCompatActivity() {
             tvNoInternetConnection.visibility = View.GONE
         else
             tvNoInternetConnection.visibility = View.VISIBLE
+    }
+
+    private fun setChartVisibility(visible: Boolean) {
+        if (visible)
+            chart.postDelayed(Runnable { //show with delay
+                chart.visibility = View.VISIBLE
+            }, 200)
+        else
+            chart.visibility = View.GONE
+    }
+
+    private fun setChartLoadingProgressBarVisibility(visible: Boolean) {
+        if (visible)
+            progressBarChartLoading.visibility = View.VISIBLE
+        else {
+            progressBarChartLoading.postDelayed(Runnable { //hide with delay
+                progressBarChartLoading.visibility = View.GONE
+            }, 200)
+
+        }
     }
 
 }
