@@ -24,7 +24,6 @@ import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.utils.MPPointF
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -41,7 +40,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
     private lateinit var chart: LineChart
+    private lateinit var llChartWithOptions: LinearLayout
     private lateinit var progressBarChartLoading: ProgressBar
+    private lateinit var chartRadioGroupTimeRange: RadioGroup
 
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
@@ -56,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
     private lateinit var defaultDateFormatter: SimpleDateFormat
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -66,11 +68,18 @@ class MainActivity : AppCompatActivity() {
         handleNoNetworkInfo()
         handleCryptocurrencyChoice()
         initializeDatePicker()
+        handleChartRadioGroupTimeRangeActions()
         addButtonsOnClickListeners()
         observeLiveData()
         updateIndexInfo()
 
         initializeChart()
+    }
+
+    private fun handleChartRadioGroupTimeRangeActions() {
+        chartRadioGroupTimeRange.setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener { group, checkedId ->
+            requestPriceHistoryForDateRange()
+        })
     }
 
     private fun addButtonsOnClickListeners() {
@@ -130,21 +139,28 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun observeLiveDataForChart() {
+    private fun requestPriceHistoryForDateRange() {
         val currencyName = tvCryptocurrencySymbol.text.toString()
 
         //set date range parameters
         val calendar = Calendar.getInstance()
         calendar.time = defaultDateFormatter.parse(tvCryptocurrencyDate.text.toString())
         val dateEnd = calendar.time
-        calendar.add(Calendar.MONTH, -1)
-        val dateMonthAgo = calendar.time
 
-        progressBarChartLoading.visibility = View.VISIBLE
+        when (chartRadioGroupTimeRange.checkedRadioButtonId) {
+            R.id.chartRadioButtonTimeRangeOneYear -> calendar.add(Calendar.YEAR, -1)
+            R.id.chartRadioButtonTimeRangeOneMonth -> calendar.add(Calendar.MONTH, -1)
+            R.id.chartRadioButtonTimeRangeOneWeek -> calendar.add(Calendar.DAY_OF_MONTH, -7)
+            R.id.chartRadioButtonTimeRange24Hours -> calendar.add(Calendar.DAY_OF_MONTH, -1)
+        }
+
+        val dateStart = calendar.time
+
+        setChartLoadingProgressBarVisibility(true)
         viewModel.requestPriceHistoryForDateRange(
             currencyName,
             getString(R.string.defaultVsCurrency),
-            (dateMonthAgo.time / 1000),
+            (dateStart.time / 1000),
             (dateEnd.time / 1000)
         ).observe(this, //TODO: potential memory leak!
             Observer {
@@ -156,6 +172,7 @@ class MainActivity : AppCompatActivity() {
                         list.add(Entry(currentRow[0].toFloat(), currentRow[1].toFloat()))
                     }
                     setChartData(list)
+                    setChartDescription()
                 }
             })
     }
@@ -238,7 +255,9 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
         tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
         chart = findViewById(R.id.chart)
+        llChartWithOptions = findViewById(R.id.llChartWithOptions)
         progressBarChartLoading = findViewById(R.id.progressBarChartLoading)
+        chartRadioGroupTimeRange = findViewById(R.id.chartRadioGroupTimeRange)
     }
 
     private fun initializeChart() {
@@ -246,7 +265,7 @@ class MainActivity : AppCompatActivity() {
         chart.setTouchEnabled(false)
         chart.setDrawBorders(false)
 
-        chart.description.text = "One month"
+        setChartDescription()
         chart.description.textColor =
             ContextCompat.getColor(applicationContext, R.color.chart_font_color)
         chart.description.textSize += 6 //increase default text size
@@ -290,6 +309,16 @@ class MainActivity : AppCompatActivity() {
 
         setChartVisibility(true)
         setChartLoadingProgressBarVisibility(false)
+    }
+
+    private fun setChartDescription() {
+        chart.description.text = when (chartRadioGroupTimeRange.checkedRadioButtonId) {
+            R.id.chartRadioButtonTimeRangeOneYear -> "One year"
+            R.id.chartRadioButtonTimeRangeOneMonth -> "One month"
+            R.id.chartRadioButtonTimeRangeOneWeek -> "One week"
+            R.id.chartRadioButtonTimeRange24Hours -> "24 hours"
+            else -> "Unknown time period"
+        }
     }
 
     private fun initializeDatePicker() {
@@ -352,7 +381,7 @@ class MainActivity : AppCompatActivity() {
                     "%.3f USD".format(entity.priceUsd)
             }
 
-            observeLiveDataForChart()
+            requestPriceHistoryForDateRange()
         } catch (exc: Exception) {
             Log.e("myApp", exc.toString())
         }
@@ -385,11 +414,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun setChartVisibility(visible: Boolean) {
         if (visible)
-            chart.postDelayed(Runnable { //show with delay
-                chart.visibility = View.VISIBLE
+            llChartWithOptions.postDelayed(Runnable { //show with delay
+                llChartWithOptions.visibility = View.VISIBLE
             }, 200)
         else
-            chart.visibility = View.GONE
+            llChartWithOptions.visibility = View.GONE
     }
 
     private fun setChartLoadingProgressBarVisibility(visible: Boolean) {

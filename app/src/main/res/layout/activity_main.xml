@@ -143,14 +143,60 @@
             android:layout_width="90dp"
             android:layout_height="90dp"
             android:layout_gravity="center"
-            android:visibility="visible"/>
+            android:visibility="visible" />
 
-        <com.github.mikephil.charting.charts.LineChart
-            android:id="@+id/chart"
+        <LinearLayout
+            android:id="@+id/llChartWithOptions"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="20dp"
-            android:visibility="gone"/>
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.8"
+                android:layout_marginHorizontal="20dp" />
+
+            <RadioGroup
+                android:id="@+id/chartRadioGroupTimeRange"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.2"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/chartRadioButtonTimeRangeOneYear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:text="1 year" />
+
+                <RadioButton
+                    android:id="@+id/chartRadioButtonTimeRangeOneMonth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:text="1 month" />
+
+                <RadioButton
+                    android:id="@+id/chartRadioButtonTimeRangeOneWeek"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:text="1 week" />
+
+                <RadioButton
+                    android:id="@+id/chartRadioButtonTimeRange24Hours"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:checked="true"
+                    android:text="24 hours" />
+            </RadioGroup>
+
+        </LinearLayout>
 
     </LinearLayout>
 
