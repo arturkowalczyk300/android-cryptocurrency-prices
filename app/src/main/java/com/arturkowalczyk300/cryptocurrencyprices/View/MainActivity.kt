@@ -3,6 +3,7 @@ package com.arturkowalczyk300.cryptocurrencyprices.View
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.graphics.Color
+import android.graphics.Paint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -268,7 +269,8 @@ class MainActivity : AppCompatActivity() {
         setChartDescription()
         chart.description.textColor =
             ContextCompat.getColor(applicationContext, R.color.chart_font_color)
-        chart.description.textSize += 6 //increase default text size
+        chart.description.textSize += 4 //increase default text size
+        chart.description.yOffset -= 15  //offset description to bottom direction
 
         chart.legend.isEnabled = false
 
@@ -297,6 +299,7 @@ class MainActivity : AppCompatActivity() {
         set1.setDrawHorizontalHighlightIndicator(false)
         set1.setDrawVerticalHighlightIndicator(false)
         set1.lineWidth = 3f
+        set1.setDrawValues(false)
         if (chart.data == null) {
             val data = LineData(set1)
             chart.data = data
