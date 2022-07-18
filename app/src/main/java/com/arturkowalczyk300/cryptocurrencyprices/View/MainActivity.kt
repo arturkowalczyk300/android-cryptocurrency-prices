@@ -3,7 +3,6 @@ package com.arturkowalczyk300.cryptocurrencyprices.View
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.graphics.Color
-import android.graphics.Paint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -25,6 +24,7 @@ import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.formatter.ValueFormatter
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -284,9 +284,29 @@ class MainActivity : AppCompatActivity() {
         chart.axisLeft.setDrawGridLines(false)
         chart.axisLeft.textColor =
             ContextCompat.getColor(applicationContext, R.color.chart_font_color)
+        chart.axisLeft.setLabelCount(6, true)
 
         chart.axisRight.setDrawAxisLine(false)
         chart.axisRight.isEnabled = false
+
+        chart.axisLeft.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                val digitsNumber = 6
+                val valueConverted: String = String.format("%.5f", value)
+                var stringToReturn = ""
+
+                if (valueConverted.isNotEmpty() && valueConverted.isNotBlank()) {
+                    if (valueConverted.length >= digitsNumber) {
+                        stringToReturn = valueConverted.substring(0, digitsNumber)
+                        if(value>=10000)
+                            stringToReturn = stringToReturn.replace(".", "")
+                    } else
+                        stringToReturn =
+                            valueConverted.substring(0, valueConverted.length - 1)
+                }
+                return stringToReturn
+            }
+        }
 
         setChartVisibility(false)
         setChartLoadingProgressBarVisibility(false)
@@ -294,19 +314,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun setChartData(values: ArrayList<Entry>) {
         val set1 = LineDataSet(values, "")
+
         set1.color = Color.BLUE
         set1.setDrawCircles(false)
         set1.setDrawHorizontalHighlightIndicator(false)
         set1.setDrawVerticalHighlightIndicator(false)
         set1.lineWidth = 3f
         set1.setDrawValues(false)
+
+
+
         if (chart.data == null) {
             val data = LineData(set1)
             chart.data = data
         } else {
+            chart.clearValues()
             chart.data.clearValues()
             chart.data.addDataSet(set1)
         }
+        //chart.animateX(1000)
         chart.notifyDataSetChanged()
         chart.invalidate()
 
