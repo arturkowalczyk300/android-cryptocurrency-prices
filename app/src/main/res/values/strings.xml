@@ -11,4 +11,8 @@
     <string name="defaultVsCurrency">USD</string>
     <string name="defaultDateFormat">dd.MM.yyyy</string>
     <string name="no_internet_connection">No internet connection!</string>
+    <string name="REQUEST_PRICE_DATA_FAILURE">Getting price data error!</string>
+    <string name="REQUEST_CRYPTOCURRENCIES_LIST_FAILURE">Getting cryptocurrencies list error!</string>
+    <string name="REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE">Getting price history for date range error!</string>
+    <string name="UNKNOWN_FAILURE">Unknown error!</string>
 </resources>

@@ -45,4 +45,6 @@ class CryptocurrencyPricesRepository(application: Application) {
     ): MutableLiveData<List<List<Double>>?> {
         return webService.requestPriceHistoryForDateRange(currencySymbol, vs_currency, unixtimeFrom, unixTimeTo)
     }
+
+    fun getApiErrorCodeLiveData() = webService.mldErrorCode
 }

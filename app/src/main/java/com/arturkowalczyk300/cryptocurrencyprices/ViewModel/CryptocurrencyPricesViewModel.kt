@@ -66,4 +66,6 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     fun getAllReadings(): LiveData<List<CryptocurrencyPricesEntityDb>>? {
         return repository.getAllReadings()
     }
+
+    fun getApiErrorCodeLiveData() = repository.getApiErrorCodeLiveData()
 }

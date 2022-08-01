@@ -15,6 +15,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
+import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
+import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.R
@@ -57,6 +60,8 @@ class MainActivity : AppCompatActivity() {
 
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
     private lateinit var defaultDateFormatter: SimpleDateFormat
+
+    private var chartDataSet = LineDataSet(listOf(), "")
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -137,6 +142,40 @@ class MainActivity : AppCompatActivity() {
         }
         )
 
+        viewModel.getApiErrorCodeLiveData().observe(this, object : Observer<Pair<Boolean, Int>> {
+            override fun onChanged(t: Pair<Boolean, Int>?) {
+
+                if (t!!.first) { //error occured
+                    when (t.second) {
+                        REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE ->
+                            Toast.makeText(
+                                applicationContext,
+                                getString(R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        REQUEST_CRYPTOCURRENCIES_LIST_FAILURE ->
+                            Toast.makeText(
+                                applicationContext,
+                                getString(R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        REQUEST_PRICE_DATA_FAILURE ->
+                            Toast.makeText(
+                                applicationContext,
+                                getString(R.string.REQUEST_PRICE_DATA_FAILURE),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        else ->
+                            Toast.makeText(
+                                applicationContext,
+                                getString(R.string.UNKNOWN_FAILURE),
+                                Toast.LENGTH_LONG
+                            ).show()
+                    }
+                }
+            }
+
+        })
 
     }
 
@@ -298,7 +337,7 @@ class MainActivity : AppCompatActivity() {
                 if (valueConverted.isNotEmpty() && valueConverted.isNotBlank()) {
                     if (valueConverted.length >= digitsNumber) {
                         stringToReturn = valueConverted.substring(0, digitsNumber)
-                        if(value>=10000)
+                        if (value >= 10000)
                             stringToReturn = stringToReturn.replace(".", "")
                     } else
                         stringToReturn =
@@ -313,24 +352,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setChartData(values: ArrayList<Entry>) {
-        val set1 = LineDataSet(values, "")
+        chartDataSet = LineDataSet(values, "")
 
-        set1.color = Color.BLUE
-        set1.setDrawCircles(false)
-        set1.setDrawHorizontalHighlightIndicator(false)
-        set1.setDrawVerticalHighlightIndicator(false)
-        set1.lineWidth = 3f
-        set1.setDrawValues(false)
-
+        chartDataSet.color = Color.BLUE
+        chartDataSet.setDrawCircles(false)
+        chartDataSet.setDrawHorizontalHighlightIndicator(false)
+        chartDataSet.setDrawVerticalHighlightIndicator(false)
+        chartDataSet.lineWidth = 3f
+        chartDataSet.setDrawValues(false)
 
 
         if (chart.data == null) {
-            val data = LineData(set1)
+            val data = LineData(chartDataSet)
             chart.data = data
         } else {
             chart.clearValues()
             chart.data.clearValues()
-            chart.data.addDataSet(set1)
+            chart.data.addDataSet(chartDataSet)
         }
         //chart.animateX(1000)
         chart.notifyDataSetChanged()
@@ -446,8 +484,11 @@ class MainActivity : AppCompatActivity() {
             llChartWithOptions.postDelayed(Runnable { //show with delay
                 llChartWithOptions.visibility = View.VISIBLE
             }, 200)
-        else
-            llChartWithOptions.visibility = View.GONE
+        else {
+            chartDataSet.isVisible = false
+            chart.invalidate()
+            //llChartWithOptions.visibility = View.GONE
+        }
     }
 
     private fun setChartLoadingProgressBarVisibility(visible: Boolean) {

@@ -2,6 +2,9 @@ package com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
+import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
+import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -17,7 +20,7 @@ class RequestWithResponse(
     var entity: CryptocurrencyPricesEntityApi? = null,
     var flagDataSet: Boolean = false
 ) {
-    val sdf = SimpleDateFormat("dd.MM.yyyy")
+    private val sdf = SimpleDateFormat("dd.MM.yyyy")
 
     fun formatPrice(price: Double): String {
         val df = DecimalFormat("#.###")
@@ -48,6 +51,8 @@ class RequestWithResponse(
 
 class CryptocurrencyPricesWebService {
     var waitingForResponse: Boolean = false
+
+    var mldErrorCode: MutableLiveData<Pair<Boolean, Int>> = MutableLiveData()
 
     var mldRequestWithResponse: MutableLiveData<RequestWithResponse> = MutableLiveData(
         RequestWithResponse()
@@ -88,16 +93,22 @@ class CryptocurrencyPricesWebService {
                 call: Call<CryptocurrencyPricesEntityApi>,
                 response: Response<CryptocurrencyPricesEntityApi>
             ) {
-                if (waitingForResponse) {
-                    mldRequestWithResponse?.value?.entity = response.body()
-                    mldRequestWithResponse?.value?.flagDataSet = true
-                    mldRequestWithResponse.value =
-                        mldRequestWithResponse.value //notify data changed
+                if (response.body() != null) {
+                    if (waitingForResponse) {
+                        mldRequestWithResponse?.value?.entity = response.body()
+                        mldRequestWithResponse?.value?.flagDataSet = true
+                        mldRequestWithResponse.value =
+                            mldRequestWithResponse.value //notify data changed
+                    }
+                } else {
+                    mldErrorCode.value = Pair(true, REQUEST_PRICE_DATA_FAILURE)
                 }
                 waitingForResponse = false
             }
 
             override fun onFailure(call: Call<CryptocurrencyPricesEntityApi>, t: Throwable) {
+                mldErrorCode.value = Pair(true, REQUEST_PRICE_DATA_FAILURE)
+
                 Log.v(
                     "myApp", "onFailure, url:${call.request().url().toString()}" +
                             "\n exc: ${t.stackTraceToString()}"
@@ -122,6 +133,7 @@ class CryptocurrencyPricesWebService {
                 if (response.body() != null && response.code() != 404) { //valid response
                     cryptocurrenciesListSorted.value = ArrayList(response.body())
                 } else {
+                    mldErrorCode.value = Pair(true, REQUEST_CRYPTOCURRENCIES_LIST_FAILURE)
                     Log.v(
                         "myApp",
                         "invalid response! [size=${responseBody?.size}, code=${response.code()}]"
@@ -130,6 +142,7 @@ class CryptocurrencyPricesWebService {
             }
 
             override fun onFailure(call: Call<List<CryptocurrencyPriceFromListApi>>, t: Throwable) {
+                mldErrorCode.value = Pair(true, REQUEST_CRYPTOCURRENCIES_LIST_FAILURE)
                 Log.v("myApp", "onFailure")
             }
         })
@@ -162,10 +175,15 @@ class CryptocurrencyPricesWebService {
                     "myApp", "onSuccess, url:${call.request().url().toString()}"
                 )
 
-                mldPriceHistory.value = response.body()?.prices
+                if (response.body() != null)
+                    mldPriceHistory.value = response.body()?.prices
+                else
+                    mldErrorCode.value = Pair(true, REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
             }
 
             override fun onFailure(call: Call<CryptocurrencyPriceHistoryFromApi>, t: Throwable) {
+                mldErrorCode.value = Pair(true, REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
+
                 Log.v(
                     "myApp", "onFailure, url:${call.request().url().toString()}" +
                             "\n exc: ${t.stackTraceToString()}"
@@ -175,4 +193,5 @@ class CryptocurrencyPricesWebService {
 
         return mldPriceHistory
     }
+
 }
