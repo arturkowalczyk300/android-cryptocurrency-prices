@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleChartRadioGroupTimeRangeActions() {
         chartRadioGroupTimeRange.setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener { group, checkedId ->
-            requestPriceHistoryForDateRange()
+            observeLiveDataPriceHistoryForDateRange()
         })
     }
 
@@ -179,7 +179,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun requestPriceHistoryForDateRange() {
+    private fun observeLiveDataPriceHistoryForDateRange() {
         val currencyName = tvCryptocurrencySymbol.text.toString()
 
         //set date range parameters
@@ -213,6 +213,10 @@ class MainActivity : AppCompatActivity() {
                     }
                     setChartData(list)
                     setChartDescription()
+                    setChartAxisLabelsVisibility(true)
+                } else {
+                    setChartVisibility(false) //no valid data to display
+                    setChartAxisLabelsVisibility(false)
                 }
             })
     }
@@ -448,7 +452,7 @@ class MainActivity : AppCompatActivity() {
                     "%.3f USD".format(entity.priceUsd)
             }
 
-            requestPriceHistoryForDateRange()
+            observeLiveDataPriceHistoryForDateRange()
         } catch (exc: Exception) {
             Log.e("myApp", exc.toString())
         }
@@ -480,15 +484,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setChartVisibility(visible: Boolean) {
-        if (visible)
+        if (visible) {
+            chart.axisLeft.setDrawLabels(true)
             llChartWithOptions.postDelayed(Runnable { //show with delay
                 llChartWithOptions.visibility = View.VISIBLE
             }, 200)
-        else {
+        } else {
             chartDataSet.isVisible = false
             chart.invalidate()
             //llChartWithOptions.visibility = View.GONE
         }
+    }
+
+    private fun setChartAxisLabelsVisibility(visible: Boolean){
+        chart.axisLeft.setDrawLabels(visible)
     }
 
     private fun setChartLoadingProgressBarVisibility(visible: Boolean) {

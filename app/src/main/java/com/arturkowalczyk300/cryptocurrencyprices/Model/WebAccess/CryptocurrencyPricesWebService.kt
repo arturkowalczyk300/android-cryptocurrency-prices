@@ -177,11 +177,15 @@ class CryptocurrencyPricesWebService {
 
                 if (response.body() != null)
                     mldPriceHistory.value = response.body()?.prices
-                else
+                else {
+                    mldPriceHistory.value = null
                     mldErrorCode.value = Pair(true, REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
+                }
             }
 
             override fun onFailure(call: Call<CryptocurrencyPriceHistoryFromApi>, t: Throwable) {
+                mldPriceHistory.value = null
+
                 mldErrorCode.value = Pair(true, REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
 
                 Log.v(
