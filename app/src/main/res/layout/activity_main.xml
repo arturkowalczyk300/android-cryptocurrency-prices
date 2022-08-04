@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="10dp"
     android:orientation="vertical"
     tools:context=".View.MainActivity">
 
@@ -66,7 +67,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="25dp"
+                    android:layout_marginHorizontal="10dp"
                     android:layout_weight="1"
                     android:text="@string/cryptocurrencySymbol"
                     android:textSize="20sp" />
@@ -74,7 +75,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginHorizontal="10dp"
                     android:layout_weight="1"
                     android:text="@string/cryptocurrencyDate"
                     android:textSize="20sp" />
@@ -82,7 +83,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="20dp"
+                    android:layout_margin="10dp"
                     android:layout_weight="1"
                     android:text="@string/cryptocurrencyPrice"
                     android:textSize="20sp" />
@@ -165,28 +166,28 @@
                     android:id="@+id/chartRadioButtonTimeRangeOneYear"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginHorizontal="5dp"
                     android:text="1 year" />
 
                 <RadioButton
                     android:id="@+id/chartRadioButtonTimeRangeOneMonth"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginHorizontal="5dp"
                     android:text="1 month" />
 
                 <RadioButton
                     android:id="@+id/chartRadioButtonTimeRangeOneWeek"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginHorizontal="5dp"
                     android:text="1 week" />
 
                 <RadioButton
                     android:id="@+id/chartRadioButtonTimeRange24Hours"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginHorizontal="5dp"
                     android:checked="true"
                     android:text="24 hours" />
             </RadioGroup>
@@ -213,24 +214,28 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:weightSum="1"
             android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/tvSelectedCurrencyId"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.65"
+                android:layout_marginLeft="10dp"
                 android:drawableEnd="@drawable/ic_baseline_arrow_drop_down_24"
                 android:hint="Select"
-                android:textSize="24sp" />
+                android:textSize="20sp" />
 
             <EditText
                 android:id="@+id/etDate"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_margin="20dp"
+                android:layout_margin="5dp"
+                android:layout_weight="0.35"
                 android:focusable="false"
                 android:hint="Press to set date"
-                android:textSize="24sp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
         <Button

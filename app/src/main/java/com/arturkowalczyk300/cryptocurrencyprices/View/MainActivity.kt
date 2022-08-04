@@ -337,6 +337,7 @@ class MainActivity : AppCompatActivity() {
             override fun getFormattedValue(value: Float): String {
                 val digitsNumber = 6
                 val valueConverted: String = String.format("%.5f", value)
+
                 var stringToReturn = ""
 
                 if (valueConverted.isNotEmpty() && valueConverted.isNotBlank()) {
@@ -347,6 +348,11 @@ class MainActivity : AppCompatActivity() {
                     } else
                         stringToReturn =
                             valueConverted.substring(0, valueConverted.length - 1)
+                }
+
+                Log.v("myApp", stringToReturn.last().toString())
+                if (stringToReturn.last() == ',') { //delete lonely comma at end of number string if exists
+                    stringToReturn = stringToReturn.substring(0, stringToReturn.length - 1)
                 }
                 return stringToReturn
             }
