@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
@@ -99,7 +100,7 @@ class MainActivity : AppCompatActivity() {
                         date
                     )
                 } catch (exc: Exception) {
-                    Log.v("myApp", exc.toString())
+                    Log.e("myApp", exc.toString())
                 }
             }
             setChartVisibility(false)
@@ -197,28 +198,29 @@ class MainActivity : AppCompatActivity() {
         val dateStart = calendar.time
 
         setChartLoadingProgressBarVisibility(true)
-        viewModel.requestPriceHistoryForDateRange(
+        val priceHistoryLiveData = viewModel.requestPriceHistoryForDateRange(
             currencyName,
             getString(R.string.defaultVsCurrency),
             (dateStart.time / 1000),
             (dateEnd.time / 1000)
-        ).observe(this, //TODO: potential memory leak!
-            Observer {
-                if (!it.isNullOrEmpty()) {
-                    //create list
-                    var list = arrayListOf<Entry>()
-                    it.forEachIndexed { index, currentRow ->
-                        Log.v("rawData2", "i=$index, ${currentRow[0]}, ${currentRow[1]}")
-                        list.add(Entry(currentRow[0].toFloat(), currentRow[1].toFloat()))
+        )
+        if (!priceHistoryLiveData.hasActiveObservers())
+            priceHistoryLiveData.observe(this,
+                Observer {
+                    if (!it.isNullOrEmpty()) {
+                        //create list
+                        var list = arrayListOf<Entry>()
+                        it.forEachIndexed { index, currentRow ->
+                            list.add(Entry(currentRow[0].toFloat(), currentRow[1].toFloat()))
+                        }
+                        setChartData(list)
+                        setChartDescription()
+                        setChartAxisLabelsVisibility(true)
+                    } else {
+                        setChartVisibility(false) //no valid data to display
+                        setChartAxisLabelsVisibility(false)
                     }
-                    setChartData(list)
-                    setChartDescription()
-                    setChartAxisLabelsVisibility(true)
-                } else {
-                    setChartVisibility(false) //no valid data to display
-                    setChartAxisLabelsVisibility(false)
-                }
-            })
+                })
     }
 
     private fun handleCryptocurrencyChoice() {
@@ -322,7 +324,6 @@ class MainActivity : AppCompatActivity() {
         chart.xAxis.setDrawAxisLine(false)
 
         chart.axisLeft.setDrawAxisLine(false)
-        Log.v("myApp", chart.axisLeft.textSize.toString())
         chart.axisLeft.textSize = 15f //increase default text size
         chart.axisLeft.setDrawGridLines(false)
         chart.axisLeft.textColor =
@@ -496,7 +497,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setChartAxisLabelsVisibility(visible: Boolean){
+    private fun setChartAxisLabelsVisibility(visible: Boolean) {
         chart.axisLeft.setDrawLabels(visible)
     }
 
