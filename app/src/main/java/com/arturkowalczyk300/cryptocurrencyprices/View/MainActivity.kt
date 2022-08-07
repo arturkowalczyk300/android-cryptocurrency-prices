@@ -2,6 +2,7 @@ package com.arturkowalczyk300.cryptocurrencyprices.View
 
 import android.app.DatePickerDialog
 import android.app.Dialog
+import android.content.DialogInterface
 import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
@@ -57,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     private var maxRecordIndex: Int = 0
 
     private var listOfRecords: List<CryptocurrencyPricesEntityDb>? = null
+    private val currentDate: Calendar = Calendar.getInstance()
     private val currentSelectedDate: Calendar = Calendar.getInstance()
 
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
@@ -251,6 +253,12 @@ class MainActivity : AppCompatActivity() {
                 dialog.dismiss()
             }
 
+            val todelete: MutableLiveData<List<Int>> = MutableLiveData()
+
+            todelete.observe(this) {
+                it.size > 0
+            }
+
             //handle search filter
             val editTextFilter = dialog.findViewById(R.id.dialogEtFilter) as EditText
             editTextFilter.addTextChangedListener(object : TextWatcher {
@@ -350,7 +358,6 @@ class MainActivity : AppCompatActivity() {
                             valueConverted.substring(0, valueConverted.length - 1)
                 }
 
-                Log.v("myApp", stringToReturn.last().toString())
                 if (stringToReturn.last() == ',') { //delete lonely comma at end of number string if exists
                     stringToReturn = stringToReturn.substring(0, stringToReturn.length - 1)
                 }
@@ -402,15 +409,42 @@ class MainActivity : AppCompatActivity() {
     private fun initializeDatePicker() {
         etDate.setText(defaultDateFormatter.format(Date()))
 
-        datePickerDialog =
-            DatePickerDialog(
-                this, DatePickerDialog.OnDateSetListener { datePicker, year, monthOfYear, day ->
-                    val month = monthOfYear + 1
-                    etDate.setText("${day}.${month}.${year}")
-                }, currentSelectedDate.get(Calendar.YEAR),
-                currentSelectedDate.get(Calendar.MONTH),
-                currentSelectedDate.get(Calendar.DAY_OF_MONTH)
-            )
+        val customDatePickerDialog = object : DatePickerDialog(
+            this, DatePickerDialog.OnDateSetListener { datePicker, year, monthOfYear, day ->
+                val month = monthOfYear + 1
+                etDate.setText("${day}.${month}.${year}")
+            }, currentSelectedDate.get(Calendar.YEAR),
+            currentSelectedDate.get(Calendar.MONTH),
+            currentSelectedDate.get(Calendar.DAY_OF_MONTH)
+        ) {
+            init{
+                datePicker.maxDate = System.currentTimeMillis() //forbid choosing future date
+            }
+
+            var flagSkipDismiss: Boolean = false
+
+            override fun dismiss() {
+                if(flagSkipDismiss)
+                    flagSkipDismiss = false
+                else
+                    super.dismiss()
+            }
+        }
+
+        //add button Today
+        customDatePickerDialog.setButton(
+            DialogInterface.BUTTON_NEUTRAL,
+            getString(R.string.btnToday),
+            DialogInterface.OnClickListener { dialog, which ->
+                customDatePickerDialog.updateDate(
+                    currentDate.get(Calendar.YEAR),
+                    currentDate.get(Calendar.MONTH),
+                    currentDate.get(Calendar.DAY_OF_MONTH)
+                )
+                customDatePickerDialog.flagSkipDismiss = true //clicking "Today" button won't close date picker
+            })
+
+        datePickerDialog = customDatePickerDialog //assign just to allow app to open date picker later
 
         etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
     }
