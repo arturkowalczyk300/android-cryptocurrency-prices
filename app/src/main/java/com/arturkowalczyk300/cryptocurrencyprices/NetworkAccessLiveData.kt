@@ -49,6 +49,8 @@ class NetworkAccessLiveData(context: Context): LiveData<Boolean>() {
             .addCapability(NET_CAPABILITY_INTERNET)
             .build()
         connectivityManager.registerDefaultNetworkCallback(networkCallback)
+
+        checkValidNetworks() //check if there is access to network during first-time run
     }
 
     override fun onInactive() {

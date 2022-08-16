@@ -16,4 +16,7 @@
     <string name="REQUEST_CRYPTOCURRENCIES_LIST_FAILURE">Getting cryptocurrencies list error!</string>
     <string name="REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE">Getting price history for date range error!</string>
     <string name="UNKNOWN_FAILURE">Unknown error!</string>
+    <string name="txtMin">Min: </string>
+    <string name="txtAvg">Avg: </string>
+    <string name="txtMax">Max: </string>
 </resources>

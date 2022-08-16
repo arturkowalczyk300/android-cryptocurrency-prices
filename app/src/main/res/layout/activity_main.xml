@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="10dp"
     android:orientation="vertical"
+    android:padding="10dp"
     tools:context=".View.MainActivity">
 
     <TextView
@@ -155,6 +155,57 @@
                 android:layout_weight="0.8"
                 android:background="@color/purple_700" />
 
+            <LinearLayout
+                android:id="@+id/llChartMinMaxAvgPrices"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:text="@string/txtMin" />
+
+                <TextView
+                    android:id="@+id/tvMinPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="40dp"
+                    android:textSize="20sp"
+                    tools:text="0.00" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:text="@string/txtAvg" />
+
+                <TextView
+                    android:id="@+id/tvAvgPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="40dp"
+                    android:textSize="20sp"
+                    tools:text="0.00" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:text="@string/txtMax" />
+
+                <TextView
+                    android:id="@+id/tvMaxPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    tools:text="0.00" />
+
+            </LinearLayout>
+
             <RadioGroup
                 android:id="@+id/chartRadioGroupTimeRange"
                 android:layout_width="match_parent"
@@ -214,15 +265,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:weightSum="1"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:weightSum="1">
 
             <TextView
                 android:id="@+id/tvSelectedCurrencyId"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.65"
                 android:layout_marginLeft="10dp"
+                android:layout_weight="0.65"
                 android:drawableEnd="@drawable/ic_baseline_arrow_drop_down_24"
                 android:hint="Select"
                 android:textSize="20sp" />

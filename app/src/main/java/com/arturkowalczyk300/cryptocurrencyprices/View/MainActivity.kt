@@ -14,6 +14,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -32,6 +33,7 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: CryptocurrencyPricesViewModel
@@ -45,10 +47,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
+    private lateinit var tvMinPrice: TextView
+    private lateinit var tvAvgPrice: TextView
+    private lateinit var tvMaxPrice: TextView
     private lateinit var chart: LineChart
     private lateinit var llChartWithOptions: LinearLayout
+    private lateinit var llChartMinMaxAvgPrices: LinearLayout
     private lateinit var progressBarChartLoading: ProgressBar
     private lateinit var chartRadioGroupTimeRange: RadioGroup
+    private lateinit var valueFormatter: ValueFormatter
+
 
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
@@ -216,6 +224,7 @@ class MainActivity : AppCompatActivity() {
                             list.add(Entry(currentRow[0].toFloat(), currentRow[1].toFloat()))
                         }
                         setChartData(list)
+                        setMinAvgMaxPricesValues(list)
                         setChartDescription()
                         setChartAxisLabelsVisibility(true)
                     } else {
@@ -223,6 +232,17 @@ class MainActivity : AppCompatActivity() {
                         setChartAxisLabelsVisibility(false)
                     }
                 })
+    }
+
+    private fun setMinAvgMaxPricesValues(values: ArrayList<Entry>) {
+        val min: Float = (values.minByOrNull { it.y }?.y) ?: -1.0f
+        val max: Float = (values.maxByOrNull { it.y }?.y) ?: -1.0f
+
+        val avg = values.map { it.y }.average()
+
+        tvMinPrice.text = valueFormatter.getFormattedValue(min)
+        tvMaxPrice.text = valueFormatter.getFormattedValue(max)
+        tvAvgPrice.text = valueFormatter.getFormattedValue(avg.toFloat())
     }
 
     private fun handleCryptocurrencyChoice() {
@@ -308,8 +328,12 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
         tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
+        tvMinPrice = findViewById(R.id.tvMinPrice)
+        tvAvgPrice = findViewById(R.id.tvAvgPrice)
+        tvMaxPrice = findViewById(R.id.tvMaxPrice)
         chart = findViewById(R.id.chart)
         llChartWithOptions = findViewById(R.id.llChartWithOptions)
+        llChartMinMaxAvgPrices = findViewById(R.id.llChartMinMaxAvgPrices)
         progressBarChartLoading = findViewById(R.id.progressBarChartLoading)
         chartRadioGroupTimeRange = findViewById(R.id.chartRadioGroupTimeRange)
     }
@@ -341,29 +365,32 @@ class MainActivity : AppCompatActivity() {
         chart.axisRight.setDrawAxisLine(false)
         chart.axisRight.isEnabled = false
 
-        chart.axisLeft.valueFormatter = object : ValueFormatter() {
-            override fun getFormattedValue(value: Float): String {
-                val digitsNumber = 6
-                val valueConverted: String = String.format("%.5f", value)
+        valueFormatter =
+            object : ValueFormatter() {
+                override fun getFormattedValue(value: Float): String {
+                    val digitsNumber = 6
+                    val valueConverted: String = String.format("%.5f", value)
 
-                var stringToReturn = ""
+                    var stringToReturn = ""
 
-                if (valueConverted.isNotEmpty() && valueConverted.isNotBlank()) {
-                    if (valueConverted.length >= digitsNumber) {
-                        stringToReturn = valueConverted.substring(0, digitsNumber)
-                        if (value >= 10000)
-                            stringToReturn = stringToReturn.replace(".", "")
-                    } else
-                        stringToReturn =
-                            valueConverted.substring(0, valueConverted.length - 1)
+                    if (valueConverted.isNotEmpty() && valueConverted.isNotBlank()) {
+                        if (valueConverted.length >= digitsNumber) {
+                            stringToReturn = valueConverted.substring(0, digitsNumber)
+                            if (value >= 10000)
+                                stringToReturn = stringToReturn.replace(".", "")
+                        } else
+                            stringToReturn =
+                                valueConverted.substring(0, valueConverted.length - 1)
+                    }
+
+                    if (stringToReturn.last() == ',') { //delete lonely comma at end of number string if exists
+                        stringToReturn = stringToReturn.substring(0, stringToReturn.length - 1)
+                    }
+                    return stringToReturn
                 }
-
-                if (stringToReturn.last() == ',') { //delete lonely comma at end of number string if exists
-                    stringToReturn = stringToReturn.substring(0, stringToReturn.length - 1)
-                }
-                return stringToReturn
             }
-        }
+
+        chart.axisLeft.valueFormatter = valueFormatter
 
         setChartVisibility(false)
         setChartLoadingProgressBarVisibility(false)
@@ -417,14 +444,14 @@ class MainActivity : AppCompatActivity() {
             currentSelectedDate.get(Calendar.MONTH),
             currentSelectedDate.get(Calendar.DAY_OF_MONTH)
         ) {
-            init{
+            init {
                 datePicker.maxDate = System.currentTimeMillis() //forbid choosing future date
             }
 
             var flagSkipDismiss: Boolean = false
 
             override fun dismiss() {
-                if(flagSkipDismiss)
+                if (flagSkipDismiss)
                     flagSkipDismiss = false
                 else
                     super.dismiss()
@@ -441,10 +468,12 @@ class MainActivity : AppCompatActivity() {
                     currentDate.get(Calendar.MONTH),
                     currentDate.get(Calendar.DAY_OF_MONTH)
                 )
-                customDatePickerDialog.flagSkipDismiss = true //clicking "Today" button won't close date picker
+                customDatePickerDialog.flagSkipDismiss =
+                    true //clicking "Today" button won't close date picker
             })
 
-        datePickerDialog = customDatePickerDialog //assign just to allow app to open date picker later
+        datePickerDialog =
+            customDatePickerDialog //assign just to allow app to open date picker later
 
         etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
     }
@@ -529,11 +558,12 @@ class MainActivity : AppCompatActivity() {
             chart.axisLeft.setDrawLabels(true)
             llChartWithOptions.postDelayed(Runnable { //show with delay
                 llChartWithOptions.visibility = View.VISIBLE
+                llChartMinMaxAvgPrices.visibility = View.VISIBLE
             }, 200)
         } else {
             chartDataSet.isVisible = false
+            llChartMinMaxAvgPrices.visibility = View.GONE
             chart.invalidate()
-            //llChartWithOptions.visibility = View.GONE
         }
     }
 
