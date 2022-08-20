@@ -3,7 +3,6 @@ package com.arturkowalczyk300.cryptocurrencyprices.View
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.DialogInterface
-import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -13,8 +12,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -26,11 +23,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
-import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.formatter.ValueFormatter
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -47,32 +40,23 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
-    private lateinit var tvMinPrice: TextView
-    private lateinit var tvAvgPrice: TextView
-    private lateinit var tvMaxPrice: TextView
-    private lateinit var chart: LineChart
-    private lateinit var llChartWithOptions: LinearLayout
-    private lateinit var llChartMinMaxAvgPrices: LinearLayout
-    private lateinit var progressBarChartLoading: ProgressBar
-    private lateinit var chartRadioGroupTimeRange: RadioGroup
-    private lateinit var valueFormatter: ValueFormatter
-
+    private lateinit var flChart: FrameLayout
+    private lateinit var chartFragment: ChartFragment
 
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
+
     private var datePickerDialog: DatePickerDialog? = null
-
     private var currentRecordIndex: Int = 0
-    private var maxRecordIndex: Int = 0
 
+    private var maxRecordIndex: Int = 0
     private var listOfRecords: List<CryptocurrencyPricesEntityDb>? = null
     private val currentDate: Calendar = Calendar.getInstance()
+
     private val currentSelectedDate: Calendar = Calendar.getInstance()
-
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
-    private lateinit var defaultDateFormatter: SimpleDateFormat
 
-    private var chartDataSet = LineDataSet(listOf(), "")
+    private lateinit var defaultDateFormatter: SimpleDateFormat
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,18 +69,16 @@ class MainActivity : AppCompatActivity() {
         handleNoNetworkInfo()
         handleCryptocurrencyChoice()
         initializeDatePicker()
-        handleChartRadioGroupTimeRangeActions()
         addButtonsOnClickListeners()
         observeLiveData()
         updateIndexInfo()
 
-        initializeChart()
-    }
-
-    private fun handleChartRadioGroupTimeRangeActions() {
-        chartRadioGroupTimeRange.setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener { group, checkedId ->
-            observeLiveDataPriceHistoryForDateRange()
-        })
+        //chart section
+        chartFragment = ChartFragment()
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.flChart, chartFragment)
+            commit()
+        }
     }
 
     private fun addButtonsOnClickListeners() {
@@ -113,8 +95,8 @@ class MainActivity : AppCompatActivity() {
                     Log.e("myApp", exc.toString())
                 }
             }
-            setChartVisibility(false)
-            setChartLoadingProgressBarVisibility(true)
+            chartFragment.setChartVisibility(false)
+            chartFragment.setChartLoadingProgressBarVisibility(true)
         }
 
         btnPrevRecord.setOnClickListener {
@@ -123,8 +105,8 @@ class MainActivity : AppCompatActivity() {
             if (currentRecordIndex < 0)
                 currentRecordIndex = maxRecordIndex
             updateIndexInfo()
-            setChartVisibility(false)
-            setChartLoadingProgressBarVisibility(true)
+            chartFragment.setChartVisibility(false)
+            chartFragment.setChartLoadingProgressBarVisibility(true)
             displayRecordByIndex(currentRecordIndex)
         }
 
@@ -133,8 +115,8 @@ class MainActivity : AppCompatActivity() {
             if (currentRecordIndex > maxRecordIndex)
                 currentRecordIndex = 0
             updateIndexInfo()
-            setChartVisibility(false)
-            setChartLoadingProgressBarVisibility(true)
+            chartFragment.setChartVisibility(false)
+            chartFragment.setChartLoadingProgressBarVisibility(true)
             displayRecordByIndex(currentRecordIndex)
         }
     }
@@ -185,64 +167,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-
         })
-
-    }
-
-    private fun observeLiveDataPriceHistoryForDateRange() {
-        val currencyName = tvCryptocurrencySymbol.text.toString()
-
-        //set date range parameters
-        val calendar = Calendar.getInstance()
-        calendar.time = defaultDateFormatter.parse(tvCryptocurrencyDate.text.toString())
-        val dateEnd = calendar.time
-
-        when (chartRadioGroupTimeRange.checkedRadioButtonId) {
-            R.id.chartRadioButtonTimeRangeOneYear -> calendar.add(Calendar.YEAR, -1)
-            R.id.chartRadioButtonTimeRangeOneMonth -> calendar.add(Calendar.MONTH, -1)
-            R.id.chartRadioButtonTimeRangeOneWeek -> calendar.add(Calendar.DAY_OF_MONTH, -7)
-            R.id.chartRadioButtonTimeRange24Hours -> calendar.add(Calendar.DAY_OF_MONTH, -1)
-        }
-
-        val dateStart = calendar.time
-
-        setChartLoadingProgressBarVisibility(true)
-        val priceHistoryLiveData = viewModel.requestPriceHistoryForDateRange(
-            currencyName,
-            getString(R.string.defaultVsCurrency),
-            (dateStart.time / 1000),
-            (dateEnd.time / 1000)
-        )
-        if (!priceHistoryLiveData.hasActiveObservers())
-            priceHistoryLiveData.observe(this,
-                Observer {
-                    if (!it.isNullOrEmpty()) {
-                        //create list
-                        var list = arrayListOf<Entry>()
-                        it.forEachIndexed { index, currentRow ->
-                            list.add(Entry(currentRow[0].toFloat(), currentRow[1].toFloat()))
-                        }
-                        setChartData(list)
-                        setMinAvgMaxPricesValues(list)
-                        setChartDescription()
-                        setChartAxisLabelsVisibility(true)
-                    } else {
-                        setChartVisibility(false) //no valid data to display
-                        setChartAxisLabelsVisibility(false)
-                    }
-                })
-    }
-
-    private fun setMinAvgMaxPricesValues(values: ArrayList<Entry>) {
-        val min: Float = (values.minByOrNull { it.y }?.y) ?: -1.0f
-        val max: Float = (values.maxByOrNull { it.y }?.y) ?: -1.0f
-
-        val avg = values.map { it.y }.average()
-
-        tvMinPrice.text = valueFormatter.getFormattedValue(min)
-        tvMaxPrice.text = valueFormatter.getFormattedValue(max)
-        tvAvgPrice.text = valueFormatter.getFormattedValue(avg.toFloat())
     }
 
     private fun handleCryptocurrencyChoice() {
@@ -328,110 +253,8 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
         tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
-        tvMinPrice = findViewById(R.id.tvMinPrice)
-        tvAvgPrice = findViewById(R.id.tvAvgPrice)
-        tvMaxPrice = findViewById(R.id.tvMaxPrice)
-        chart = findViewById(R.id.chart)
-        llChartWithOptions = findViewById(R.id.llChartWithOptions)
-        llChartMinMaxAvgPrices = findViewById(R.id.llChartMinMaxAvgPrices)
-        progressBarChartLoading = findViewById(R.id.progressBarChartLoading)
-        chartRadioGroupTimeRange = findViewById(R.id.chartRadioGroupTimeRange)
     }
 
-    private fun initializeChart() {
-        chart.setBackgroundColor(Color.TRANSPARENT)
-        chart.setTouchEnabled(false)
-        chart.setDrawBorders(false)
-
-        setChartDescription()
-        chart.description.textColor =
-            ContextCompat.getColor(applicationContext, R.color.chart_font_color)
-        chart.description.textSize += 4 //increase default text size
-        chart.description.yOffset -= 15  //offset description to bottom direction
-
-        chart.legend.isEnabled = false
-
-        chart.xAxis.setDrawGridLines(false)
-        chart.xAxis.setDrawLabels(false)
-        chart.xAxis.setDrawAxisLine(false)
-
-        chart.axisLeft.setDrawAxisLine(false)
-        chart.axisLeft.textSize = 15f //increase default text size
-        chart.axisLeft.setDrawGridLines(false)
-        chart.axisLeft.textColor =
-            ContextCompat.getColor(applicationContext, R.color.chart_font_color)
-        chart.axisLeft.setLabelCount(6, true)
-
-        chart.axisRight.setDrawAxisLine(false)
-        chart.axisRight.isEnabled = false
-
-        valueFormatter =
-            object : ValueFormatter() {
-                override fun getFormattedValue(value: Float): String {
-                    val digitsNumber = 6
-                    val valueConverted: String = String.format("%.5f", value)
-
-                    var stringToReturn = ""
-
-                    if (valueConverted.isNotEmpty() && valueConverted.isNotBlank()) {
-                        if (valueConverted.length >= digitsNumber) {
-                            stringToReturn = valueConverted.substring(0, digitsNumber)
-                            if (value >= 10000)
-                                stringToReturn = stringToReturn.replace(".", "")
-                        } else
-                            stringToReturn =
-                                valueConverted.substring(0, valueConverted.length - 1)
-                    }
-
-                    if (stringToReturn.last() == ',') { //delete lonely comma at end of number string if exists
-                        stringToReturn = stringToReturn.substring(0, stringToReturn.length - 1)
-                    }
-                    return stringToReturn
-                }
-            }
-
-        chart.axisLeft.valueFormatter = valueFormatter
-
-        setChartVisibility(false)
-        setChartLoadingProgressBarVisibility(false)
-    }
-
-    private fun setChartData(values: ArrayList<Entry>) {
-        chartDataSet = LineDataSet(values, "")
-
-        chartDataSet.color = Color.BLUE
-        chartDataSet.setDrawCircles(false)
-        chartDataSet.setDrawHorizontalHighlightIndicator(false)
-        chartDataSet.setDrawVerticalHighlightIndicator(false)
-        chartDataSet.lineWidth = 3f
-        chartDataSet.setDrawValues(false)
-
-
-        if (chart.data == null) {
-            val data = LineData(chartDataSet)
-            chart.data = data
-        } else {
-            chart.clearValues()
-            chart.data.clearValues()
-            chart.data.addDataSet(chartDataSet)
-        }
-        //chart.animateX(1000)
-        chart.notifyDataSetChanged()
-        chart.invalidate()
-
-        setChartVisibility(true)
-        setChartLoadingProgressBarVisibility(false)
-    }
-
-    private fun setChartDescription() {
-        chart.description.text = when (chartRadioGroupTimeRange.checkedRadioButtonId) {
-            R.id.chartRadioButtonTimeRangeOneYear -> "One year"
-            R.id.chartRadioButtonTimeRangeOneMonth -> "One month"
-            R.id.chartRadioButtonTimeRangeOneWeek -> "One week"
-            R.id.chartRadioButtonTimeRange24Hours -> "24 hours"
-            else -> "Unknown time period"
-        }
-    }
 
     private fun initializeDatePicker() {
         etDate.setText(defaultDateFormatter.format(Date()))
@@ -522,7 +345,7 @@ class MainActivity : AppCompatActivity() {
                     "%.3f USD".format(entity.priceUsd)
             }
 
-            observeLiveDataPriceHistoryForDateRange()
+            chartFragment.requestPriceHistory()
         } catch (exc: Exception) {
             Log.e("myApp", exc.toString())
         }
@@ -540,7 +363,7 @@ class MainActivity : AppCompatActivity() {
                 currentRecordIndex = 0
                 maxRecordIndex = 0
                 updateIndexInfo()
-                setChartVisibility(false)
+                chartFragment.setChartVisibility(false)
             }
         }
         return super.onOptionsItemSelected(item)
@@ -551,35 +374,6 @@ class MainActivity : AppCompatActivity() {
             tvNoInternetConnection.visibility = View.GONE
         else
             tvNoInternetConnection.visibility = View.VISIBLE
-    }
-
-    private fun setChartVisibility(visible: Boolean) {
-        if (visible) {
-            chart.axisLeft.setDrawLabels(true)
-            llChartWithOptions.postDelayed(Runnable { //show with delay
-                llChartWithOptions.visibility = View.VISIBLE
-                llChartMinMaxAvgPrices.visibility = View.VISIBLE
-            }, 200)
-        } else {
-            chartDataSet.isVisible = false
-            llChartMinMaxAvgPrices.visibility = View.GONE
-            chart.invalidate()
-        }
-    }
-
-    private fun setChartAxisLabelsVisibility(visible: Boolean) {
-        chart.axisLeft.setDrawLabels(visible)
-    }
-
-    private fun setChartLoadingProgressBarVisibility(visible: Boolean) {
-        if (visible)
-            progressBarChartLoading.visibility = View.VISIBLE
-        else {
-            progressBarChartLoading.postDelayed(Runnable { //hide with delay
-                progressBarChartLoading.visibility = View.GONE
-            }, 200)
-
-        }
     }
 
 }
