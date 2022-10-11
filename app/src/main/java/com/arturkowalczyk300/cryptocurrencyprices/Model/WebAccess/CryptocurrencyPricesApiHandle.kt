@@ -25,7 +25,7 @@ interface CryptocurrencyPricesApiHandle {
     fun getHistoryOfPriceForDateRange(
         @Path("currency") currencySymbol: String, //e.g. bitcoin
         @Query("vs_currency") vsCurrency: String, //e.g. USD
-        @Query("from") unixTimeFrom: Long, //e.g. 1656962519 - 04.07.2022 192:21:59
-        @Query("to") unixTimeTo: Long, //e.g. 1654370519 - 04.06.2022 192:21:59
+        @Query("from") unixTimeFrom: Long, //e.g. 1654370519 - 04.06.2022 192:21:59
+        @Query("to") unixTimeTo: Long, //e.g. 1656962519 - 04.07.2022 192:21:59
     ): Call<CryptocurrencyPriceHistoryFromApi>
 }
