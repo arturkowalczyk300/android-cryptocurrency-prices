@@ -7,11 +7,11 @@
         <deviceKey>
           <Key>
             <type value="VIRTUAL_DEVICE_PATH" />
-            <value value="C:\Users\artur\.android\avd\Xiaomi_Redmi_Note_9_Android_10.avd" />
+            <value value="C:\Users\artur\.android\avd\smallerLCD_29_emulator_Xiaomi_Redmi_Note_9_Android_10.avd" />
           </Key>
         </deviceKey>
       </Target>
     </targetSelectedWithDropDown>
-    <timeTargetWasSelectedWithDropDown value="2022-08-04T17:01:12.162649600Z" />
+    <timeTargetWasSelectedWithDropDown value="2022-10-17T19:03:23.033690700Z" />
   </component>
 </project>

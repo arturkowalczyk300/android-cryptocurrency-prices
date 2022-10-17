@@ -141,7 +141,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         setChartDescription()
         chart.description.textColor =
             ContextCompat.getColor(appContext, R.color.chart_font_color)
-        chart.description.textSize += 4 //increase default text size
+        chart.description.textSize += 2 //increase default text size
         chart.description.yOffset -= 15  //offset description to bottom direction
 
         chart.legend.isEnabled = false
