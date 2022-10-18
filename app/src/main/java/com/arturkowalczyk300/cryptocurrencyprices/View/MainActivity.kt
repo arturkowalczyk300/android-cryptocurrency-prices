@@ -20,10 +20,10 @@ import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILU
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
+import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
-import com.github.mikephil.charting.data.Entry
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -42,6 +42,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvNoInternetConnection: TextView
     private lateinit var flChart: FrameLayout
     private lateinit var chartFragment: ChartFragment
+    private lateinit var sharedPrefsInstance: SharedPreferencesHelper
+    private var autoFetchDataAlreadyDone = false
+    private var autoFetchDataPending = false
 
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
@@ -79,11 +82,17 @@ class MainActivity : AppCompatActivity() {
             replace(R.id.flChart, chartFragment)
             commit()
         }
+
+        sharedPrefsInstance = SharedPreferencesHelper(applicationContext)
+
+
     }
 
     private fun addButtonsOnClickListeners() {
         btnGet.setOnClickListener {
             if (isCurrenciesListInitialized && hasInternetConnection) {
+                autoFetchDataAlreadyDone = true
+                autoFetchDataPending = false
                 var date: Date
                 try {
                     date = defaultDateFormatter.parse(etDate.text.toString())
@@ -95,6 +104,10 @@ class MainActivity : AppCompatActivity() {
                     Log.e("myApp", exc.toString())
                 }
             }
+            else{
+                if(!autoFetchDataAlreadyDone)  autoFetchDataPending = true
+            }
+
             chartFragment.setChartVisibility(false)
             chartFragment.setChartLoadingProgressBarVisibility(true)
         }
@@ -179,7 +192,16 @@ class MainActivity : AppCompatActivity() {
             }
 
             isCurrenciesListInitialized = true
-            tvSelectedCurrencyId.text = listOfCryptocurrenciesNames.first()
+
+            if (sharedPrefsInstance.getLastChosenCryptocurrency() != null)
+                tvSelectedCurrencyId.text = sharedPrefsInstance.getLastChosenCryptocurrency()
+            else tvSelectedCurrencyId.text = listOfCryptocurrenciesNames.first()
+
+            if(!autoFetchDataAlreadyDone){
+                autoFetchDataAlreadyDone = true
+                btnGet.performClick()
+            }
+
         })
 
         tvSelectedCurrencyId.setOnClickListener {
@@ -194,7 +216,9 @@ class MainActivity : AppCompatActivity() {
             adapter.setDropDownViewResource(R.layout.my_spinner_item)
             listView.adapter = adapter
             listView.setOnItemClickListener { parent, view, position, id ->
-                tvSelectedCurrencyId.text = listView.adapter.getItem(position).toString()
+                val cryptocurrencyId = listView.adapter.getItem(position).toString()
+                tvSelectedCurrencyId.text = cryptocurrencyId
+                sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
                 dialog.dismiss()
             }
 
@@ -232,6 +256,8 @@ class MainActivity : AppCompatActivity() {
         networkAccessLiveData.observe(this) { hasInternetConnection ->
             this.hasInternetConnection = hasInternetConnection
             changeNoInternetConnectionInfoVisibility(hasInternetConnection)
+            if(!autoFetchDataAlreadyDone && autoFetchDataPending && hasInternetConnection)
+                btnGet.performClick()
         }
     }
 
