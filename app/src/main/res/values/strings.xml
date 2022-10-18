@@ -10,6 +10,7 @@
     <string name="menuGetAllRecords">Get all records</string>
     <string name="menuAddRecord">Add record</string>
     <string name="defaultVsCurrency">USD</string>
+    <string name="defaultCryptocurrency">bitcoin</string>
     <string name="defaultDateFormat">dd.MM.yyyy</string>
     <string name="no_internet_connection">No internet connection!</string>
     <string name="REQUEST_PRICE_DATA_FAILURE">Getting price data error!</string>
