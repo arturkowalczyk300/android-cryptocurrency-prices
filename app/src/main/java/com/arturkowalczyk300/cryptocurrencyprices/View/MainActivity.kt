@@ -43,6 +43,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var flChart: FrameLayout
     private lateinit var chartFragment: ChartFragment
     private lateinit var sharedPrefsInstance: SharedPreferencesHelper
+    private var autoFetchDataAlreadyDone = false
+    private var autoFetchDataPending = false
 
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
@@ -82,11 +84,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         sharedPrefsInstance = SharedPreferencesHelper(applicationContext)
+
+
     }
 
     private fun addButtonsOnClickListeners() {
         btnGet.setOnClickListener {
             if (isCurrenciesListInitialized && hasInternetConnection) {
+                autoFetchDataAlreadyDone = true
+                autoFetchDataPending = false
                 var date: Date
                 try {
                     date = defaultDateFormatter.parse(etDate.text.toString())
@@ -98,6 +104,10 @@ class MainActivity : AppCompatActivity() {
                     Log.e("myApp", exc.toString())
                 }
             }
+            else{
+                if(!autoFetchDataAlreadyDone)  autoFetchDataPending = true
+            }
+
             chartFragment.setChartVisibility(false)
             chartFragment.setChartLoadingProgressBarVisibility(true)
         }
@@ -186,6 +196,12 @@ class MainActivity : AppCompatActivity() {
             if (sharedPrefsInstance.getLastChosenCryptocurrency() != null)
                 tvSelectedCurrencyId.text = sharedPrefsInstance.getLastChosenCryptocurrency()
             else tvSelectedCurrencyId.text = listOfCryptocurrenciesNames.first()
+
+            if(!autoFetchDataAlreadyDone){
+                autoFetchDataAlreadyDone = true
+                btnGet.performClick()
+            }
+
         })
 
         tvSelectedCurrencyId.setOnClickListener {
@@ -240,6 +256,8 @@ class MainActivity : AppCompatActivity() {
         networkAccessLiveData.observe(this) { hasInternetConnection ->
             this.hasInternetConnection = hasInternetConnection
             changeNoInternetConnectionInfoVisibility(hasInternetConnection)
+            if(!autoFetchDataAlreadyDone && autoFetchDataPending && hasInternetConnection)
+                btnGet.performClick()
         }
     }
 
