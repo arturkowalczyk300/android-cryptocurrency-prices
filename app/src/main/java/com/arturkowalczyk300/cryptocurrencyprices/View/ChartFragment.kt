@@ -16,6 +16,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
 import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -85,6 +86,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         val dateStart = calendar.time
 
+        hideMarker()
         setChartLoadingProgressBarVisibility(true)
         val priceHistoryLiveData = viewModel.requestPriceHistoryForDateRange(
             currencyName,
@@ -133,7 +135,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
     private fun initializeChart() {
         chart.setBackgroundColor(Color.TRANSPARENT)
-        chart.setTouchEnabled(false)
+        chart.setTouchEnabled(true)
         chart.setDrawBorders(false)
 
         setChartDescription()
@@ -157,6 +159,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         chart.axisRight.setDrawAxisLine(false)
         chart.axisRight.isEnabled = false
+
+        chart.marker = ChartMarkerView(appContext, R.layout.chart_marker_view)
 
         valueFormatter =
             object : ValueFormatter() {
@@ -269,5 +273,10 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             }, 200)
 
         }
+    }
+
+    fun hideMarker()
+    {
+        chart.highlightValue(null)
     }
 }
