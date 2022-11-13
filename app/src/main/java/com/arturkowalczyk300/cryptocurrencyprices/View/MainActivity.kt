@@ -1,18 +1,12 @@
 package com.arturkowalczyk300.cryptocurrencyprices.View
 
-import android.app.DatePickerDialog
-import android.app.Dialog
-import android.content.DialogInterface
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
@@ -40,7 +34,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
-    private lateinit var flChart: FrameLayout
     private lateinit var chartFragment: ChartFragment
     private lateinit var sharedPrefsInstance: SharedPreferencesHelper
     private var autoFetchDataAlreadyDone = false
@@ -49,14 +42,12 @@ class MainActivity : AppCompatActivity() {
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
 
-    private var datePickerDialog: DatePickerDialog? = null
     private var currentRecordIndex: Int = 0
 
     private var maxRecordIndex: Int = 0
     private var listOfRecords: List<CryptocurrencyPricesEntityDb>? = null
-    private val currentDate: Calendar = Calendar.getInstance()
+    private var datePicker = CustomDatePickerHandler()
 
-    private val currentSelectedDate: Calendar = Calendar.getInstance()
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -148,7 +139,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.getApiErrorCodeLiveData().observe(this, object : Observer<Pair<Boolean, Int>> {
             override fun onChanged(t: Pair<Boolean, Int>?) {
 
-                if (t!!.first) { //error occured
+                if (t!!.first) { //error occurred
                     var toastText = when (t.second) {
                         REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE ->
                             getString(R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
@@ -233,54 +224,19 @@ class MainActivity : AppCompatActivity() {
         tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
     }
 
-
     private fun initializeDatePicker() {
         etDate.setText(DateFormatterUtil.format(Date()))
-
-        val customDatePickerDialog = object : DatePickerDialog(
-            this, DatePickerDialog.OnDateSetListener { datePicker, year, monthOfYear, day ->
-                val month = monthOfYear + 1
-                etDate.setText("${day}.${month}.${year}")
-            }, currentSelectedDate.get(Calendar.YEAR),
-            currentSelectedDate.get(Calendar.MONTH),
-            currentSelectedDate.get(Calendar.DAY_OF_MONTH)
-        ) {
-            init {
-                datePicker.maxDate = System.currentTimeMillis() //forbid choosing future date
-            }
-
-            var flagSkipDismiss: Boolean = false
-
-            override fun dismiss() {
-                if (flagSkipDismiss)
-                    flagSkipDismiss = false
-                else
-                    super.dismiss()
-            }
-        }
-
-        //add button Today
-        customDatePickerDialog.setButton(
-            DialogInterface.BUTTON_NEUTRAL,
-            getString(R.string.btnToday),
-            DialogInterface.OnClickListener { dialog, which ->
-                customDatePickerDialog.updateDate(
-                    currentDate.get(Calendar.YEAR),
-                    currentDate.get(Calendar.MONTH),
-                    currentDate.get(Calendar.DAY_OF_MONTH)
-                )
-                customDatePickerDialog.flagSkipDismiss =
-                    true //clicking "Today" button won't close date picker
-            })
-
-        datePickerDialog =
-            customDatePickerDialog //assign just to allow app to open date picker later
-
         etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
+
+        datePicker.initializeDatePicker(this)
+
+        datePicker.setListenerOnDateChanged { dateString->
+            etDate.setText(dateString)
+        }
     }
 
     private fun openDatePicker() {
-        datePickerDialog?.show()
+        datePicker.show()
     }
 
     private fun switchVisibilityOfRecordViewer(visible: Int) {
