@@ -1,18 +1,12 @@
 package com.arturkowalczyk300.cryptocurrencyprices.View
 
-import android.app.DatePickerDialog
-import android.app.Dialog
-import android.content.DialogInterface
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
@@ -20,11 +14,11 @@ import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILU
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
+import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -40,7 +34,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
-    private lateinit var flChart: FrameLayout
     private lateinit var chartFragment: ChartFragment
     private lateinit var sharedPrefsInstance: SharedPreferencesHelper
     private var autoFetchDataAlreadyDone = false
@@ -49,23 +42,20 @@ class MainActivity : AppCompatActivity() {
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
 
-    private var datePickerDialog: DatePickerDialog? = null
     private var currentRecordIndex: Int = 0
 
     private var maxRecordIndex: Int = 0
     private var listOfRecords: List<CryptocurrencyPricesEntityDb>? = null
-    private val currentDate: Calendar = Calendar.getInstance()
+    private var datePicker = CustomDatePickerHandler()
 
-    private val currentSelectedDate: Calendar = Calendar.getInstance()
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
-    private lateinit var defaultDateFormatter: SimpleDateFormat
-
+    //init methods
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        defaultDateFormatter = SimpleDateFormat(getString(R.string.defaultDateFormat))
+        DateFormatterUtil.customDateFormat = getString(R.string.defaultDateFormat)
 
         assignViewsVariables()
         initViewModel()
@@ -78,15 +68,54 @@ class MainActivity : AppCompatActivity() {
 
         //chart section
         chartFragment = ChartFragment()
-        supportFragmentManager.beginTransaction().apply {
-            replace(R.id.flChart, chartFragment)
-            commit()
-        }
+        if (savedInstanceState == null) //prevent recreation of fragment when it already exists
+            supportFragmentManager.beginTransaction().apply {
+                replace(R.id.flChart, chartFragment)
+                commit()
+            }
 
         sharedPrefsInstance = SharedPreferencesHelper(applicationContext)
 
 
     }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    private fun assignViewsVariables() {
+        tvSelectedCurrencyId = findViewById(R.id.tvSelectedCurrencyId)
+        etDate = findViewById(R.id.etDate)
+        btnGet = findViewById(R.id.btnGet)
+        btnPrevRecord = findViewById(R.id.btnPrevRecord)
+        btnNextRecord = findViewById(R.id.btnNextRecord)
+
+        tvCurrentAndMaxIndex = findViewById(R.id.tvCurrentAndMaxIndex)
+
+        tvCryptocurrencySymbol = findViewById(R.id.tvCryptocurrencySymbol)
+        tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
+        tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
+        tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
+    }
+
+    private fun initViewModel() {
+        val factory = CryptocurrencyPricesViewModelFactory(application)
+        viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
+    }
+
+    private fun initializeDatePicker() {
+        etDate.setText(DateFormatterUtil.format(Date()))
+        etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
+
+        datePicker.initializeDatePicker(this)
+
+        datePicker.setListenerOnDateChanged { dateString->
+            etDate.setText(dateString)
+        }
+    }
+
+    //listeners
 
     private fun addButtonsOnClickListeners() {
         btnGet.setOnClickListener {
@@ -95,7 +124,7 @@ class MainActivity : AppCompatActivity() {
                 autoFetchDataPending = false
                 var date: Date
                 try {
-                    date = defaultDateFormatter.parse(etDate.text.toString())
+                    date = DateFormatterUtil.parse(etDate.text.toString())
                     viewModel.requestPriceData(
                         tvSelectedCurrencyId.text.toString(),
                         date
@@ -103,9 +132,8 @@ class MainActivity : AppCompatActivity() {
                 } catch (exc: Exception) {
                     Log.e("myApp", exc.toString())
                 }
-            }
-            else{
-                if(!autoFetchDataAlreadyDone)  autoFetchDataPending = true
+            } else {
+                if (!autoFetchDataAlreadyDone) autoFetchDataPending = true
             }
 
             chartFragment.setChartVisibility(false)
@@ -151,33 +179,23 @@ class MainActivity : AppCompatActivity() {
         viewModel.getApiErrorCodeLiveData().observe(this, object : Observer<Pair<Boolean, Int>> {
             override fun onChanged(t: Pair<Boolean, Int>?) {
 
-                if (t!!.first) { //error occured
-                    when (t.second) {
+                if (t!!.first) { //error occurred
+                    var toastText = when (t.second) {
                         REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE ->
-                            Toast.makeText(
-                                applicationContext,
-                                getString(R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            getString(R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
                         REQUEST_CRYPTOCURRENCIES_LIST_FAILURE ->
-                            Toast.makeText(
-                                applicationContext,
-                                getString(R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            getString(R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE)
                         REQUEST_PRICE_DATA_FAILURE ->
-                            Toast.makeText(
-                                applicationContext,
-                                getString(R.string.REQUEST_PRICE_DATA_FAILURE),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            getString(R.string.REQUEST_PRICE_DATA_FAILURE)
                         else ->
-                            Toast.makeText(
-                                applicationContext,
-                                getString(R.string.UNKNOWN_FAILURE),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            getString(R.string.UNKNOWN_FAILURE)
                     }
+
+                    Toast.makeText(
+                        applicationContext,
+                        toastText,
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         })
@@ -197,7 +215,7 @@ class MainActivity : AppCompatActivity() {
                 tvSelectedCurrencyId.text = sharedPrefsInstance.getLastChosenCryptocurrency()
             else tvSelectedCurrencyId.text = listOfCryptocurrenciesNames.first()
 
-            if(!autoFetchDataAlreadyDone){
+            if (!autoFetchDataAlreadyDone) {
                 autoFetchDataAlreadyDone = true
                 btnGet.performClick()
             }
@@ -205,48 +223,13 @@ class MainActivity : AppCompatActivity() {
         })
 
         tvSelectedCurrencyId.setOnClickListener {
-            //display dialog
-            val dialog = Dialog(this)
-            dialog.setContentView(R.layout.dialog_searchable_list)
-            dialog.show()
-            val listView = dialog.findViewById(R.id.dialogListView) as ListView
+            val dialog = DialogListWithSearchTool()
+            dialog.showDialog(this, listOfCryptocurrenciesNames)
 
-            //set adapter to list with cryptocurrencies
-            val adapter = ArrayAdapter(this, R.layout.my_spinner_item, listOfCryptocurrenciesNames)
-            adapter.setDropDownViewResource(R.layout.my_spinner_item)
-            listView.adapter = adapter
-            listView.setOnItemClickListener { parent, view, position, id ->
-                val cryptocurrencyId = listView.adapter.getItem(position).toString()
+            dialog.setListenerOnClickItem { cryptocurrencyId ->
                 tvSelectedCurrencyId.text = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
-                dialog.dismiss()
             }
-
-            val todelete: MutableLiveData<List<Int>> = MutableLiveData()
-
-            todelete.observe(this) {
-                it.size > 0
-            }
-
-            //handle search filter
-            val editTextFilter = dialog.findViewById(R.id.dialogEtFilter) as EditText
-            editTextFilter.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    count: Int,
-                    after: Int
-                ) {
-                }
-
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    (listView.adapter as ArrayAdapter<*>).filter.filter(s.toString())
-                }
-
-                override fun afterTextChanged(s: Editable?) {
-
-                }
-            })
         }
 
     }
@@ -256,84 +239,59 @@ class MainActivity : AppCompatActivity() {
         networkAccessLiveData.observe(this) { hasInternetConnection ->
             this.hasInternetConnection = hasInternetConnection
             changeNoInternetConnectionInfoVisibility(hasInternetConnection)
-            if(!autoFetchDataAlreadyDone && autoFetchDataPending && hasInternetConnection)
+            if (!autoFetchDataAlreadyDone && autoFetchDataPending && hasInternetConnection)
                 btnGet.performClick()
         }
     }
 
-    private fun initViewModel() {
-        val factory = CryptocurrencyPricesViewModelFactory(application)
-        viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
-    }
-
-    private fun assignViewsVariables() {
-        tvSelectedCurrencyId = findViewById(R.id.tvSelectedCurrencyId)
-        etDate = findViewById(R.id.etDate)
-        btnGet = findViewById(R.id.btnGet)
-        btnPrevRecord = findViewById(R.id.btnPrevRecord)
-        btnNextRecord = findViewById(R.id.btnNextRecord)
-
-        tvCurrentAndMaxIndex = findViewById(R.id.tvCurrentAndMaxIndex)
-
-        tvCryptocurrencySymbol = findViewById(R.id.tvCryptocurrencySymbol)
-        tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
-        tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
-        tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
-    }
-
-
-    private fun initializeDatePicker() {
-        etDate.setText(defaultDateFormatter.format(Date()))
-
-        val customDatePickerDialog = object : DatePickerDialog(
-            this, DatePickerDialog.OnDateSetListener { datePicker, year, monthOfYear, day ->
-                val month = monthOfYear + 1
-                etDate.setText("${day}.${month}.${year}")
-            }, currentSelectedDate.get(Calendar.YEAR),
-            currentSelectedDate.get(Calendar.MONTH),
-            currentSelectedDate.get(Calendar.DAY_OF_MONTH)
-        ) {
-            init {
-                datePicker.maxDate = System.currentTimeMillis() //forbid choosing future date
-            }
-
-            var flagSkipDismiss: Boolean = false
-
-            override fun dismiss() {
-                if (flagSkipDismiss)
-                    flagSkipDismiss = false
-                else
-                    super.dismiss()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.itemClearRecords -> {
+                viewModel.clearAllRecords()
+                currentRecordIndex = 0
+                maxRecordIndex = 0
+                updateIndexInfo()
+                chartFragment.setChartVisibility(false)
             }
         }
-
-        //add button Today
-        customDatePickerDialog.setButton(
-            DialogInterface.BUTTON_NEUTRAL,
-            getString(R.string.btnToday),
-            DialogInterface.OnClickListener { dialog, which ->
-                customDatePickerDialog.updateDate(
-                    currentDate.get(Calendar.YEAR),
-                    currentDate.get(Calendar.MONTH),
-                    currentDate.get(Calendar.DAY_OF_MONTH)
-                )
-                customDatePickerDialog.flagSkipDismiss =
-                    true //clicking "Today" button won't close date picker
-            })
-
-        datePickerDialog =
-            customDatePickerDialog //assign just to allow app to open date picker later
-
-        etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
+        return super.onOptionsItemSelected(item)
     }
 
-    private fun openDatePicker() {
-        datePickerDialog?.show()
+    //visibility switching
+
+    private fun changeNoInternetConnectionInfoVisibility(hasInternetConnection: Boolean?) {
+        if (hasInternetConnection == true)
+            tvNoInternetConnection.visibility = View.GONE
+        else
+            tvNoInternetConnection.visibility = View.VISIBLE
     }
 
     private fun switchVisibilityOfRecordViewer(visible: Int) {
         val llRecords: LinearLayout = findViewById(R.id.llRecords)
         llRecords.visibility = visible
+    }
+
+    //other
+
+    private fun updateIndexInfo() {
+        tvCurrentAndMaxIndex.text = "${currentRecordIndex + 1}/${maxRecordIndex + 1}"
+    }
+
+    private fun displayRecordByIndex(index: Int) {
+        try {
+            val entity: CryptocurrencyPricesEntityDb? = listOfRecords?.get(currentRecordIndex)
+
+            if (entity != null) {
+                tvCryptocurrencySymbol.text = entity.cryptocurrencyId
+                tvCryptocurrencyDate.text = DateFormatterUtil.format(entity.date)
+                tvCryptocurrencyPrice.text =
+                    "%.3f USD".format(entity.priceUsd)
+            }
+
+            chartFragment.requestPriceHistory()
+        } catch (exc: Exception) {
+            Log.e("myApp", exc.toString())
+        }
     }
 
     private fun navigateToLastInsertedRecord() {
@@ -356,51 +314,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateIndexInfo() {
-        tvCurrentAndMaxIndex.text = "${currentRecordIndex + 1}/${maxRecordIndex + 1}"
+    private fun openDatePicker() {
+        datePicker.show()
     }
-
-    private fun displayRecordByIndex(index: Int) {
-        try {
-            val entity: CryptocurrencyPricesEntityDb? = listOfRecords?.get(currentRecordIndex)
-
-            if (entity != null) {
-                tvCryptocurrencySymbol.text = entity.cryptocurrencyId
-                tvCryptocurrencyDate.text = defaultDateFormatter.format(entity.date)
-                tvCryptocurrencyPrice.text =
-                    "%.3f USD".format(entity.priceUsd)
-            }
-
-            chartFragment.requestPriceHistory()
-        } catch (exc: Exception) {
-            Log.e("myApp", exc.toString())
-        }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.itemClearRecords -> {
-                viewModel.clearAllRecords()
-                currentRecordIndex = 0
-                maxRecordIndex = 0
-                updateIndexInfo()
-                chartFragment.setChartVisibility(false)
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    private fun changeNoInternetConnectionInfoVisibility(hasInternetConnection: Boolean?) {
-        if (hasInternetConnection == true)
-            tvNoInternetConnection.visibility = View.GONE
-        else
-            tvNoInternetConnection.visibility = View.VISIBLE
-    }
-
 }
 
