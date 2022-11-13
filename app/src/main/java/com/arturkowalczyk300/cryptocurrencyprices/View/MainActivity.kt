@@ -202,48 +202,13 @@ class MainActivity : AppCompatActivity() {
         })
 
         tvSelectedCurrencyId.setOnClickListener {
-            //display dialog
-            val dialog = Dialog(this)
-            dialog.setContentView(R.layout.dialog_searchable_list)
-            dialog.show()
-            val listView = dialog.findViewById(R.id.dialogListView) as ListView
+            val dialog = DialogListWithSearchTool()
+            dialog.showDialog(this, listOfCryptocurrenciesNames)
 
-            //set adapter to list with cryptocurrencies
-            val adapter = ArrayAdapter(this, R.layout.my_spinner_item, listOfCryptocurrenciesNames)
-            adapter.setDropDownViewResource(R.layout.my_spinner_item)
-            listView.adapter = adapter
-            listView.setOnItemClickListener { parent, view, position, id ->
-                val cryptocurrencyId = listView.adapter.getItem(position).toString()
+            dialog.setListenerOnClickItem { cryptocurrencyId ->
                 tvSelectedCurrencyId.text = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
-                dialog.dismiss()
             }
-
-            val todelete: MutableLiveData<List<Int>> = MutableLiveData()
-
-            todelete.observe(this) {
-                it.size > 0
-            }
-
-            //handle search filter
-            val editTextFilter = dialog.findViewById(R.id.dialogEtFilter) as EditText
-            editTextFilter.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    count: Int,
-                    after: Int
-                ) {
-                }
-
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    (listView.adapter as ArrayAdapter<*>).filter.filter(s.toString())
-                }
-
-                override fun afterTextChanged(s: Editable?) {
-
-                }
-            })
         }
 
     }
