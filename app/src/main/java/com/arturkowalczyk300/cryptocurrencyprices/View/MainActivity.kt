@@ -50,6 +50,8 @@ class MainActivity : AppCompatActivity() {
 
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
+    //init methods
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -76,6 +78,44 @@ class MainActivity : AppCompatActivity() {
 
 
     }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    private fun assignViewsVariables() {
+        tvSelectedCurrencyId = findViewById(R.id.tvSelectedCurrencyId)
+        etDate = findViewById(R.id.etDate)
+        btnGet = findViewById(R.id.btnGet)
+        btnPrevRecord = findViewById(R.id.btnPrevRecord)
+        btnNextRecord = findViewById(R.id.btnNextRecord)
+
+        tvCurrentAndMaxIndex = findViewById(R.id.tvCurrentAndMaxIndex)
+
+        tvCryptocurrencySymbol = findViewById(R.id.tvCryptocurrencySymbol)
+        tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
+        tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
+        tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
+    }
+
+    private fun initViewModel() {
+        val factory = CryptocurrencyPricesViewModelFactory(application)
+        viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
+    }
+
+    private fun initializeDatePicker() {
+        etDate.setText(DateFormatterUtil.format(Date()))
+        etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
+
+        datePicker.initializeDatePicker(this)
+
+        datePicker.setListenerOnDateChanged { dateString->
+            etDate.setText(dateString)
+        }
+    }
+
+    //listeners
 
     private fun addButtonsOnClickListeners() {
         btnGet.setOnClickListener {
@@ -204,39 +244,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun initViewModel() {
-        val factory = CryptocurrencyPricesViewModelFactory(application)
-        viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
-    }
-
-    private fun assignViewsVariables() {
-        tvSelectedCurrencyId = findViewById(R.id.tvSelectedCurrencyId)
-        etDate = findViewById(R.id.etDate)
-        btnGet = findViewById(R.id.btnGet)
-        btnPrevRecord = findViewById(R.id.btnPrevRecord)
-        btnNextRecord = findViewById(R.id.btnNextRecord)
-
-        tvCurrentAndMaxIndex = findViewById(R.id.tvCurrentAndMaxIndex)
-
-        tvCryptocurrencySymbol = findViewById(R.id.tvCryptocurrencySymbol)
-        tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
-        tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
-        tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
-    }
-
-    private fun initializeDatePicker() {
-        etDate.setText(DateFormatterUtil.format(Date()))
-        etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
-
-        datePicker.initializeDatePicker(this)
-
-        datePicker.setListenerOnDateChanged { dateString->
-            etDate.setText(dateString)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.itemClearRecords -> {
+                viewModel.clearAllRecords()
+                currentRecordIndex = 0
+                maxRecordIndex = 0
+                updateIndexInfo()
+                chartFragment.setChartVisibility(false)
+            }
         }
+        return super.onOptionsItemSelected(item)
     }
 
-    private fun openDatePicker() {
-        datePicker.show()
+    //visibility switching
+
+    private fun changeNoInternetConnectionInfoVisibility(hasInternetConnection: Boolean?) {
+        if (hasInternetConnection == true)
+            tvNoInternetConnection.visibility = View.GONE
+        else
+            tvNoInternetConnection.visibility = View.VISIBLE
     }
 
     private fun switchVisibilityOfRecordViewer(visible: Int) {
@@ -244,25 +271,7 @@ class MainActivity : AppCompatActivity() {
         llRecords.visibility = visible
     }
 
-    private fun navigateToLastInsertedRecord() {
-        try {
-            if (viewModel.lastAddedObject != null) {
-                var foundIndex = -1
-                listOfRecords?.forEachIndexed { index, it -> //skip comparing ID
-                    if (it.cryptocurrencyId == viewModel.lastAddedObject!!.cryptocurrencyId
-                        && it.date == viewModel.lastAddedObject!!.date
-                        && it.priceUsd == viewModel.lastAddedObject!!.priceUsd
-                    )
-                        foundIndex = index
-                }
-                if (foundIndex != -1) currentRecordIndex = foundIndex
-                displayRecordByIndex(currentRecordIndex)
-            } else
-                displayRecordByIndex(currentRecordIndex)
-        } catch (exc: Exception) {
-
-        }
-    }
+    //other
 
     private fun updateIndexInfo() {
         tvCurrentAndMaxIndex.text = "${currentRecordIndex + 1}/${maxRecordIndex + 1}"
@@ -285,30 +294,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
+    private fun navigateToLastInsertedRecord() {
+        try {
+            if (viewModel.lastAddedObject != null) {
+                var foundIndex = -1
+                listOfRecords?.forEachIndexed { index, it -> //skip comparing ID
+                    if (it.cryptocurrencyId == viewModel.lastAddedObject!!.cryptocurrencyId
+                        && it.date == viewModel.lastAddedObject!!.date
+                        && it.priceUsd == viewModel.lastAddedObject!!.priceUsd
+                    )
+                        foundIndex = index
+                }
+                if (foundIndex != -1) currentRecordIndex = foundIndex
+                displayRecordByIndex(currentRecordIndex)
+            } else
+                displayRecordByIndex(currentRecordIndex)
+        } catch (exc: Exception) {
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.itemClearRecords -> {
-                viewModel.clearAllRecords()
-                currentRecordIndex = 0
-                maxRecordIndex = 0
-                updateIndexInfo()
-                chartFragment.setChartVisibility(false)
-            }
         }
-        return super.onOptionsItemSelected(item)
     }
 
-    private fun changeNoInternetConnectionInfoVisibility(hasInternetConnection: Boolean?) {
-        if (hasInternetConnection == true)
-            tvNoInternetConnection.visibility = View.GONE
-        else
-            tvNoInternetConnection.visibility = View.VISIBLE
+    private fun openDatePicker() {
+        datePicker.show()
     }
-
 }
 
