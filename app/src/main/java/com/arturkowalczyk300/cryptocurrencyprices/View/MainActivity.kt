@@ -149,32 +149,22 @@ class MainActivity : AppCompatActivity() {
             override fun onChanged(t: Pair<Boolean, Int>?) {
 
                 if (t!!.first) { //error occured
-                    when (t.second) {
+                    var toastText = when (t.second) {
                         REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE ->
-                            Toast.makeText(
-                                applicationContext,
-                                getString(R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            getString(R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
                         REQUEST_CRYPTOCURRENCIES_LIST_FAILURE ->
-                            Toast.makeText(
-                                applicationContext,
-                                getString(R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            getString(R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE)
                         REQUEST_PRICE_DATA_FAILURE ->
-                            Toast.makeText(
-                                applicationContext,
-                                getString(R.string.REQUEST_PRICE_DATA_FAILURE),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            getString(R.string.REQUEST_PRICE_DATA_FAILURE)
                         else ->
-                            Toast.makeText(
-                                applicationContext,
-                                getString(R.string.UNKNOWN_FAILURE),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            getString(R.string.UNKNOWN_FAILURE)
                     }
+
+                    Toast.makeText(
+                        applicationContext,
+                        toastText,
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         })
