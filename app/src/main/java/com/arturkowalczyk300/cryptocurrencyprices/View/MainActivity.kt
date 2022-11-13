@@ -20,11 +20,11 @@ import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILU
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
+import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -59,13 +59,10 @@ class MainActivity : AppCompatActivity() {
     private val currentSelectedDate: Calendar = Calendar.getInstance()
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
-    private lateinit var defaultDateFormatter: SimpleDateFormat
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        defaultDateFormatter = SimpleDateFormat(getString(R.string.defaultDateFormat))
+        DateFormatterUtil.customDateFormat = getString(R.string.defaultDateFormat)
 
         assignViewsVariables()
         initViewModel()
@@ -96,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                 autoFetchDataPending = false
                 var date: Date
                 try {
-                    date = defaultDateFormatter.parse(etDate.text.toString())
+                    date = DateFormatterUtil.parse(etDate.text.toString())
                     viewModel.requestPriceData(
                         tvSelectedCurrencyId.text.toString(),
                         date
@@ -283,7 +280,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun initializeDatePicker() {
-        etDate.setText(defaultDateFormatter.format(Date()))
+        etDate.setText(DateFormatterUtil.format(Date()))
 
         val customDatePickerDialog = object : DatePickerDialog(
             this, DatePickerDialog.OnDateSetListener { datePicker, year, monthOfYear, day ->
@@ -366,7 +363,7 @@ class MainActivity : AppCompatActivity() {
 
             if (entity != null) {
                 tvCryptocurrencySymbol.text = entity.cryptocurrencyId
-                tvCryptocurrencyDate.text = defaultDateFormatter.format(entity.date)
+                tvCryptocurrencyDate.text = DateFormatterUtil.format(entity.date)
                 tvCryptocurrencyPrice.text =
                     "%.3f USD".format(entity.priceUsd)
             }

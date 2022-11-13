@@ -11,6 +11,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
@@ -39,8 +40,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var tvMainActivityCryptocurrencySymbol: TextView
     private lateinit var tvMainActivityCryptocurrencyDate: TextView
 
-    private lateinit var defaultDateFormatter: SimpleDateFormat
-
     private var chartDataSet = LineDataSet(listOf(), "")
 
     override fun onViewCreated(
@@ -50,7 +49,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         super.onViewCreated(view, savedInstanceState)
 
         appContext = requireActivity().applicationContext
-        defaultDateFormatter = SimpleDateFormat(getString(R.string.defaultDateFormat))
         initViewModel()
 
         assignViewsVariablesChart()
@@ -75,7 +73,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         //set date range parameters
         val calendar = Calendar.getInstance()
-        calendar.time = defaultDateFormatter.parse(tvMainActivityCryptocurrencyDate.text.toString())
+        calendar.time = DateFormatterUtil.parse(tvMainActivityCryptocurrencyDate.text.toString())
         val dateEnd = calendar.time
 
         when (chartRadioGroupTimeRange.checkedRadioButtonId) {
