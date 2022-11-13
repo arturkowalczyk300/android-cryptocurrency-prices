@@ -78,10 +78,11 @@ class MainActivity : AppCompatActivity() {
 
         //chart section
         chartFragment = ChartFragment()
-        supportFragmentManager.beginTransaction().apply {
-            replace(R.id.flChart, chartFragment)
-            commit()
-        }
+        if (savedInstanceState == null) //prevent recreation of fragment when it already exists
+            supportFragmentManager.beginTransaction().apply {
+                replace(R.id.flChart, chartFragment)
+                commit()
+            }
 
         sharedPrefsInstance = SharedPreferencesHelper(applicationContext)
 
@@ -103,9 +104,8 @@ class MainActivity : AppCompatActivity() {
                 } catch (exc: Exception) {
                     Log.e("myApp", exc.toString())
                 }
-            }
-            else{
-                if(!autoFetchDataAlreadyDone)  autoFetchDataPending = true
+            } else {
+                if (!autoFetchDataAlreadyDone) autoFetchDataPending = true
             }
 
             chartFragment.setChartVisibility(false)
@@ -197,7 +197,7 @@ class MainActivity : AppCompatActivity() {
                 tvSelectedCurrencyId.text = sharedPrefsInstance.getLastChosenCryptocurrency()
             else tvSelectedCurrencyId.text = listOfCryptocurrenciesNames.first()
 
-            if(!autoFetchDataAlreadyDone){
+            if (!autoFetchDataAlreadyDone) {
                 autoFetchDataAlreadyDone = true
                 btnGet.performClick()
             }
@@ -256,7 +256,7 @@ class MainActivity : AppCompatActivity() {
         networkAccessLiveData.observe(this) { hasInternetConnection ->
             this.hasInternetConnection = hasInternetConnection
             changeNoInternetConnectionInfoVisibility(hasInternetConnection)
-            if(!autoFetchDataAlreadyDone && autoFetchDataPending && hasInternetConnection)
+            if (!autoFetchDataAlreadyDone && autoFetchDataPending && hasInternetConnection)
                 btnGet.performClick()
         }
     }
