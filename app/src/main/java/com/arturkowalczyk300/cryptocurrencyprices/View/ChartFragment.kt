@@ -197,7 +197,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chartDataSet.color = Color.BLUE
         chartDataSet.setDrawCircles(false)
         chartDataSet.setDrawHorizontalHighlightIndicator(false)
-        chartDataSet.setDrawVerticalHighlightIndicator(false)
+        chartDataSet.setDrawVerticalHighlightIndicator(true)
         chartDataSet.lineWidth = 3f
         chartDataSet.setDrawValues(false)
 
