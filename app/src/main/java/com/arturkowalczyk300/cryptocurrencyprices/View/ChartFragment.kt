@@ -16,12 +16,10 @@ import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
 import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.components.MarkerView
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -30,8 +28,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var viewModel: CryptocurrencyPricesViewModel
 
     private lateinit var chart: LineChart
-    private lateinit var llChartWithOptions: LinearLayout
-    private lateinit var llChartMinMaxAvgPrices: LinearLayout
+    private lateinit var groupChartWithOptions: androidx.constraintlayout.widget.Group
+    private lateinit var groupChartMinMaxAvgPrices: androidx.constraintlayout.widget.Group
     private lateinit var progressBarChartLoading: ProgressBar
     private lateinit var chartRadioGroupTimeRange: RadioGroup
     private lateinit var valueFormatter: ValueFormatter
@@ -233,8 +231,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private fun assignViewsVariablesChart() {
         val currentView = requireView()
         chart = currentView.findViewById(R.id.chart)
-        llChartWithOptions = currentView.findViewById(R.id.llChartWithOptions)
-        llChartMinMaxAvgPrices = currentView.findViewById(R.id.llChartMinMaxAvgPrices)
+        groupChartWithOptions = currentView.findViewById(R.id.groupChartWithOptions)
+        groupChartMinMaxAvgPrices = currentView.findViewById(R.id.groupChartMinMaxAvgPrices)
         progressBarChartLoading = currentView.findViewById(R.id.progressBarChartLoading)
         chartRadioGroupTimeRange = currentView.findViewById(R.id.chartRadioGroupTimeRange)
         tvChartMinPrice = currentView.findViewById(R.id.tvMinPrice)
@@ -249,13 +247,13 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     fun setChartVisibility(visible: Boolean) {
         if (visible) {
             chart.axisLeft.setDrawLabels(true)
-            llChartWithOptions.postDelayed(Runnable { //show with delay
-                llChartWithOptions.visibility = View.VISIBLE
-                llChartMinMaxAvgPrices.visibility = View.VISIBLE
+            groupChartWithOptions.postDelayed(Runnable { //show with delay
+                groupChartWithOptions.visibility = View.VISIBLE
+                groupChartMinMaxAvgPrices.visibility = View.VISIBLE
             }, 200)
         } else {
             chartDataSet.isVisible = false
-            llChartMinMaxAvgPrices.visibility = View.GONE
+            groupChartMinMaxAvgPrices.visibility = View.GONE
             chart.invalidate()
         }
     }

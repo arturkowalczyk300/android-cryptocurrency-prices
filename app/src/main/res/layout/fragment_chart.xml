@@ -1,130 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/flChart"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".View.ChartFragment">
 
 
-    <RelativeLayout
-        android:id="@+id/flChart"
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:gravity="bottom"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        android:layout_marginBottom="10dp"
+        android:background="@color/purple_700"
+        app:layout_constraintBottom_toTopOf="@+id/lblAvg"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_conversion_absoluteHeight="593dp"
+        tools:layout_conversion_absoluteWidth="461dp" />
 
-        <LinearLayout
-            android:id="@+id/llChartWithOptions"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerInParent="true"
-            android:orientation="vertical"
-            android:visibility="gone">
 
-            <com.github.mikephil.charting.charts.LineChart
-                android:id="@+id/chart"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginHorizontal="5dp"
-                android:layout_weight="0.8"
-                android:background="@color/purple_700" />
+    <TextView
+        android:id="@+id/lblMin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="20dp"
+        android:text="@string/txtMin"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/chartRadioGroupTimeRange"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_conversion_absoluteHeight="27dp"
+        tools:layout_conversion_absoluteWidth="38dp" />
 
-            <LinearLayout
-                android:id="@+id/llChartMinMaxAvgPrices"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
-                android:orientation="horizontal"
-                android:gravity="center">
+    <TextView
+        android:id="@+id/tvMinPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/lblMin"
+        app:layout_constraintStart_toEndOf="@+id/lblMin"
+        tools:layout_conversion_absoluteHeight="24dp"
+        tools:layout_conversion_absoluteWidth="34dp"
+        tools:text="0.00" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="20sp"
-                    android:text="@string/txtMin" />
+    <TextView
+        android:id="@+id/lblAvg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:text="@string/txtAvg"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/lblMin"
+        app:layout_constraintEnd_toStartOf="@+id/guideline2" />
 
-                <TextView
-                    android:id="@+id/tvMinPrice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="30dp"
-                    android:textSize="18sp"
-                    tools:text="0.00" />
+    <TextView
+        android:id="@+id/tvAvgPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/lblMin"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        tools:text="0.00" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="20sp"
-                    android:text="@string/txtAvg" />
+    <TextView
+        android:id="@+id/lblMax"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:text="@string/txtMax"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/lblMin"
+        app:layout_constraintEnd_toStartOf="@+id/tvMaxPrice"
+        tools:layout_conversion_absoluteHeight="27dp"
+        tools:layout_conversion_absoluteWidth="43dp" />
 
-                <TextView
-                    android:id="@+id/tvAvgPrice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="30dp"
-                    android:textSize="18sp"
-                    tools:text="0.00" />
+    <TextView
+        android:id="@+id/tvMaxPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/lblMin"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:layout_conversion_absoluteHeight="24dp"
+        tools:layout_conversion_absoluteWidth="34dp"
+        tools:text="0.00" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="20sp"
-                    android:text="@string/txtMax" />
+    <RadioGroup
+        android:id="@+id/chartRadioGroupTimeRange"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
-                <TextView
-                    android:id="@+id/tvMaxPrice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    tools:text="0.00" />
+        <RadioButton
+            android:id="@+id/chartRadioButtonTimeRangeOneYear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_weight="1"
+            android:text="@string/radioButtonOneYear" />
 
-            </LinearLayout>
+        <RadioButton
+            android:id="@+id/chartRadioButtonTimeRangeOneMonth"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/radioButtonOneMonth" />
 
-            <RadioGroup
-                android:id="@+id/chartRadioGroupTimeRange"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.2"
-                android:orientation="horizontal">
+        <RadioButton
+            android:id="@+id/chartRadioButtonTimeRangeOneWeek"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/radioButtonOneWeek" />
 
-                <RadioButton
-                    android:id="@+id/chartRadioButtonTimeRangeOneYear"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="5dp"
-                    android:text="1 year" />
+        <RadioButton
+            android:id="@+id/chartRadioButtonTimeRange24Hours"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="@string/radioButtonOneDay" />
 
-                <RadioButton
-                    android:id="@+id/chartRadioButtonTimeRangeOneMonth"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="5dp"
-                    android:text="1 month" />
+    </RadioGroup>
 
-                <RadioButton
-                    android:id="@+id/chartRadioButtonTimeRangeOneWeek"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="5dp"
-                    android:text="1 week" />
+    <ProgressBar
+        android:id="@+id/progressBarChartLoading"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/chart" />
 
-                <RadioButton
-                    android:id="@+id/chartRadioButtonTimeRange24Hours"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="5dp"
-                    android:checked="true"
-                    android:text="24 hours" />
-            </RadioGroup>
-        </LinearLayout>
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
 
-        <ProgressBar
-            android:id="@+id/progressBarChartLoading"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:layout_centerInParent="true"
-            android:visibility="visible" />
-    </RelativeLayout>
 
-</FrameLayout>
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/groupChartWithOptions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="lblMin,tvMinPrice,lblAvg,tvAvgPrice,lblMax,tvMaxPrice,
+        chart,chartRadioGroupTimeRange" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/groupChartMinMaxAvgPrices"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="lblMin,tvMinPrice,lblAvg,tvAvgPrice,lblMax,tvMaxPrice" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

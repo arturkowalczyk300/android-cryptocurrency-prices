@@ -1,189 +1,182 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/linearLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="10dp"
     tools:context=".View.MainActivity">
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/groupRecords"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="btnPrevRecord,tvCurrentAndMaxIndex,btnNextRecord,
+        lblSymbol,lblDate,lblPrice,tvCryptocurrencySymbol,tvCryptocurrencyDate,tvCryptocurrencyPrice" />
 
     <TextView
         android:id="@+id/tvNoInternetConnection"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
         android:background="#5A0707"
         android:text="@string/no_internet_connection"
         android:textAlignment="center"
         android:textColor="@color/white"
         android:textSize="20sp"
-        android:visibility="gone" />
-
-    <LinearLayout
-        android:id="@+id/llRecords"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center">
-
-            <Button
-                android:id="@+id/btnPrevRecord"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/btnPrev" />
-
-            <TextView
-                android:id="@+id/tvCurrentAndMaxIndex"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="60dp"
-                android:textSize="26sp"
-                tools:text="1/1" />
-
-            <Button
-                android:id="@+id/btnNextRecord"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/btnNext" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
-                    android:layout_weight="1"
-                    android:text="@string/cryptocurrencySymbol"
-                    android:textSize="20sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
-                    android:layout_weight="1"
-                    android:text="@string/cryptocurrencyDate"
-                    android:textSize="20sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:layout_weight="1"
-                    android:text="@string/cryptocurrencyPrice"
-                    android:textSize="20sp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvCryptocurrencySymbol"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_weight="1"
-                    android:textSize="20sp"
-                    tools:text="bitcoin" />
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
-                <TextView
-                    android:id="@+id/tvCryptocurrencyDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_weight="1"
-                    android:textSize="20sp"
-                    tools:text="01.05.2022" />
+    <Button
+        android:id="@+id/btnPrevRecord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="48dp"
+        android:layout_marginLeft="48dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/btnPrev"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvCurrentAndMaxIndex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:textSize="26sp"
+        app:layout_constraintEnd_toStartOf="@+id/btnNextRecord"
+        app:layout_constraintStart_toEndOf="@+id/btnPrevRecord"
+        app:layout_constraintTop_toTopOf="@+id/btnPrevRecord"
+        tools:text="1/1" />
+
+    <Button
+        android:id="@+id/btnNextRecord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="48dp"
+        android:text="@string/btnNext"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btnPrevRecord" />
 
 
-                <TextView
-                    android:id="@+id/tvCryptocurrencyPrice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_weight="1"
-                    android:textSize="20sp"
-                    tools:text="34000 USD" />
-            </LinearLayout>
+    <TextView
+        android:id="@+id/lblSymbol"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/cryptocurrencySymbol"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="@+id/btnPrevRecord"
+        app:layout_constraintStart_toStartOf="@+id/btnPrevRecord"
+        app:layout_constraintTop_toBottomOf="@+id/btnPrevRecord" />
 
-        </LinearLayout>
+    <TextView
+        android:id="@+id/lblDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/cryptocurrencyDate"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="@+id/lblSymbol"
+        app:layout_constraintTop_toBottomOf="@+id/lblSymbol" />
+
+    <TextView
+        android:id="@+id/lblPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/cryptocurrencyPrice"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="@+id/lblDate"
+        app:layout_constraintTop_toBottomOf="@+id/lblDate" />
 
 
-    </LinearLayout>
+    <TextView
+        android:id="@+id/tvCryptocurrencySymbol"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="@+id/btnNextRecord"
+        app:layout_constraintStart_toStartOf="@+id/btnNextRecord"
+        app:layout_constraintTop_toTopOf="@+id/lblSymbol"
+        tools:text="bitcoin" />
+
+
+    <TextView
+        android:id="@+id/tvCryptocurrencyDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="@+id/tvCryptocurrencySymbol"
+        app:layout_constraintTop_toTopOf="@+id/lblDate"
+        tools:text="01.05.2022" />
+
+    <TextView
+        android:id="@+id/tvCryptocurrencyPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="@+id/tvCryptocurrencyDate"
+        app:layout_constraintTop_toTopOf="@+id/lblPrice"
+        tools:text="34000 USD" />
 
     <FrameLayout
         android:id="@+id/flChart"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
         android:layout_weight="1"
         android:gravity="bottom"
-        android:orientation="vertical">
-
-    </FrameLayout>
-
-    <LinearLayout
-        android:id="@+id/llRequest"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:gravity="bottom"
-        android:orientation="vertical">
+        app:layout_constraintBottom_toTopOf="@+id/etDate"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvCryptocurrencyPrice" />
 
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:weightSum="1">
+    <TextView
+        android:id="@+id/tvSelectedCurrencyId"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="19dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="20dp"
+        android:drawableEnd="@drawable/ic_baseline_arrow_drop_down_24"
+        android:hint="Select"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/btnGet"
+        app:layout_constraintEnd_toStartOf="@+id/etDate"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/etDate" />
 
-            <TextView
-                android:id="@+id/tvSelectedCurrencyId"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_weight="0.65"
-                android:drawableEnd="@drawable/ic_baseline_arrow_drop_down_24"
-                android:hint="Select"
-                android:textSize="20sp" />
+    <EditText
+        android:id="@+id/etDate"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="5dp"
+        android:focusable="false"
+        android:hint="Press to set date"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/btnGet"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tvSelectedCurrencyId" />
 
-            <EditText
-                android:id="@+id/etDate"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:layout_weight="0.35"
-                android:focusable="false"
-                android:hint="Press to set date"
-                android:textSize="18sp" />
-        </LinearLayout>
 
-        <Button
-            android:id="@+id/btnGet"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Get" />
+    <Button
+        android:id="@+id/btnGet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="Get"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    </LinearLayout>
-</LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
