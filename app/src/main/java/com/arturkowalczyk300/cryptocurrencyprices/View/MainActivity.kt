@@ -267,8 +267,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun switchVisibilityOfRecordViewer(visible: Int) {
-        val llRecords: LinearLayout = findViewById(R.id.llRecords)
-        llRecords.visibility = visible
+        val groupRecords: androidx.constraintlayout.widget.Group = findViewById(R.id.groupRecords)
+        groupRecords.visibility = visible
     }
 
     //other

@@ -20,7 +20,6 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -29,8 +28,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var viewModel: CryptocurrencyPricesViewModel
 
     private lateinit var chart: LineChart
-    private lateinit var llChartWithOptions: LinearLayout
-    private lateinit var llChartMinMaxAvgPrices: LinearLayout
+    private lateinit var groupChartWithOptions: androidx.constraintlayout.widget.Group
+    private lateinit var groupChartMinMaxAvgPrices: androidx.constraintlayout.widget.Group
     private lateinit var progressBarChartLoading: ProgressBar
     private lateinit var chartRadioGroupTimeRange: RadioGroup
     private lateinit var valueFormatter: ValueFormatter
@@ -85,6 +84,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         val dateStart = calendar.time
 
+        hideMarker()
         setChartLoadingProgressBarVisibility(true)
         val priceHistoryLiveData = viewModel.requestPriceHistoryForDateRange(
             currencyName,
@@ -133,7 +133,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
     private fun initializeChart() {
         chart.setBackgroundColor(Color.TRANSPARENT)
-        chart.setTouchEnabled(false)
+        chart.setTouchEnabled(true)
         chart.setDrawBorders(false)
 
         setChartDescription()
@@ -157,6 +157,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         chart.axisRight.setDrawAxisLine(false)
         chart.axisRight.isEnabled = false
+
+        chart.marker = ChartMarkerView(appContext, R.layout.chart_marker_view)
 
         valueFormatter =
             object : ValueFormatter() {
@@ -195,7 +197,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chartDataSet.color = Color.BLUE
         chartDataSet.setDrawCircles(false)
         chartDataSet.setDrawHorizontalHighlightIndicator(false)
-        chartDataSet.setDrawVerticalHighlightIndicator(false)
+        chartDataSet.setDrawVerticalHighlightIndicator(true)
         chartDataSet.lineWidth = 3f
         chartDataSet.setDrawValues(false)
 
@@ -229,8 +231,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private fun assignViewsVariablesChart() {
         val currentView = requireView()
         chart = currentView.findViewById(R.id.chart)
-        llChartWithOptions = currentView.findViewById(R.id.llChartWithOptions)
-        llChartMinMaxAvgPrices = currentView.findViewById(R.id.llChartMinMaxAvgPrices)
+        groupChartWithOptions = currentView.findViewById(R.id.groupChartWithOptions)
+        groupChartMinMaxAvgPrices = currentView.findViewById(R.id.groupChartMinMaxAvgPrices)
         progressBarChartLoading = currentView.findViewById(R.id.progressBarChartLoading)
         chartRadioGroupTimeRange = currentView.findViewById(R.id.chartRadioGroupTimeRange)
         tvChartMinPrice = currentView.findViewById(R.id.tvMinPrice)
@@ -245,13 +247,13 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     fun setChartVisibility(visible: Boolean) {
         if (visible) {
             chart.axisLeft.setDrawLabels(true)
-            llChartWithOptions.postDelayed(Runnable { //show with delay
-                llChartWithOptions.visibility = View.VISIBLE
-                llChartMinMaxAvgPrices.visibility = View.VISIBLE
+            groupChartWithOptions.postDelayed(Runnable { //show with delay
+                groupChartWithOptions.visibility = View.VISIBLE
+                groupChartMinMaxAvgPrices.visibility = View.VISIBLE
             }, 200)
         } else {
             chartDataSet.isVisible = false
-            llChartMinMaxAvgPrices.visibility = View.GONE
+            groupChartMinMaxAvgPrices.visibility = View.GONE
             chart.invalidate()
         }
     }
@@ -269,5 +271,10 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             }, 200)
 
         }
+    }
+
+    fun hideMarker()
+    {
+        chart.highlightValue(null)
     }
 }
