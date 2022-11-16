@@ -253,6 +253,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             }, 200)
         } else {
             chartDataSet.isVisible = false
+            groupChartWithOptions.visibility = View.GONE
             groupChartMinMaxAvgPrices.visibility = View.GONE
             chart.invalidate()
         }
@@ -273,7 +274,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         }
     }
 
-    fun hideMarker()
+    private fun hideMarker()
     {
         chart.highlightValue(null)
     }
