@@ -26,4 +26,5 @@
     <string name="radioButtonOneMonth">1 month</string>
     <string name="radioButtonOneWeek">1 week</string>
     <string name="radioButtonOneDay">24 hours</string>
+    <string name="UNWRAP_PRICE_DATA_FAILURE">Unwrapping data from API failed!</string>
 </resources>

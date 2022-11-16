@@ -75,8 +75,6 @@ class MainActivity : AppCompatActivity() {
             }
 
         sharedPrefsInstance = SharedPreferencesHelper(applicationContext)
-
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -110,7 +108,7 @@ class MainActivity : AppCompatActivity() {
 
         datePicker.initializeDatePicker(this)
 
-        datePicker.setListenerOnDateChanged { dateString->
+        datePicker.setListenerOnDateChanged { dateString ->
             etDate.setText(dateString)
         }
     }
@@ -175,6 +173,15 @@ class MainActivity : AppCompatActivity() {
                 switchVisibilityOfRecordViewer(View.GONE)
         }
         )
+
+        viewModel.apiUnwrappingPriceDataErrorLiveData.observe(this, Observer { errorOccured ->
+            if (errorOccured)
+                Toast.makeText(
+                    this,
+                    getString(R.string.UNWRAP_PRICE_DATA_FAILURE),
+                    Toast.LENGTH_LONG
+                ).show()
+        })
 
         viewModel.getApiErrorCodeLiveData().observe(this, object : Observer<Pair<Boolean, Int>> {
             override fun onChanged(t: Pair<Boolean, Int>?) {

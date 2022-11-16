@@ -12,22 +12,23 @@ import java.util.*
 class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var repository: CryptocurrencyPricesRepository = CryptocurrencyPricesRepository(application)
     var lastAddedObject: CryptocurrencyPricesEntityDb? = null
+    val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
 
     fun requestPriceData(
-        currencySymbol: String,
-        date: Date
+        currencySymbol: String, date: Date
     ) {
         repository.requestPriceData(currencySymbol, date)
             .observeForever(androidx.lifecycle.Observer {
-                if (it.entity != null && it.flagDataSet) {
-                    it.flagDataSet = false
-                    addReading(
-                        it.currencySymbol,
-                        it.date,
-                        it.entity!!.market_data!!.current_price!!.usd
-                    )
-                }
+                if (it.flagDataSet) {
+                    if (it?.entity?.market_data?.current_price != null) {
+                        apiUnwrappingPriceDataErrorLiveData.value = false
+                        it.flagDataSet = false
 
+                        addReading(
+                            it.currencySymbol, it.date, it.entity!!.market_data.current_price.usd
+                        )
+                    } else apiUnwrappingPriceDataErrorLiveData.value = true
+                }
             })
     }
 
@@ -36,16 +37,10 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     }
 
     fun requestPriceHistoryForDateRange(
-        currencySymbol: String,
-        vs_currency: String,
-        unixtimeFrom: Long,
-        unixTimeTo: Long
+        currencySymbol: String, vs_currency: String, unixtimeFrom: Long, unixTimeTo: Long
     ): MutableLiveData<List<List<Double>>?> {
         return repository.requestPriceHistoryForDateRange(
-            currencySymbol,
-            vs_currency,
-            unixtimeFrom,
-            unixTimeTo
+            currencySymbol, vs_currency, unixtimeFrom, unixTimeTo
         )
     }
 
@@ -55,9 +50,7 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
 
     private fun addReading(cryptocurrencyIdArg: String, dateArg: Date, priceUsdArg: Double) {
         lastAddedObject = CryptocurrencyPricesEntityDb(
-            cryptocurrencyId = cryptocurrencyIdArg,
-            date = dateArg,
-            priceUsd = priceUsdArg
+            cryptocurrencyId = cryptocurrencyIdArg, date = dateArg, priceUsd = priceUsdArg
         )
 
         repository.addReading(lastAddedObject!!)
