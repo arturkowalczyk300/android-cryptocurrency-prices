@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        DateFormatterUtil.customDateFormat = getString(R.string.defaultDateFormat)
+        DateFormatterUtil.customDateOnlyFormat = getString(R.string.defaultDateFormat)
 
         assignViewsVariables()
         initViewModel()
@@ -103,7 +103,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeDatePicker() {
-        etDate.setText(DateFormatterUtil.format(Date()))
+        etDate.setText(DateFormatterUtil.formatDateOnly(Date()))
         etDate.setOnClickListener(View.OnClickListener { openDatePicker() })
 
         datePicker.initializeDatePicker(this)
@@ -122,7 +122,7 @@ class MainActivity : AppCompatActivity() {
                 autoFetchDataPending = false
                 var date: Date
                 try {
-                    date = DateFormatterUtil.parse(etDate.text.toString())
+                    date = DateFormatterUtil.parseDateOnly(etDate.text.toString())
                     viewModel.requestPriceData(
                         tvSelectedCurrencyId.text.toString(),
                         date
@@ -290,9 +290,12 @@ class MainActivity : AppCompatActivity() {
 
             if (entity != null) {
                 tvCryptocurrencySymbol.text = entity.cryptocurrencyId
-                tvCryptocurrencyDate.text = DateFormatterUtil.format(entity.date)
+                tvCryptocurrencyDate.text = DateFormatterUtil.formatDateOnly(entity.date)
                 tvCryptocurrencyPrice.text =
-                    "%.3f USD".format(entity.priceUsd)
+                    "%.3f %s".format(
+                        entity.priceUsd,
+                        getString(R.string.defaultVsCurrency)
+                    )
             }
 
             chartFragment.requestPriceHistory()

@@ -8,7 +8,17 @@
         android:id="@+id/tvMarkerText"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textColor="@color/white"
-        android:layout_margin="15dp"/>
+        android:textColor="#FFFFFF"
+        android:layout_marginHorizontal="15dp"
+        android:layout_marginTop="15dp"/>
+
+    <TextView
+        android:id="@+id/tvMarkerDate"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textColor="#6C9ABD"
+        android:layout_marginHorizontal="15dp"
+        android:layout_marginBottom="15dp"
+        android:layout_below="@id/tvMarkerText"/>
 
 </RelativeLayout>

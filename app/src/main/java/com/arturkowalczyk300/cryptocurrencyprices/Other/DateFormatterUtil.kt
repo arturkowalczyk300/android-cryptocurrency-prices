@@ -3,31 +3,53 @@ package com.arturkowalczyk300.cryptocurrencyprices.Other
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class DateFormatterUtil {
+open class DateFormatterUtil {
 
     companion object {
-        const val DEFAULT_DATE_FORMAT = "dd.MM.yyyy" //use in case when custom is not provided
-        private var dateFormatter: SimpleDateFormat? = null
+        const val DEFAULT_DATE_ONLY_FORMAT = "dd.MM.yyyy" //use in case when custom is not provided
+        const val DEFAULT_DATE_WITH_TIME_FORMAT = "dd.MM.yyyy HH:mm"
+        private var dateOnlyFormatter: SimpleDateFormat? = null
+        private var dateWithTimeFormatter: SimpleDateFormat? = null
 
-        var customDateFormat: String? = null
+        var customDateOnlyFormat: String? = null
+        var customDateWithTimeFormat: String? = null
 
-        private fun initDateFormatter() {
-            dateFormatter = if (customDateFormat == null)
-                SimpleDateFormat(DEFAULT_DATE_FORMAT)
+        private fun initDateOnlyFormatter() {
+            dateOnlyFormatter = if (customDateOnlyFormat == null)
+                SimpleDateFormat(DEFAULT_DATE_ONLY_FORMAT)
             else
-                SimpleDateFormat(customDateFormat)
+                SimpleDateFormat(customDateOnlyFormat)
         }
 
-        fun parse(dateString: String): Date {
-            if (dateFormatter == null) initDateFormatter()
+        fun parseDateOnly(dateString: String): Date {
+            if (dateOnlyFormatter == null) initDateOnlyFormatter()
 
-            return dateFormatter!!.parse(dateString)
+            return dateOnlyFormatter!!.parse(dateString)
         }
 
-        fun format(date: Date): String {
-            if (dateFormatter == null) initDateFormatter()
+        fun formatDateOnly(date: Date): String {
+            if (dateOnlyFormatter == null) initDateOnlyFormatter()
 
-            return dateFormatter!!.format(date)
+            return dateOnlyFormatter!!.format(date)
+        }
+
+        private fun initDateWithTimeFormatter() {
+            dateWithTimeFormatter = if (customDateWithTimeFormat == null)
+                SimpleDateFormat(DEFAULT_DATE_WITH_TIME_FORMAT)
+            else
+                SimpleDateFormat(customDateWithTimeFormat)
+        }
+
+        fun parseDateWithTime(dateString: String): Date {
+            if (dateWithTimeFormatter == null) initDateWithTimeFormatter()
+
+            return dateWithTimeFormatter!!.parse(dateString)
+        }
+
+        fun formatDateWithTime(date: Date): String {
+            if (dateWithTimeFormatter == null) initDateWithTimeFormatter()
+
+            return dateWithTimeFormatter!!.format(date)
         }
     }
 }

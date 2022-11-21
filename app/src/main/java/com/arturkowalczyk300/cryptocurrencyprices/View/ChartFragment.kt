@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.View
-import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -72,7 +71,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         //set date range parameters
         val calendar = Calendar.getInstance()
-        calendar.time = DateFormatterUtil.parse(tvMainActivityCryptocurrencyDate.text.toString())
+        calendar.time = DateFormatterUtil.parseDateOnly(tvMainActivityCryptocurrencyDate.text.toString())
         val dateEnd = calendar.time
 
         when (chartRadioGroupTimeRange.checkedRadioButtonId) {
