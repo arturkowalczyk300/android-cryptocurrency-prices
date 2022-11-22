@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -18,6 +19,7 @@ class RequestWithResponse(
     var currencySymbol: String = "",
     var date: Date = Date(0),
     var entity: CryptocurrencyPricesEntityApi? = null,
+    var actualPrice: Float? = null,
     var flagDataSet: Boolean = false
 ) {
     private val sdf = SimpleDateFormat("dd.MM.yyyy")
@@ -54,7 +56,11 @@ class CryptocurrencyPricesWebService {
 
     var mldErrorCode: MutableLiveData<Pair<Boolean, Int>> = MutableLiveData()
 
-    var mldRequestWithResponse: MutableLiveData<RequestWithResponse> = MutableLiveData(
+    var mldActualRequestWithResponse: MutableLiveData<RequestWithResponse> = MutableLiveData(
+        RequestWithResponse()
+    )
+
+    var mldArchivalRequestWithResponse: MutableLiveData<RequestWithResponse> = MutableLiveData(
         RequestWithResponse()
     )
 
@@ -71,13 +77,66 @@ class CryptocurrencyPricesWebService {
         }
     }
 
+    fun requestActualPriceData(
+        currencySymbol: String,
+        vs_currency: String
+    ): MutableLiveData<RequestWithResponse> {
+        mldActualRequestWithResponse?.value?.date = Date()
+        mldActualRequestWithResponse?.value?.currencySymbol = currencySymbol
+        mldActualRequestWithResponse?.value?.entity = null //test line
+        waitingForResponse = true
+
+        val response: Call<ResponseBody>? =
+            CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
+                ?.getActualPrice(currencySymbol, vs_currency)
+
+
+        response?.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {
+                if (response.body() != null) {
+                    if (waitingForResponse) {
+                        val bodyStr:ResponseBody= response.body()!!
+                        val src = bodyStr.source().toString()
+                        val regex = Regex("(\\d+.\\d+)")
+                        val priceStr: String? = regex.find(src)?.groupValues?.get(0)
+                        var price: Float? = null
+                        if(priceStr!=null)
+                            price = priceStr.toFloat()
+
+                        mldActualRequestWithResponse?.value?.actualPrice = price
+                        mldActualRequestWithResponse?.value?.flagDataSet = true
+                        mldActualRequestWithResponse.value =
+                            mldActualRequestWithResponse.value //notify data changed
+                    }
+                } else {
+                    mldErrorCode.value = Pair(true, REQUEST_PRICE_DATA_FAILURE)
+                }
+                waitingForResponse = false
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                mldErrorCode.value = Pair(true, REQUEST_PRICE_DATA_FAILURE)
+
+                Log.e(
+                    "myApp", "onFailure, url:${call.request().url().toString()}" +
+                            "\n exc: ${t.stackTraceToString()}"
+                )
+            }
+        })
+
+        return mldActualRequestWithResponse
+    }
+
     fun requestArchivalPriceData(
         currencySymbol: String,
         date: Date
     ): MutableLiveData<RequestWithResponse> {
-        mldRequestWithResponse?.value?.date = date
-        mldRequestWithResponse?.value?.currencySymbol = currencySymbol
-        mldRequestWithResponse?.value?.entity = null //test line
+        mldArchivalRequestWithResponse?.value?.date = date
+        mldArchivalRequestWithResponse?.value?.currencySymbol = currencySymbol
+        mldArchivalRequestWithResponse?.value?.entity = null //test line
         waitingForResponse = true
 
         val sdf = SimpleDateFormat("dd-MM-yyyy")
@@ -95,10 +154,10 @@ class CryptocurrencyPricesWebService {
             ) {
                 if (response.body() != null) {
                     if (waitingForResponse) {
-                        mldRequestWithResponse?.value?.entity = response.body()
-                        mldRequestWithResponse?.value?.flagDataSet = true
-                        mldRequestWithResponse.value =
-                            mldRequestWithResponse.value //notify data changed
+                        mldArchivalRequestWithResponse?.value?.entity = response.body()
+                        mldArchivalRequestWithResponse?.value?.flagDataSet = true
+                        mldArchivalRequestWithResponse.value =
+                            mldArchivalRequestWithResponse.value //notify data changed
                     }
                 } else {
                     mldErrorCode.value = Pair(true, REQUEST_PRICE_DATA_FAILURE)
@@ -116,7 +175,7 @@ class CryptocurrencyPricesWebService {
             }
         })
 
-        return mldRequestWithResponse
+        return mldArchivalRequestWithResponse
     }
 
     fun requestCryptocurrenciesList(): MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>> {

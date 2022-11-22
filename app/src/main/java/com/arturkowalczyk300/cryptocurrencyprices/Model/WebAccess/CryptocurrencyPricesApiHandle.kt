@@ -1,11 +1,18 @@
 package com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess
 
+import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.Call
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface CryptocurrencyPricesApiHandle {
+    @GET("api/v3/simple/price")
+    fun getActualPrice(
+        @Query("ids") currencySymbol: String,
+        @Query("vs_currencies") vsCurrency: String
+    ): Call<ResponseBody>
+
     @GET("api/v3/coins/{currency}/history")
     fun getArchivalPrice(
         @Path("currency") currencySymbol: String,

@@ -17,7 +17,7 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var selectedCryptocurrencyId: String? = null
     var showArchivalData = false
     var showArchivalDataRange: Date? = null
-
+    var vs_currency: String? = null
 
     fun requestPriceData(
     ) {
@@ -27,22 +27,43 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
         if (showArchivalData) {
             showArchivalDataRange ?: return
             dateRequest = showArchivalDataRange!!
-        } else
+
+            repository.requestArchivalPriceData(selectedCryptocurrencyId!!, dateRequest)
+                .observeForever(androidx.lifecycle.Observer {
+                    if (it.flagDataSet) {
+                        if (it?.entity?.market_data?.current_price != null) {
+                            apiUnwrappingPriceDataErrorLiveData.value = false
+                            it.flagDataSet = false
+
+                            addReading(
+                                it.currencySymbol,
+                                it.date,
+                                it.entity!!.market_data.current_price.usd
+                            )
+                        } else apiUnwrappingPriceDataErrorLiveData.value = true
+                    }
+                })
+        } else {
             dateRequest = Date()
 
-        repository.requestArchivalPriceData(selectedCryptocurrencyId!!, dateRequest)
-            .observeForever(androidx.lifecycle.Observer {
-                if (it.flagDataSet) {
-                    if (it?.entity?.market_data?.current_price != null) {
-                        apiUnwrappingPriceDataErrorLiveData.value = false
-                        it.flagDataSet = false
+            repository.requestActualPriceData(selectedCryptocurrencyId!!, vs_currency!!)
+                .observeForever(androidx.lifecycle.Observer {
+                    if (it.flagDataSet) {
+                        if (it?.actualPrice != null) {
+                            apiUnwrappingPriceDataErrorLiveData.value = false
+                            it.flagDataSet = false
 
-                        addReading(
-                            it.currencySymbol, it.date, it.entity!!.market_data.current_price.usd
-                        )
-                    } else apiUnwrappingPriceDataErrorLiveData.value = true
-                }
-            })
+                            addReading(
+                                it.currencySymbol,
+                                it.date,
+                                it.actualPrice!!.toDouble()
+                            )
+                        } else apiUnwrappingPriceDataErrorLiveData.value = true
+                    }
+                })
+        }
+
+
     }
 
     fun requestCryptocurrenciesList(): LiveData<ArrayList<CryptocurrencyPriceFromListApi>> {

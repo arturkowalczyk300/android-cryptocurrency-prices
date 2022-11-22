@@ -28,6 +28,13 @@ class CryptocurrencyPricesRepository(application: Application) {
         return database?.userDao()?.getAllReadings()
     }
 
+    fun requestActualPriceData(
+        currencySymbol: String,
+        vs_currency: String
+    ): MutableLiveData<RequestWithResponse> {
+        return webService.requestActualPriceData(currencySymbol, vs_currency)
+    }
+
     fun requestArchivalPriceData(
         currencySymbol: String,
         date: Date
@@ -43,7 +50,12 @@ class CryptocurrencyPricesRepository(application: Application) {
         currencySymbol: String, vs_currency: String, unixtimeFrom: Long,
         unixTimeTo: Long
     ): MutableLiveData<List<List<Double>>?> {
-        return webService.requestPriceHistoryForDateRange(currencySymbol, vs_currency, unixtimeFrom, unixTimeTo)
+        return webService.requestPriceHistoryForDateRange(
+            currencySymbol,
+            vs_currency,
+            unixtimeFrom,
+            unixTimeTo
+        )
     }
 
     fun getApiErrorCodeLiveData() = webService.mldErrorCode

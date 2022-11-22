@@ -102,6 +102,8 @@ class MainActivity : AppCompatActivity() {
     private fun initViewModel() {
         val factory = CryptocurrencyPricesViewModelFactory(application)
         viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
+
+        viewModel.vs_currency = getString(R.string.defaultVsCurrency)
     }
 
     private fun initializeDatePicker() {
