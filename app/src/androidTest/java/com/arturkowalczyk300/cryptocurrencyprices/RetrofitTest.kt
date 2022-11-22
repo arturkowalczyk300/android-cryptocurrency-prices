@@ -27,7 +27,7 @@ class RetrofitTest {
 
     @Test
     fun testApiCallGetPrices() {
-        val response = apiHandle!!.getPrice(
+        val response = apiHandle!!.getArchivalPrice(
             "bitcoin",
             "02-06-2022"
         ).execute()

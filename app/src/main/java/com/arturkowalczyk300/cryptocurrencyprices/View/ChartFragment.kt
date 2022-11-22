@@ -10,7 +10,6 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
-import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
@@ -88,7 +87,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         hideMarker()
         setChartLoadingProgressBarVisibility(true)
-        val priceHistoryLiveData = viewModel.requestPriceHistoryForDateRange(
+        val priceHistoryLiveData = viewModel.requestPriceHistoryForSelectedDateRange(
             currencyName,
             getString(R.string.defaultVsCurrency),
             (dateStart.time / 1000),

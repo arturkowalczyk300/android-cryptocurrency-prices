@@ -129,10 +129,7 @@ class MainActivity : AppCompatActivity() {
                 var date: Date
                 try {
                     date = DateFormatterUtil.parseDateOnly(etDate.text.toString())
-                    viewModel.requestPriceData(
-                        tvSelectedCurrencyId.text.toString(),
-                        date
-                    )
+                    viewModel.requestPriceData()
                 } catch (exc: Exception) {
                     Log.e("myApp", exc.toString())
                 }
@@ -239,9 +236,17 @@ class MainActivity : AppCompatActivity() {
 
             isCurrenciesListInitialized = true
 
-            if (sharedPrefsInstance.getLastChosenCryptocurrency() != null)
-                tvSelectedCurrencyId.text = sharedPrefsInstance.getLastChosenCryptocurrency()
-            else tvSelectedCurrencyId.text = listOfCryptocurrenciesNames.first()
+            if (sharedPrefsInstance.getLastChosenCryptocurrency() != null) {
+                val curr = sharedPrefsInstance.getLastChosenCryptocurrency()
+                tvSelectedCurrencyId.text = curr
+                viewModel.selectedCryptocurrencyId = curr
+            }
+            else
+            {
+                val curr =  listOfCryptocurrenciesNames.first()
+                tvSelectedCurrencyId.text = curr
+                viewModel.selectedCryptocurrencyId = curr
+            }
 
             if (!autoFetchDataAlreadyDone) {
                 autoFetchDataAlreadyDone = true
@@ -256,6 +261,7 @@ class MainActivity : AppCompatActivity() {
 
             dialog.setListenerOnClickItem { cryptocurrencyId ->
                 tvSelectedCurrencyId.text = cryptocurrencyId
+                viewModel.selectedCryptocurrencyId = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
             }
         }

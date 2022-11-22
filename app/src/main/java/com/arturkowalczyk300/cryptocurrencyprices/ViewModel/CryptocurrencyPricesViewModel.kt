@@ -14,14 +14,23 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var repository: CryptocurrencyPricesRepository = CryptocurrencyPricesRepository(application)
     var lastAddedObject: CryptocurrencyPricesEntityDb? = null
     val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
+    var selectedCryptocurrencyId: String? = null
     var showArchivalData = false
     var showArchivalDataRange: Date? = null
 
 
     fun requestPriceData(
-        currencySymbol: String, date: Date
     ) {
-        repository.requestPriceData(currencySymbol, date)
+        selectedCryptocurrencyId ?: return
+        var dateRequest: Date
+
+        if (showArchivalData) {
+            showArchivalDataRange ?: return
+            dateRequest = showArchivalDataRange!!
+        } else
+            dateRequest = Date()
+
+        repository.requestArchivalPriceData(selectedCryptocurrencyId!!, dateRequest)
             .observeForever(androidx.lifecycle.Observer {
                 if (it.flagDataSet) {
                     if (it?.entity?.market_data?.current_price != null) {
@@ -40,7 +49,7 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
         return repository.requestCryptocurrenciesList()
     }
 
-    fun requestPriceHistoryForDateRange(
+    fun requestPriceHistoryForSelectedDateRange(
         currencySymbol: String, vs_currency: String, unixtimeFrom: Long, unixTimeTo: Long
     ): MutableLiveData<List<List<Double>>?> {
         return repository.requestPriceHistoryForDateRange(

@@ -7,7 +7,7 @@ import retrofit2.http.Query
 
 interface CryptocurrencyPricesApiHandle {
     @GET("api/v3/coins/{currency}/history")
-    fun getPrice(
+    fun getArchivalPrice(
         @Path("currency") currencySymbol: String,
         @Query("date") dateString: String
     ): Call<CryptocurrencyPricesEntityApi>

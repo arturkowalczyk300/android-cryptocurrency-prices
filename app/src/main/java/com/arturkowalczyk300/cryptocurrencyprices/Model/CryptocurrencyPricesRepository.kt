@@ -28,11 +28,11 @@ class CryptocurrencyPricesRepository(application: Application) {
         return database?.userDao()?.getAllReadings()
     }
 
-    fun requestPriceData(
+    fun requestArchivalPriceData(
         currencySymbol: String,
         date: Date
     ): MutableLiveData<RequestWithResponse> {
-        return webService.requestPriceData(currencySymbol, date)
+        return webService.requestArchivalPriceData(currencySymbol, date)
     }
 
     fun requestCryptocurrenciesList(): MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>> {

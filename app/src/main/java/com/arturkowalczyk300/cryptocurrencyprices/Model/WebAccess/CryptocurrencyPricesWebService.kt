@@ -71,7 +71,7 @@ class CryptocurrencyPricesWebService {
         }
     }
 
-    fun requestPriceData(
+    fun requestArchivalPriceData(
         currencySymbol: String,
         date: Date
     ): MutableLiveData<RequestWithResponse> {
@@ -85,7 +85,7 @@ class CryptocurrencyPricesWebService {
 
         val response: Call<CryptocurrencyPricesEntityApi>? =
             CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
-                ?.getPrice(currencySymbol, formattedDate)
+                ?.getArchivalPrice(currencySymbol, formattedDate)
 
 
         response?.enqueue(object : Callback<CryptocurrencyPricesEntityApi> {
