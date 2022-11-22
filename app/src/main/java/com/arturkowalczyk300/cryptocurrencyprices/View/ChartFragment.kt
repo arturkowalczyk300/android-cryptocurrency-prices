@@ -62,7 +62,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         ).get(CryptocurrencyPricesViewModel::class.java)
     }
 
-    public fun requestPriceHistory() {
+    fun requestPriceHistory() {
         observeLiveDataPriceHistoryForDateRange()
     }
 
@@ -71,7 +71,10 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         //set date range parameters
         val calendar = Calendar.getInstance()
-        calendar.time = DateFormatterUtil.parseDateOnly(tvMainActivityCryptocurrencyDate.text.toString())
+        if (viewModel.showArchivalData) {
+            calendar.time = viewModel.showArchivalDataRange
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+        }
         val dateEnd = calendar.time
 
         when (chartRadioGroupTimeRange.checkedRadioButtonId) {
@@ -126,7 +129,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
     private fun handleChartRadioGroupTimeRangeActions() {
         chartRadioGroupTimeRange.setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener { group, checkedId ->
-            observeLiveDataPriceHistoryForDateRange()
+            requestPriceHistory()
         })
     }
 
@@ -273,8 +276,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         }
     }
 
-    private fun hideMarker()
-    {
+    private fun hideMarker() {
         chart.highlightValue(null)
     }
 }

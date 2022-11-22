@@ -9,10 +9,14 @@ import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPrice
 import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPriceFromListApi
 import java.util.*
 
+
 class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var repository: CryptocurrencyPricesRepository = CryptocurrencyPricesRepository(application)
     var lastAddedObject: CryptocurrencyPricesEntityDb? = null
     val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
+    var showArchivalData = false
+    var showArchivalDataRange: Date? = null
+
 
     fun requestPriceData(
         currencySymbol: String, date: Date

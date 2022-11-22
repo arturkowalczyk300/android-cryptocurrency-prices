@@ -36,7 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:text="@string/btnPrev"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -66,7 +66,7 @@
         android:id="@+id/lblSymbol"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:text="@string/cryptocurrencySymbol"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="@+id/btnPrevRecord"
@@ -77,7 +77,7 @@
         android:id="@+id/lblDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:text="@string/cryptocurrencyDate"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="@+id/lblSymbol"
@@ -87,7 +87,7 @@
         android:id="@+id/lblPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:text="@string/cryptocurrencyPrice"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="@+id/lblDate"
@@ -123,59 +123,101 @@
         app:layout_constraintTop_toTopOf="@+id/lblPrice"
         tools:text="34000 USD" />
 
+
     <FrameLayout
         android:id="@+id/flChart"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="25dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginHorizontal="10dp"
         android:layout_weight="1"
         android:gravity="bottom"
-        app:layout_constraintBottom_toTopOf="@+id/etDate"
+        app:layout_constraintBottom_toTopOf="@+id/tvSelectedCurrencyId"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvCryptocurrencyPrice" />
-
 
     <TextView
         android:id="@+id/tvSelectedCurrencyId"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="19dp"
-        android:layout_marginEnd="4dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginEnd="20dp"
         android:drawableEnd="@drawable/ic_baseline_arrow_drop_down_24"
         android:hint="Select"
         android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@+id/btnGet"
-        app:layout_constraintEnd_toStartOf="@+id/etDate"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/etDate" />
+        app:layout_constraintBottom_toBottomOf="@+id/lblCryptocurrency"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/lblCryptocurrency" />
 
     <EditText
         android:id="@+id/etDate"
         android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginEnd="10dp"
+        android:visibility="gone"
+        tools:visibility="visible"
         android:focusable="false"
         android:hint="Press to set date"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/btnGet"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/tvSelectedCurrencyId" />
+        app:layout_constraintTop_toTopOf="@+id/radioGroupDate" />
 
 
     <Button
         android:id="@+id/btnGet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="10dp"
         android:text="Get"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/lblCryptocurrency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="30dp"
+        android:text="Cryptocurrency:"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/radioGroupDate"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <RadioGroup
+        android:id="@+id/radioGroupDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="11dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/btnGet"
+        app:layout_constraintStart_toStartOf="@+id/lblCryptocurrency">
+
+        <RadioButton
+            android:id="@+id/radioButtonDateActual"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:checked="true"
+            android:text="Actual" />
+
+        <RadioButton
+            android:id="@+id/radioButtonDateArchival"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Archival" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/lblDateRadioGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="Date:"
+        app:layout_constraintBottom_toTopOf="@+id/radioGroupDate"
+        app:layout_constraintStart_toStartOf="@+id/lblCryptocurrency" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

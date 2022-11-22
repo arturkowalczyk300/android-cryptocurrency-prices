@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
+    private lateinit var rgDateActualArchivalSelection: RadioGroup
     private lateinit var chartFragment: ChartFragment
     private lateinit var sharedPrefsInstance: SharedPreferencesHelper
     private var autoFetchDataAlreadyDone = false
@@ -90,11 +91,12 @@ class MainActivity : AppCompatActivity() {
         btnNextRecord = findViewById(R.id.btnNextRecord)
 
         tvCurrentAndMaxIndex = findViewById(R.id.tvCurrentAndMaxIndex)
-
         tvCryptocurrencySymbol = findViewById(R.id.tvCryptocurrencySymbol)
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
         tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
+
+        rgDateActualArchivalSelection = findViewById(R.id.radioGroupDate)
     }
 
     private fun initViewModel() {
@@ -110,7 +112,11 @@ class MainActivity : AppCompatActivity() {
 
         datePicker.setListenerOnDateChanged { dateString ->
             etDate.setText(dateString)
+            viewModel.showArchivalDataRange =
+                DateFormatterUtil.parseDateOnly(etDate.text.toString())
         }
+
+        viewModel.showArchivalDataRange = DateFormatterUtil.parseDateOnly(etDate.text.toString())
     }
 
     //listeners
@@ -157,6 +163,21 @@ class MainActivity : AppCompatActivity() {
             chartFragment.setChartVisibility(false)
             chartFragment.setChartLoadingProgressBarVisibility(true)
             displayRecordByIndex(currentRecordIndex)
+        }
+
+        rgDateActualArchivalSelection.setOnCheckedChangeListener { group, checkedId ->
+            when (checkedId) {
+                R.id.radioButtonDateActual -> {
+                    etDate.visibility = View.GONE
+                    viewModel.showArchivalData = false
+                }
+                R.id.radioButtonDateArchival -> {
+                    etDate.visibility = View.VISIBLE
+                    viewModel.showArchivalData = true
+                }
+            }
+
+            btnGet.performClick()
         }
     }
 
