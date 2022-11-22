@@ -180,7 +180,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="40dp"
         android:text="Cryptocurrency:"
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/radioGroupDate"
@@ -190,7 +190,7 @@
         android:id="@+id/radioGroupDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="11dp"
+        android:layout_marginBottom="5dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@+id/btnGet"
         app:layout_constraintStart_toStartOf="@+id/lblCryptocurrency">
