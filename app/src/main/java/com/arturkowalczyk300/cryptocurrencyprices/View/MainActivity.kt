@@ -4,9 +4,12 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
+import android.view.MotionEvent.ACTION_UP
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
@@ -51,7 +54,16 @@ class MainActivity : AppCompatActivity() {
 
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
-    //init methods
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        if (ev != null && ev.action == ACTION_UP) {
+            val chartRectangle = chartFragment.getGlobalVisibleRectOfChart()
+
+            if (!chartRectangle.contains(ev!!.rawX.toInt(), ev!!.rawY.toInt()))
+                chartFragment.hideMarker()
+        }
+
+        return super.dispatchTouchEvent(ev)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -242,10 +254,8 @@ class MainActivity : AppCompatActivity() {
                 val curr = sharedPrefsInstance.getLastChosenCryptocurrency()
                 tvSelectedCurrencyId.text = curr
                 viewModel.selectedCryptocurrencyId = curr
-            }
-            else
-            {
-                val curr =  listOfCryptocurrenciesNames.first()
+            } else {
+                val curr = listOfCryptocurrenciesNames.first()
                 tvSelectedCurrencyId.text = curr
                 viewModel.selectedCryptocurrencyId = curr
             }

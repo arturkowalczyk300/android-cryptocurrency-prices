@@ -2,6 +2,7 @@ package com.arturkowalczyk300.cryptocurrencyprices.View
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.View
@@ -275,7 +276,13 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         }
     }
 
-    private fun hideMarker() {
+    fun hideMarker() {
         chart.highlightValue(null)
+    }
+
+    fun getGlobalVisibleRectOfChart(): Rect{
+        var rect = Rect()
+        chart.getGlobalVisibleRect(rect)
+        return rect
     }
 }
