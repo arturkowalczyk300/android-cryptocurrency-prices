@@ -128,16 +128,17 @@
         android:id="@+id/flChart"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginHorizontal="10dp"
         android:layout_marginTop="15dp"
         android:layout_marginBottom="10dp"
-        android:layout_marginHorizontal="10dp"
         android:layout_weight="1"
         android:gravity="bottom"
         app:layout_constraintBottom_toTopOf="@+id/tvSelectedCurrencyId"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.526"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvCryptocurrencyPrice" />
+        app:layout_constraintTop_toBottomOf="@+id/tvCryptocurrencyPrice"
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/tvSelectedCurrencyId"

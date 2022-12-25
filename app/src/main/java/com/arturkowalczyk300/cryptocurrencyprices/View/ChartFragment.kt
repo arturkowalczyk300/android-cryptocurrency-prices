@@ -6,10 +6,10 @@ import android.graphics.Rect
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.View
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.RadioGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.R
@@ -40,6 +40,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var tvChartMaxPrice: TextView
     private lateinit var tvMainActivityCryptocurrencySymbol: TextView
     private lateinit var tvMainActivityCryptocurrencyDate: TextView
+    private lateinit var tvTrending: TextView
+    private lateinit var ivTrending: ImageView
+    private lateinit var tvTimePeriod: TextView
 
     private var chartDataSet = LineDataSet(listOf(), "")
 
@@ -107,7 +110,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                     }
                     setChartData(list)
                     setMinAvgMaxPricesValues(list)
-                    updateChartDescription()
+                    updateTimePeriod()
+                    updatePriceTrends()
                     setChartAxisLabelsVisibility(true)
                 } else {
                     setChartVisibility(false) //no valid data to display
@@ -141,12 +145,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chart.setTouchEnabled(true)
         chart.setDrawBorders(false)
 
-        updateChartDescription(true)
-        chart.description.textColor =
-            ContextCompat.getColor(appContext, R.color.chart_font_color)
-        chart.description.textSize += 2 //increase default text size
-        chart.description.yOffset -= 15  //offset description to bottom direction
-
+        updateTimePeriod()
+        chart.description.isEnabled = false
         chart.legend.isEnabled = false
 
         chart.xAxis.setDrawGridLines(false)
@@ -223,26 +223,34 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         setChartLoadingProgressBarVisibility(false)
     }
 
-    private fun updateChartDescription(timePeriodOnly: Boolean = false) {
-        var priceChangeTrend = ""
-        if (!timePeriodOnly)
-            priceChangeTrend = calculatePriceChangeTrend()
-
-        val timePeriod = when (chartRadioGroupTimeRange.checkedRadioButtonId) {
+    private fun updateTimePeriod() {
+        tvTimePeriod.text = when (chartRadioGroupTimeRange.checkedRadioButtonId) {
             R.id.chartRadioButtonTimeRangeOneYear -> "One year"
             R.id.chartRadioButtonTimeRangeOneMonth -> "One month"
             R.id.chartRadioButtonTimeRangeOneWeek -> "One week"
             R.id.chartRadioButtonTimeRange24Hours -> "24 hours"
             else -> "Unknown time period"
         }
-
-        chart.description.text = "$priceChangeTrend | $timePeriod"
     }
 
-    private fun calculatePriceChangeTrend(): String {
+    private fun updatePriceTrends() {
         val trend: Float = ((chartValues.last().y / chartValues.first().y) - 1.0f) * 100.0f
         val df = DecimalFormat("#.##")
-        return "${df.format(trend)}%"
+
+        tvTrending.text = "${df.format(trend)}%"
+
+        val imgSource = when {
+            trend < 0.0f -> {
+                R.drawable.ic_trending_down
+            }
+            trend == 0.0f -> {
+                R.drawable.ic_trending_flat
+            }
+            else -> {
+                R.drawable.ic_trending_up
+            }
+        }
+        ivTrending.setImageResource(imgSource)
     }
 
     private fun assignViewsVariablesChart() {
@@ -255,6 +263,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         tvChartMinPrice = currentView.findViewById(R.id.tvMinPrice)
         tvChartAvgPrice = currentView.findViewById(R.id.tvAvgPrice)
         tvChartMaxPrice = currentView.findViewById(R.id.tvMaxPrice)
+        tvTrending = currentView.findViewById(R.id.tvTrending)
+        ivTrending = currentView.findViewById(R.id.imageViewTrending)
+        tvTimePeriod = currentView.findViewById(R.id.tvTimePeriod)
         tvMainActivityCryptocurrencySymbol =
             requireActivity().findViewById(R.id.tvCryptocurrencySymbol)
         tvMainActivityCryptocurrencyDate =
