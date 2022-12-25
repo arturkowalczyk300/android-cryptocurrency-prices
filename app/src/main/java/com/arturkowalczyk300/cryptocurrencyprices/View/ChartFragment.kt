@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.ProgressBar
 import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.R
@@ -19,6 +20,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
+import java.text.DecimalFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -27,6 +29,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var viewModel: CryptocurrencyPricesViewModel
 
     private lateinit var chart: LineChart
+    private lateinit var chartValues: ArrayList<Entry>
     private lateinit var groupChartWithOptions: androidx.constraintlayout.widget.Group
     private lateinit var groupChartMinMaxAvgPrices: androidx.constraintlayout.widget.Group
     private lateinit var progressBarChartLoading: ProgressBar
@@ -104,7 +107,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                     }
                     setChartData(list)
                     setMinAvgMaxPricesValues(list)
-                    setChartDescription()
+                    updateChartDescription()
                     setChartAxisLabelsVisibility(true)
                 } else {
                     setChartVisibility(false) //no valid data to display
@@ -138,7 +141,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chart.setTouchEnabled(true)
         chart.setDrawBorders(false)
 
-        setChartDescription()
+        updateChartDescription(true)
         chart.description.textColor =
             ContextCompat.getColor(appContext, R.color.chart_font_color)
         chart.description.textSize += 2 //increase default text size
@@ -195,6 +198,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
     private fun setChartData(values: ArrayList<Entry>) {
         chartDataSet = LineDataSet(values, "")
+        chartValues = values
 
         chartDataSet.color = Color.BLUE
         chartDataSet.setDrawCircles(false)
@@ -202,7 +206,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chartDataSet.setDrawVerticalHighlightIndicator(true)
         chartDataSet.lineWidth = 3f
         chartDataSet.setDrawValues(false)
-
 
         if (chart.data == null) {
             val data = LineData(chartDataSet)
@@ -220,14 +223,26 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         setChartLoadingProgressBarVisibility(false)
     }
 
-    private fun setChartDescription() {
-        chart.description.text = when (chartRadioGroupTimeRange.checkedRadioButtonId) {
+    private fun updateChartDescription(timePeriodOnly: Boolean = false) {
+        var priceChangeTrend = ""
+        if (!timePeriodOnly)
+            priceChangeTrend = calculatePriceChangeTrend()
+
+        val timePeriod = when (chartRadioGroupTimeRange.checkedRadioButtonId) {
             R.id.chartRadioButtonTimeRangeOneYear -> "One year"
             R.id.chartRadioButtonTimeRangeOneMonth -> "One month"
             R.id.chartRadioButtonTimeRangeOneWeek -> "One week"
             R.id.chartRadioButtonTimeRange24Hours -> "24 hours"
             else -> "Unknown time period"
         }
+
+        chart.description.text = "$priceChangeTrend | $timePeriod"
+    }
+
+    private fun calculatePriceChangeTrend(): String {
+        val trend: Float = ((chartValues.last().y / chartValues.first().y) - 1.0f) * 100.0f
+        val df = DecimalFormat("#.##")
+        return "${df.format(trend)}%"
     }
 
     private fun assignViewsVariablesChart() {
@@ -280,7 +295,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chart.highlightValue(null)
     }
 
-    fun getGlobalVisibleRectOfChart(): Rect{
+    fun getGlobalVisibleRectOfChart(): Rect {
         var rect = Rect()
         chart.getGlobalVisibleRect(rect)
         return rect
