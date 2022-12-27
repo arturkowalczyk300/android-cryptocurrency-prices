@@ -11,7 +11,7 @@
         android:id="@+id/groupRecords"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="btnPrevRecord,tvCurrentAndMaxIndex,btnNextRecord,
+        app:constraint_referenced_ids="
         lblSymbol,lblDate,lblPrice,tvCryptocurrencySymbol,tvCryptocurrencyDate,tvCryptocurrencyPrice" />
 
     <TextView
@@ -31,47 +31,16 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-    <Button
-        android:id="@+id/btnPrevRecord"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
-        android:text="@string/btnPrev"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/tvCurrentAndMaxIndex"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:textSize="26sp"
-        app:layout_constraintEnd_toStartOf="@+id/btnNextRecord"
-        app:layout_constraintStart_toEndOf="@+id/btnPrevRecord"
-        app:layout_constraintTop_toTopOf="@+id/btnPrevRecord"
-        tools:text="1/1" />
-
-    <Button
-        android:id="@+id/btnNextRecord"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
-        android:text="@string/btnNext"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/btnPrevRecord" />
-
-
     <TextView
         android:id="@+id/lblSymbol"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
+        android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         android:text="@string/cryptocurrencySymbol"
         android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="@+id/btnPrevRecord"
-        app:layout_constraintStart_toStartOf="@+id/btnPrevRecord"
-        app:layout_constraintTop_toBottomOf="@+id/btnPrevRecord" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/lblDate"
@@ -98,9 +67,10 @@
         android:id="@+id/tvCryptocurrencySymbol"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
+        android:layout_marginEnd="10dp"
         android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="@+id/btnNextRecord"
-        app:layout_constraintStart_toStartOf="@+id/btnNextRecord"
+        app:layout_constraintBottom_toBottomOf="@+id/lblSymbol"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/lblSymbol"
         tools:text="bitcoin" />
 

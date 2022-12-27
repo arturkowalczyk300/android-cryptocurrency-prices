@@ -9,19 +9,18 @@ import android.view.MotionEvent.ACTION_UP
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
-import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.CryptocurrencyPricesEntityDb
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
+import java.sql.Timestamp
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -30,9 +29,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvSelectedCurrencyId: TextView
     private lateinit var etDate: EditText
     private lateinit var btnGet: Button
-    private lateinit var btnPrevRecord: Button
-    private lateinit var btnNextRecord: Button
-    private lateinit var tvCurrentAndMaxIndex: TextView
     private lateinit var tvCryptocurrencySymbol: TextView
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
@@ -46,10 +42,6 @@ class MainActivity : AppCompatActivity() {
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
 
-    private var currentRecordIndex: Int = 0
-
-    private var maxRecordIndex: Int = 0
-    private var listOfRecords: List<CryptocurrencyPricesEntityDb>? = null
     private var datePicker = CustomDatePickerHandler()
 
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
@@ -73,11 +65,11 @@ class MainActivity : AppCompatActivity() {
         assignViewsVariables()
         initViewModel()
         handleNoNetworkInfo()
+        requestUpdateDataFromNetwork()
         handleCryptocurrencyChoice()
         initializeDatePicker()
         addButtonsOnClickListeners()
         observeLiveData()
-        updateIndexInfo()
 
         //chart section
         chartFragment = ChartFragment()
@@ -90,6 +82,10 @@ class MainActivity : AppCompatActivity() {
         sharedPrefsInstance = SharedPreferencesHelper(applicationContext)
     }
 
+    private fun requestUpdateDataFromNetwork() {
+        viewModel.updateCryptocurrenciesList()
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
@@ -99,10 +95,6 @@ class MainActivity : AppCompatActivity() {
         tvSelectedCurrencyId = findViewById(R.id.tvSelectedCurrencyId)
         etDate = findViewById(R.id.etDate)
         btnGet = findViewById(R.id.btnGet)
-        btnPrevRecord = findViewById(R.id.btnPrevRecord)
-        btnNextRecord = findViewById(R.id.btnNextRecord)
-
-        tvCurrentAndMaxIndex = findViewById(R.id.tvCurrentAndMaxIndex)
         tvCryptocurrencySymbol = findViewById(R.id.tvCryptocurrencySymbol)
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
@@ -143,9 +135,9 @@ class MainActivity : AppCompatActivity() {
                 var date: Date
                 try {
                     date = DateFormatterUtil.parseDateOnly(etDate.text.toString())
-                    viewModel.requestPriceData()
+                    viewModel.updatePriceData()
                 } catch (exc: Exception) {
-                    Log.e("myApp", exc.toString())
+                    Log.e("myApp", "addButtonsOnClickListeners, $exc")
                 }
             } else {
                 if (!autoFetchDataAlreadyDone) autoFetchDataPending = true
@@ -153,27 +145,6 @@ class MainActivity : AppCompatActivity() {
 
             chartFragment.setChartVisibility(false)
             chartFragment.setChartLoadingProgressBarVisibility(true)
-        }
-
-        btnPrevRecord.setOnClickListener {
-
-            currentRecordIndex = (currentRecordIndex - 1)
-            if (currentRecordIndex < 0)
-                currentRecordIndex = maxRecordIndex
-            updateIndexInfo()
-            chartFragment.setChartVisibility(false)
-            chartFragment.setChartLoadingProgressBarVisibility(true)
-            displayRecordByIndex(currentRecordIndex)
-        }
-
-        btnNextRecord.setOnClickListener {
-            currentRecordIndex = (currentRecordIndex + 1)
-            if (currentRecordIndex > maxRecordIndex)
-                currentRecordIndex = 0
-            updateIndexInfo()
-            chartFragment.setChartVisibility(false)
-            chartFragment.setChartLoadingProgressBarVisibility(true)
-            displayRecordByIndex(currentRecordIndex)
         }
 
         rgDateActualArchivalSelection.setOnCheckedChangeListener { group, checkedId ->
@@ -193,14 +164,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeLiveData() {
-        viewModel.getAllReadings()?.observe(this, Observer {
-            listOfRecords = it
-            maxRecordIndex = it.size - 1
-            updateIndexInfo()
+        //show actual price
+        viewModel.getAllHistoricalPrices().observe(this, Observer {
             if (it.isNotEmpty()) {
-                navigateToLastInsertedRecord()
-                updateIndexInfo()
                 switchVisibilityOfRecordViewer(View.VISIBLE)
+                val currentElement = it.sortedByDescending { it.timeRangeTo }.first()
+                val actualPrice =
+                    currentElement.prices.list.first().value
+                Toast.makeText(this, "text: $actualPrice", Toast.LENGTH_SHORT).show()
+                updateTextViews(
+                    currentElement.cryptocurrencyId,
+                    currentElement.timeRangeTo,
+                    actualPrice.toFloat()
+                )
             } else
                 switchVisibilityOfRecordViewer(View.GONE)
         }
@@ -241,11 +217,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleCryptocurrencyChoice() {
-        viewModel.requestCryptocurrenciesList().observe(this, Observer { it ->
+        viewModel.getAllCryptocurrencies().observe(this, Observer { it ->
             listOfCryptocurrenciesNames.clear()
 
             it.forEach { nextIt ->
-                listOfCryptocurrenciesNames.add(nextIt.id)
+                listOfCryptocurrenciesNames.add(nextIt.cryptocurrencyId)
             }
 
             isCurrenciesListInitialized = true
@@ -293,11 +269,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.itemClearRecords -> {
-                viewModel.clearAllRecords()
-                currentRecordIndex = 0
-                maxRecordIndex = 0
-                updateIndexInfo()
-                chartFragment.setChartVisibility(false)
+                //TODO(): delete?
             }
         }
         return super.onOptionsItemSelected(item)
@@ -312,59 +284,23 @@ class MainActivity : AppCompatActivity() {
             tvNoInternetConnection.visibility = View.VISIBLE
     }
 
-    private fun switchVisibilityOfRecordViewer(visible: Int) {
+    private fun switchVisibilityOfRecordViewer(visible: Int) { //TODO(): todelete
         val groupRecords: androidx.constraintlayout.widget.Group = findViewById(R.id.groupRecords)
         groupRecords.visibility = visible
     }
 
-    //other
-
-    private fun updateIndexInfo() {
-        tvCurrentAndMaxIndex.text = "${currentRecordIndex + 1}/${maxRecordIndex + 1}"
-    }
-
-    private fun displayRecordByIndex(index: Int) {
-        try {
-            val entity: CryptocurrencyPricesEntityDb? = listOfRecords?.get(currentRecordIndex)
-
-            if (entity != null) {
-                tvCryptocurrencySymbol.text = entity.cryptocurrencyId
-                tvCryptocurrencyDate.text = DateFormatterUtil.formatDateOnly(entity.date)
-                tvCryptocurrencyPrice.text =
-                    "%.3f %s".format(
-                        entity.priceUsd,
-                        getString(R.string.defaultVsCurrency)
-                    )
-            }
-
-            chartFragment.requestPriceHistory()
-        } catch (exc: Exception) {
-            Log.e("myApp", exc.toString())
-        }
-    }
-
-    private fun navigateToLastInsertedRecord() {
-        try {
-            if (viewModel.lastAddedObject != null) {
-                var foundIndex = -1
-                listOfRecords?.forEachIndexed { index, it -> //skip comparing ID
-                    if (it.cryptocurrencyId == viewModel.lastAddedObject!!.cryptocurrencyId
-                        && it.date == viewModel.lastAddedObject!!.date
-                        && it.priceUsd == viewModel.lastAddedObject!!.priceUsd
-                    )
-                        foundIndex = index
-                }
-                if (foundIndex != -1) currentRecordIndex = foundIndex
-                displayRecordByIndex(currentRecordIndex)
-            } else
-                displayRecordByIndex(currentRecordIndex)
-        } catch (exc: Exception) {
-
-        }
-    }
-
     private fun openDatePicker() {
         datePicker.show()
+    }
+
+    private fun updateTextViews(currencySymbol: String, dateUnixTime: Long, price: Float) {
+        tvCryptocurrencySymbol.text = currencySymbol
+        tvCryptocurrencyDate.text = DateFormatterUtil.formatDateOnly(Timestamp(dateUnixTime))
+        tvCryptocurrencyPrice.text =
+            "%.3f %s".format(
+                price,
+                getString(R.string.defaultVsCurrency)
+            )
     }
 }
 

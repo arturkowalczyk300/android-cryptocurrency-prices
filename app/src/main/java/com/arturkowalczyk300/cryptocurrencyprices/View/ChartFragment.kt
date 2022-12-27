@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Half.toFloat
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.ImageView
@@ -94,32 +95,38 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         hideMarker()
         setChartLoadingProgressBarVisibility(true)
-        val priceHistoryLiveData = viewModel.requestPriceHistoryForSelectedDateRange(
+
+        val timeFrom = (dateStart.time / 1000)
+        val timeTo = (dateEnd.time / 1000)
+
+        viewModel.updatePriceHistoryForSelectedDateRange(
             currencyName,
             getString(R.string.defaultVsCurrency),
-            (dateStart.time / 1000),
-            (dateEnd.time / 1000)
+            timeFrom,
+            timeTo
         )
-        if (!priceHistoryLiveData.hasActiveObservers()) {
-            priceHistoryLiveData.observe(requireActivity(), androidx.lifecycle.Observer {
-                if (!it.isNullOrEmpty()) {
-                    //create list
-                    var list = arrayListOf<Entry>()
-                    it.forEachIndexed { index, currentRow ->
-                        list.add(Entry(currentRow[0].toFloat(), currentRow[1].toFloat()))
-                    }
-                    setChartData(list)
-                    setMinAvgMaxPricesValues(list)
-                    updateTimePeriod()
-                    updatePriceTrends()
-                    setChartAxisLabelsVisibility(true)
-                } else {
-                    setChartVisibility(false) //no valid data to display
-                    setChartAxisLabelsVisibility(false)
+        val priceHistoryLiveData =
+            viewModel.getHistoricalPriceOfCryptocurrencyContainsGivenDay(currencyName, timeTo)
+
+        priceHistoryLiveData.observe(requireActivity(), androidx.lifecycle.Observer {
+            if (!it.prices.list.isNullOrEmpty()) {
+                //create list
+                var list = arrayListOf<Entry>()
+                it.prices.list.forEachIndexed { index, currentRow ->
+                    list.add(Entry(currentRow.unixTime.toFloat(), currentRow.value.toFloat()))
                 }
+                setChartData(list)
+                setMinAvgMaxPricesValues(list)
+                updateTimePeriod()
+                updatePriceTrends()
+                setChartAxisLabelsVisibility(true)
+            } else {
+                setChartVisibility(false) //no valid data to display
+                setChartAxisLabelsVisibility(false)
             }
-            )
         }
+        )
+
     }
 
     private fun setMinAvgMaxPricesValues(values: ArrayList<Entry>) {

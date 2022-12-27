@@ -2,15 +2,16 @@ package com.arturkowalczyk300.cryptocurrencyprices.Model.Room
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import java.util.*
 
-@Entity(tableName = "main_table")
+@Entity(tableName = "top100_cryptocurrencies")
 @TypeConverters(DateConverter::class)
-data class CryptocurrencyPricesEntityDb(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+data class EntityCryptocurrenciesTop100ByMarketCap(
+    @PrimaryKey val market_cap_rank: Int,
     val cryptocurrencyId: String,
-    val date: Date,
-    val priceUsd: Double
+    val name: String,
+    val marketCap: Long,
+    val currentPrice: Double,
+    val updateDate: Date,
 )
