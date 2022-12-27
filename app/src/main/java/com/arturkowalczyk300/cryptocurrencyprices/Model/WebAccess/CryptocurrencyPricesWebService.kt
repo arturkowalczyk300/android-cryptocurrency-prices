@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
+import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.ListOfCryptocurrencyStatValuesWithTime
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -15,7 +16,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class RequestWithResponse(
+open class RequestWithResponse(
     var currencySymbol: String = "",
     var date: Date = Date(0),
     var entity: CryptocurrencyPricesEntityApi? = null,
@@ -50,6 +51,22 @@ class RequestWithResponse(
     }
 }
 
+class RequestWithResponseArchival(
+    currencySymbol: String = "",
+    date: Date = Date(0),
+    val vs_currency: String,
+    val unixtimeFrom: Long,
+    val unixTimeTo: Long,
+    var archivalPrices: List<List<Double>>? = null
+) : RequestWithResponse(
+    currencySymbol,
+    date,
+    null,
+    null,
+    false
+) {
+}
+
 
 class CryptocurrencyPricesWebService {
     var waitingForResponse: Boolean = false
@@ -64,7 +81,7 @@ class CryptocurrencyPricesWebService {
         RequestWithResponse()
     )
 
-    var mldPriceHistory: MutableLiveData<List<List<Double>>?> = MutableLiveData(listOf())
+    var mldPriceHistory: MutableLiveData<RequestWithResponseArchival?>? = MutableLiveData()
 
     var cryptocurrenciesListSorted: MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>> =
         MutableLiveData()
@@ -98,12 +115,12 @@ class CryptocurrencyPricesWebService {
             ) {
                 if (response.body() != null) {
                     if (waitingForResponse) {
-                        val bodyStr:ResponseBody= response.body()!!
+                        val bodyStr: ResponseBody = response.body()!!
                         val src = bodyStr.source().toString()
                         val regex = Regex("(\\d+.\\d+)")
                         val priceStr: String? = regex.find(src)?.groupValues?.get(0)
                         var price: Float? = null
-                        if(priceStr!=null)
+                        if (priceStr != null)
                             price = priceStr.toFloat()
 
                         mldActualRequestWithResponse?.value?.actualPrice = price
@@ -213,7 +230,16 @@ class CryptocurrencyPricesWebService {
         vs_currency: String,
         unixtimeFrom: Long,
         unixTimeTo: Long
-    ): MutableLiveData<List<List<Double>>?> {
+    ): MutableLiveData<RequestWithResponseArchival?> {
+
+        mldPriceHistory!!.value = RequestWithResponseArchival(
+            currencySymbol,
+            Date(),
+            vs_currency,
+            unixtimeFrom,
+            unixTimeTo
+        )
+
 
         val response: Call<CryptocurrencyPriceHistoryFromApi>? =
             CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
@@ -231,15 +257,15 @@ class CryptocurrencyPricesWebService {
                 response: Response<CryptocurrencyPriceHistoryFromApi>
             ) {
                 if (response.body() != null)
-                    mldPriceHistory.value = response.body()?.prices
+                    mldPriceHistory!!.value!!.archivalPrices = response.body()?.prices
                 else {
-                    mldPriceHistory.value = null
+                    mldPriceHistory!!.value = null
                     mldErrorCode.value = Pair(true, REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
                 }
             }
 
             override fun onFailure(call: Call<CryptocurrencyPriceHistoryFromApi>, t: Throwable) {
-                mldPriceHistory.value = null
+                mldPriceHistory!!.value = null
 
                 mldErrorCode.value = Pair(true, REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
 
@@ -250,7 +276,7 @@ class CryptocurrencyPricesWebService {
             }
         })
 
-        return mldPriceHistory
+        return mldPriceHistory!!
     }
 
 }
