@@ -20,6 +20,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesH
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
+import java.sql.Timestamp
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -41,9 +42,6 @@ class MainActivity : AppCompatActivity() {
     private var isCurrenciesListInitialized: Boolean = false
     private var hasInternetConnection: Boolean = false
 
-    private var currentRecordIndex: Int = 0
-
-    private var maxRecordIndex: Int = 0
     private var datePicker = CustomDatePickerHandler()
 
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
@@ -139,7 +137,7 @@ class MainActivity : AppCompatActivity() {
                     date = DateFormatterUtil.parseDateOnly(etDate.text.toString())
                     viewModel.updatePriceData()
                 } catch (exc: Exception) {
-                    Log.e("myApp", exc.toString())
+                    Log.e("myApp", "addButtonsOnClickListeners, $exc")
                 }
             } else {
                 if (!autoFetchDataAlreadyDone) autoFetchDataPending = true
@@ -166,10 +164,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeLiveData() {
+        //show actual price
         viewModel.getAllHistoricalPrices().observe(this, Observer {
-            maxRecordIndex = it.size - 1
             if (it.isNotEmpty()) {
                 switchVisibilityOfRecordViewer(View.VISIBLE)
+                val currentElement = it.sortedByDescending { it.timeRangeTo }.first()
+                val actualPrice =
+                    currentElement.prices.list.first().value
+                Toast.makeText(this, "text: $actualPrice", Toast.LENGTH_SHORT).show()
+                updateTextViews(
+                    currentElement.cryptocurrencyId,
+                    currentElement.timeRangeTo,
+                    actualPrice.toFloat()
+                )
             } else
                 switchVisibilityOfRecordViewer(View.GONE)
         }
@@ -277,13 +284,23 @@ class MainActivity : AppCompatActivity() {
             tvNoInternetConnection.visibility = View.VISIBLE
     }
 
-    private fun switchVisibilityOfRecordViewer(visible: Int) {
+    private fun switchVisibilityOfRecordViewer(visible: Int) { //TODO(): todelete
         val groupRecords: androidx.constraintlayout.widget.Group = findViewById(R.id.groupRecords)
         groupRecords.visibility = visible
     }
 
     private fun openDatePicker() {
         datePicker.show()
+    }
+
+    private fun updateTextViews(currencySymbol: String, dateUnixTime: Long, price: Float) {
+        tvCryptocurrencySymbol.text = currencySymbol
+        tvCryptocurrencyDate.text = DateFormatterUtil.formatDateOnly(Timestamp(dateUnixTime))
+        tvCryptocurrencyPrice.text =
+            "%.3f %s".format(
+                price,
+                getString(R.string.defaultVsCurrency)
+            )
     }
 }
 

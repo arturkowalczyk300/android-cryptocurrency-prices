@@ -38,7 +38,7 @@ object CryptocurrencyPricesRetrofitClient {
             retrofitInstance!!
             cryptocurrencyPricesApiHandle!!
         } catch (exc: Exception) {
-            Log.e("myApp", exc.toString())
+            Log.e("myApp", "getCryptocurrencyPricesApiHandleInstance, $exc")
             return null
         }
 
