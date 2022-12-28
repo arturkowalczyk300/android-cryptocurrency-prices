@@ -3,14 +3,9 @@ package com.arturkowalczyk300.cryptocurrencyprices.Model
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.*
-import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPriceFromListApi
 import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPricesWebService
-import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.RequestWithResponse
-import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.RequestWithResponseArchival
 import java.util.*
-import kotlin.collections.ArrayList
 
 class CryptocurrencyPricesRepository(application: Application) {
 
@@ -46,13 +41,8 @@ class CryptocurrencyPricesRepository(application: Application) {
         database!!.userDao()!!.deleteAllHistoricalPrices()
     }
 
-    fun getHistoricalPriceOfCryptocurrencyContainsGivenDay(
-        cryptocurrencyId: String,
-        unixTimeDay: Long
-    ): LiveData<EntityCryptocurrenciesHistoricalPrices> {
-        return database!!.userDao()!!.getHistoricalPriceOfCryptocurrencyContainsGivenDay(
-            cryptocurrencyId,
-            unixTimeDay
+    fun getHistoricalPriceOfCryptocurrenciesWithTimeRange(): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
+        return database!!.userDao()!!.getHistoricalPriceOfCryptocurrenciesWithTimeRange(
         )
     }
 
@@ -187,8 +177,9 @@ class CryptocurrencyPricesRepository(application: Application) {
             unixTimeTo
         )
         if (!liveData.hasActiveObservers())
+        //if (true)
             liveData.observeForever { response ->
-                if (response != null) {
+                if (response != null && response?.archivalPrices?.isNotEmpty() != null) {
 
                     val list: List<CryptocurrencyStatValueWithTime> =
                         response.archivalPrices!!.map {
@@ -199,13 +190,33 @@ class CryptocurrencyPricesRepository(application: Application) {
                         }
                     val prices = ListOfCryptocurrencyStatValuesWithTime(list)
 
+                    val totalVolume =
+                        ListOfCryptocurrencyStatValuesWithTime(
+                            response.totalVolumes!!.map {
+                                CryptocurrencyStatValueWithTime(
+                                    it[0].toLong(),
+                                    it[1]
+                                )
+                            })
+
+                    val marketCaps =
+                        ListOfCryptocurrencyStatValuesWithTime(
+                            response.marketCaps!!.map {
+                                CryptocurrencyStatValueWithTime(
+                                    it[0].toLong(),
+                                    it[1]
+                                )
+                            })
+
                     this.addHistoricalPrice(
                         EntityCryptocurrenciesHistoricalPrices(
                             index = 0, //auto-increment, no need to specify manually
                             cryptocurrencyId = response.currencySymbol,
                             timeRangeFrom = response.unixtimeFrom,
                             timeRangeTo = response.unixTimeTo,
-                            prices = prices
+                            prices = prices,
+                            market_caps = marketCaps,
+                            total_volumes = totalVolume
                         )
                     )
                 }

@@ -4,13 +4,9 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.util.Half.toFloat
 import androidx.fragment.app.Fragment
 import android.view.View
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.RadioGroup
-import android.widget.TextView
+import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.R
@@ -59,6 +55,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         assignViewsVariablesChart()
         handleChartRadioGroupTimeRangeActions()
         initializeChart()
+        observeLiveDataPriceHistoryForDateRange()
     }
 
     private fun initViewModel() {
@@ -69,63 +66,43 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         ).get(CryptocurrencyPricesViewModel::class.java)
     }
 
-    fun requestPriceHistory() {
-        observeLiveDataPriceHistoryForDateRange()
-    }
 
     private fun observeLiveDataPriceHistoryForDateRange() {
-        val currencyName = tvMainActivityCryptocurrencySymbol.text.toString()
-
-        //set date range parameters
-        val calendar = Calendar.getInstance()
-        if (viewModel.showArchivalData) {
-            calendar.time = viewModel.showArchivalDataRange
-            calendar.add(Calendar.DAY_OF_MONTH, 1)
-        }
-        val dateEnd = calendar.time
-
-        when (chartRadioGroupTimeRange.checkedRadioButtonId) {
-            R.id.chartRadioButtonTimeRangeOneYear -> calendar.add(Calendar.YEAR, -1)
-            R.id.chartRadioButtonTimeRangeOneMonth -> calendar.add(Calendar.MONTH, -1)
-            R.id.chartRadioButtonTimeRangeOneWeek -> calendar.add(Calendar.DAY_OF_MONTH, -7)
-            R.id.chartRadioButtonTimeRange24Hours -> calendar.add(Calendar.DAY_OF_MONTH, -1)
-        }
-
-        val dateStart = calendar.time
-
         hideMarker()
         setChartLoadingProgressBarVisibility(true)
 
-        val timeFrom = (dateStart.time / 1000)
-        val timeTo = (dateEnd.time / 1000)
+        viewModel.getHistoricalPriceOfCryptocurrenciesWithTimeRange()
+            .observe(requireActivity(), androidx.lifecycle.Observer { list ->
+                Toast.makeText(
+                    appContext,
+                    "getHistoricalPriceOfCryptocurrenciesWithTimeRange",
+                    Toast.LENGTH_SHORT
+                ).show()
 
-        viewModel.updatePriceHistoryForSelectedDateRange(
-            currencyName,
-            getString(R.string.defaultVsCurrency),
-            timeFrom,
-            timeTo
-        )
-        val priceHistoryLiveData =
-            viewModel.getHistoricalPriceOfCryptocurrencyContainsGivenDay(currencyName, timeTo)
-
-        priceHistoryLiveData.observe(requireActivity(), androidx.lifecycle.Observer {
-            if (!it.prices.list.isNullOrEmpty()) {
-                //create list
-                var list = arrayListOf<Entry>()
-                it.prices.list.forEachIndexed { index, currentRow ->
-                    list.add(Entry(currentRow.unixTime.toFloat(), currentRow.value.toFloat()))
+                list.last().let {
+                    if (!it.prices.list.isNullOrEmpty()) {
+                        //create list
+                        var list = arrayListOf<Entry>()
+                        it.prices.list.forEachIndexed { index, currentRow ->
+                            list.add(
+                                Entry(
+                                    currentRow.unixTime.toFloat(),
+                                    currentRow.value.toFloat()
+                                )
+                            )
+                        }
+                        setChartData(list)
+                        setMinAvgMaxPricesValues(list)
+                        updateTimePeriod()
+                        updatePriceTrends()
+                        setChartAxisLabelsVisibility(true)
+                    } else {
+                        setChartVisibility(false) //no valid data to display
+                        setChartAxisLabelsVisibility(false)
+                    }
                 }
-                setChartData(list)
-                setMinAvgMaxPricesValues(list)
-                updateTimePeriod()
-                updatePriceTrends()
-                setChartAxisLabelsVisibility(true)
-            } else {
-                setChartVisibility(false) //no valid data to display
-                setChartAxisLabelsVisibility(false)
             }
-        }
-        )
+            )
 
     }
 
@@ -143,8 +120,29 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
     private fun handleChartRadioGroupTimeRangeActions() {
         chartRadioGroupTimeRange.setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener { group, checkedId ->
-            requestPriceHistory()
+            //set date range parameters
+            val calendar = Calendar.getInstance()
+            if (viewModel.showArchivalData) {
+                calendar.time = viewModel.showArchivalDataRange
+                calendar.add(Calendar.DAY_OF_MONTH, 1)
+            }
+            val dateEnd = calendar.time
+
+            when (chartRadioGroupTimeRange.checkedRadioButtonId) {
+                R.id.chartRadioButtonTimeRangeOneYear -> calendar.add(Calendar.YEAR, -1)
+                R.id.chartRadioButtonTimeRangeOneMonth -> calendar.add(Calendar.MONTH, -1)
+                R.id.chartRadioButtonTimeRangeOneWeek -> calendar.add(Calendar.DAY_OF_MONTH, -7)
+                R.id.chartRadioButtonTimeRange24Hours -> calendar.add(Calendar.DAY_OF_MONTH, -1)
+            }
+            val dateStart = calendar.time
+
+            viewModel.selectedUnixTimeFrom = (dateStart.time / 1000)
+            viewModel.selectedUnixTimeTo = (dateEnd.time / 1000)
         })
+
+        val savedId = chartRadioGroupTimeRange.checkedRadioButtonId
+        chartRadioGroupTimeRange.clearCheck()
+        chartRadioGroupTimeRange.check(savedId)
     }
 
     private fun initializeChart() {
