@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
-import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.ListOfCryptocurrencyStatValuesWithTime
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -57,7 +56,9 @@ class RequestWithResponseArchival(
     val vs_currency: String,
     val unixtimeFrom: Long,
     val unixTimeTo: Long,
-    var archivalPrices: List<List<Double>>? = null
+    var archivalPrices: List<List<Double>>? = null,
+    var totalVolumes: List<List<Double>>? = null,
+    var marketCaps: List<List<Double>>? = null
 ) : RequestWithResponse(
     currencySymbol,
     date,
@@ -256,8 +257,12 @@ class CryptocurrencyPricesWebService {
                 call: Call<CryptocurrencyPriceHistoryFromApi>,
                 response: Response<CryptocurrencyPriceHistoryFromApi>
             ) {
-                if (response.body() != null)
+                if (response.body() != null && response.body()?.prices?.isNotEmpty() != null) {
                     mldPriceHistory!!.value!!.archivalPrices = response.body()?.prices
+                    mldPriceHistory!!.value!!.totalVolumes = response.body()?.total_volumes
+                    mldPriceHistory!!.value!!.marketCaps = response.body()?.market_caps
+                    mldPriceHistory!!.postValue(mldPriceHistory!!.value) //notify data changed
+                }
                 else {
                     mldPriceHistory!!.value = null
                     mldErrorCode.value = Pair(true, REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)

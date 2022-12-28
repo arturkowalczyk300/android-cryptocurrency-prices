@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
+import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenciesHistoricalPrices
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesHelper
@@ -136,6 +137,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     date = DateFormatterUtil.parseDateOnly(etDate.text.toString())
                     viewModel.updatePriceData()
+                    viewModel.updatePriceHistoryForSelectedDateRange()
                 } catch (exc: Exception) {
                     Log.e("myApp", "addButtonsOnClickListeners, $exc")
                 }
@@ -166,6 +168,7 @@ class MainActivity : AppCompatActivity() {
     private fun observeLiveData() {
         //show actual price
         viewModel.getAllHistoricalPrices().observe(this, Observer {
+            Toast.makeText(this, "getAllHistoricalPrices() notified", Toast.LENGTH_SHORT).show()
             if (it.isNotEmpty()) {
                 switchVisibilityOfRecordViewer(View.VISIBLE)
                 val currentElement = it.sortedByDescending { it.timeRangeTo }.first()
@@ -181,6 +184,13 @@ class MainActivity : AppCompatActivity() {
                 switchVisibilityOfRecordViewer(View.GONE)
         }
         )
+
+//        //show price in time range (for usage in chart)
+//        viewModel.getHistoricalPriceOfCryptocurrenciesWithTimeRange().observe(
+//            this
+//        ) {
+//          //TODO(): it should be implemented in chartfragment's code ;    chartFragment.
+//        }
 
         viewModel.apiUnwrappingPriceDataErrorLiveData.observe(this, Observer { errorOccured ->
             if (errorOccured)
