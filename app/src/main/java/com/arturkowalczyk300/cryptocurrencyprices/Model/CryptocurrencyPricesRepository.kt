@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.*
 import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPricesWebService
+import retrofit2.http.GET
 import java.util.*
 
 class CryptocurrencyPricesRepository(application: Application) {
@@ -63,8 +64,6 @@ class CryptocurrencyPricesRepository(application: Application) {
         currencySymbol: String,
         vs_currency: String
     ) {
-        Log.d("myApp", "updateActualPriceData")
-
         val liveData = webService.requestActualPriceData(currencySymbol, vs_currency)
         if (!liveData.hasActiveObservers())
             liveData.observeForever { response ->
@@ -97,13 +96,12 @@ class CryptocurrencyPricesRepository(application: Application) {
         currencySymbol: String,
         date: Date
     ) {
-        Log.d("myApp", "updateArchivalPriceData")
-
         val liveData = webService.requestArchivalPriceData(currencySymbol, date)
         if (!liveData.hasActiveObservers())
             liveData.observeForever { response ->
                 if (response?.entity != null) //value check
                 {
+
                     this.addHistoricalPrice(
                         EntityCryptocurrenciesHistoricalPrices(
                             index = 0, //auto-increment, no need to specify manually
@@ -142,8 +140,6 @@ class CryptocurrencyPricesRepository(application: Application) {
     }
 
     fun updateCryptocurrenciesList() {
-        Log.d("myApp", "updateCryptocurrenciesList")
-
         val liveData = webService.requestCryptocurrenciesList()
         if (!liveData.hasActiveObservers())
             liveData.observeForever() { response ->
@@ -168,8 +164,6 @@ class CryptocurrencyPricesRepository(application: Application) {
         currencySymbol: String, vs_currency: String, unixtimeFrom: Long,
         unixTimeTo: Long
     ) {
-        Log.d("myApp", "updatePriceHistoryForDateRange")
-
         val liveData = webService.requestPriceHistoryForDateRange(
             currencySymbol,
             vs_currency,
@@ -177,7 +171,6 @@ class CryptocurrencyPricesRepository(application: Application) {
             unixTimeTo
         )
         if (!liveData.hasActiveObservers())
-        //if (true)
             liveData.observeForever { response ->
                 if (response != null && response?.archivalPrices?.isNotEmpty() != null) {
 
@@ -221,6 +214,13 @@ class CryptocurrencyPricesRepository(application: Application) {
                     )
                 }
             }
+    }
+
+    fun getHistoricalPricesOfCryptocurrencyInTimeRange(
+        cryptocurrencyId: String
+    ): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
+        return database!!.userDao()!!
+            .getHistoricalPricesOfCryptocurrencyInTimeRange(cryptocurrencyId)
     }
 
     fun getApiErrorCodeLiveData() = webService.mldErrorCode

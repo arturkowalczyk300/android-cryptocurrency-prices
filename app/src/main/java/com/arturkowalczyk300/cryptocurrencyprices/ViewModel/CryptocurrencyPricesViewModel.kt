@@ -1,6 +1,7 @@
 package com.arturkowalczyk300.cryptocurrencyprices.ViewModel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,12 +14,15 @@ import java.util.*
 class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var repository: CryptocurrencyPricesRepository = CryptocurrencyPricesRepository(application)
     val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
+
+    //parameters for data fetching
     var selectedCryptocurrencyId: String? = null
     var showArchivalData = false
     var showArchivalDataRange: Date? = null
-    var vs_currency: String? = null
+    var vsCurrency: String? = null
     var selectedUnixTimeFrom: Long? = null
     var selectedUnixTimeTo: Long? = null
+    var selectedDaysToSeeOnChart: Int? = null
 
     fun updatePriceData(
     ) {
@@ -31,7 +35,7 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
 
             repository.updateArchivalPriceData(selectedCryptocurrencyId!!, dateRequest)
         } else {
-            repository.updateActualPriceData(selectedCryptocurrencyId!!, vs_currency!!)
+            repository.updateActualPriceData(selectedCryptocurrencyId!!, vsCurrency!!)
         }
         //TODO(): add api errors handling
     }
@@ -43,14 +47,10 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
 
     fun updatePriceHistoryForSelectedDateRange(
     ) {
-        if (this.selectedCryptocurrencyId != null
-            && this.vs_currency != null
-            && this.selectedUnixTimeFrom != null
-            && this.selectedUnixTimeTo != null
-        ) {
+        if (this.selectedCryptocurrencyId != null && this.vsCurrency != null && this.selectedUnixTimeFrom != null && this.selectedUnixTimeTo != null) {
             repository.updatePriceHistoryForDateRange(
                 this.selectedCryptocurrencyId!!,
-                this.vs_currency!!,
+                this.vsCurrency!!,
                 this.selectedUnixTimeFrom!!,
                 this.selectedUnixTimeTo!!
             )
@@ -58,13 +58,6 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     }
 
     fun getApiErrorCodeLiveData() = repository.getApiErrorCodeLiveData()
-
-
-/*
-
-NEW
-
- */
 
     fun getAllCryptocurrencies(): LiveData<List<EntityCryptocurrenciesTop100ByMarketCap>> {
         return repository.getAllCryptocurrencies()
@@ -76,6 +69,12 @@ NEW
 
     fun getHistoricalPriceOfCryptocurrenciesWithTimeRange(): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
         return repository.getHistoricalPriceOfCryptocurrenciesWithTimeRange()
+    }
+
+    fun getHistoricalPricesOfCryptocurrencyInTimeRange(
+        cryptocurrencyId: String
+    ): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
+        return repository.getHistoricalPricesOfCryptocurrencyInTimeRange(cryptocurrencyId)
     }
 
 }

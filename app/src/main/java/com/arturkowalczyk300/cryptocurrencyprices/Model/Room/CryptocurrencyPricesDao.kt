@@ -58,5 +58,16 @@ interface CryptocurrencyPricesDao {
         unixTimeDay: Long
     )
 
+    //new requests
+    @Query(
+        "SELECT * FROM cryptocurrencies_price_history " +
+                "WHERE cryptocurrencyId=:cryptocurrencyId" +
+                " AND market_caps is not NULL" +
+                " AND total_volumes is not NULL"//single reads has those fields empty
+    )
+    fun getHistoricalPricesOfCryptocurrencyInTimeRange(
+        cryptocurrencyId: String
+    ): LiveData<List<EntityCryptocurrenciesHistoricalPrices>>
+
     //todo: limit max records for every cryptocurrency id, eg 3
 }
