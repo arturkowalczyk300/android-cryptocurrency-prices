@@ -136,16 +136,6 @@
         app:layout_constraintTop_toTopOf="@+id/radioGroupDate" />
 
 
-    <Button
-        android:id="@+id/btnGet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:text="Get"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
     <TextView
         android:id="@+id/lblCryptocurrency"
         android:layout_width="wrap_content"
@@ -161,9 +151,9 @@
         android:id="@+id/radioGroupDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="10dp"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/btnGet"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/lblCryptocurrency">
 
         <RadioButton

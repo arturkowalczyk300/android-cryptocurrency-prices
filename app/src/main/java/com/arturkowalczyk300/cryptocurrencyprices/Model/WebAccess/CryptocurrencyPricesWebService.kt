@@ -232,7 +232,6 @@ class CryptocurrencyPricesWebService {
         unixtimeFrom: Long,
         unixTimeTo: Long
     ): MutableLiveData<RequestWithResponseArchival?> {
-
         mldPriceHistory!!.value = RequestWithResponseArchival(
             currencySymbol,
             Date(),
@@ -257,13 +256,12 @@ class CryptocurrencyPricesWebService {
                 call: Call<CryptocurrencyPriceHistoryFromApi>,
                 response: Response<CryptocurrencyPriceHistoryFromApi>
             ) {
-                if (response.body() != null && response.body()?.prices?.isNotEmpty() != null) {
+                if (response.body() != null && response.body()?.prices?.isNotEmpty() != null && response.errorBody() == null) {
                     mldPriceHistory!!.value!!.archivalPrices = response.body()?.prices
                     mldPriceHistory!!.value!!.totalVolumes = response.body()?.total_volumes
                     mldPriceHistory!!.value!!.marketCaps = response.body()?.market_caps
                     mldPriceHistory!!.postValue(mldPriceHistory!!.value) //notify data changed
-                }
-                else {
+                } else {
                     mldPriceHistory!!.value = null
                     mldErrorCode.value = Pair(true, REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
                 }
