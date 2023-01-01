@@ -23,6 +23,7 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var selectedUnixTimeFrom: Long? = null
     var selectedUnixTimeTo: Long? = null
     var selectedDaysToSeeOnChart: Int? = null
+    var hasInternetConnection: Boolean = false
 
     fun updatePriceData(
     ) {
