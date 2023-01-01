@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.*
@@ -12,7 +11,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenciesHistoricalPrices
-import com.arturkowalczyk300.cryptocurrencyprices.Other.observeOnce
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
@@ -71,8 +69,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         ).get(CryptocurrencyPricesViewModel::class.java)
     }
 
-    fun updateData() //for external call
+    fun updateDataIfConnectedToInternet()
     {
+        if(viewModel.hasInternetConnection)
         getAndObserveLiveDataPriceHistoryForDateRange()
     }
 
@@ -184,7 +183,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                 viewModel.selectedUnixTimeTo = (dateEnd.time / 1000)
                 viewModel.selectedDaysToSeeOnChart = countOfDays
 
-                getAndObserveLiveDataPriceHistoryForDateRange()
+                updateDataIfConnectedToInternet()
             }
         })
 

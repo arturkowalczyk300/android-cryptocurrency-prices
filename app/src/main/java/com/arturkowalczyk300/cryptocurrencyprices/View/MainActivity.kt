@@ -3,7 +3,6 @@ package com.arturkowalczyk300.cryptocurrencyprices.View
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
-import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.MotionEvent.ACTION_UP
 import android.view.View
@@ -40,7 +39,7 @@ class MainActivity : AppCompatActivity() {
     private var autoFetchDataPending = false
 
     private var isCurrenciesListInitialized: Boolean = false
-    private var hasInternetConnection: Boolean = false
+
 
     private var datePicker = CustomDatePickerHandler()
 
@@ -85,7 +84,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestUpdateDataFromNetwork() {
-        viewModel.updateCryptocurrenciesList()
+        if (viewModel.hasInternetConnection)
+            viewModel.updateCryptocurrenciesList()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -142,12 +142,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            updateData()
+            updateDataIfConnectedToInternet()
         }
     }
 
-    private fun updateData() {
-        if (isCurrenciesListInitialized && hasInternetConnection) {
+    private fun updateDataIfConnectedToInternet() {
+        if (isCurrenciesListInitialized && viewModel.hasInternetConnection) {
             autoFetchDataAlreadyDone = true
             autoFetchDataPending = false
             var date: Date
@@ -241,7 +241,7 @@ class MainActivity : AppCompatActivity() {
             if (!autoFetchDataAlreadyDone) {
                 autoFetchDataAlreadyDone = true
                 initChartFragment()
-                updateData()
+                updateDataIfConnectedToInternet()
             }
 
         })
@@ -254,8 +254,8 @@ class MainActivity : AppCompatActivity() {
                 tvSelectedCurrencyId.text = cryptocurrencyId
                 viewModel.selectedCryptocurrencyId = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
-                updateData()
-                chartFragment.updateData()
+                updateDataIfConnectedToInternet()
+                chartFragment.updateDataIfConnectedToInternet()
             }
         }
 
@@ -264,10 +264,10 @@ class MainActivity : AppCompatActivity() {
     private fun handleNoNetworkInfo() {
         val networkAccessLiveData = NetworkAccessLiveData(this)
         networkAccessLiveData.observe(this) { hasInternetConnection ->
-            this.hasInternetConnection = hasInternetConnection
+            viewModel.hasInternetConnection = hasInternetConnection
             changeNoInternetConnectionInfoVisibility(hasInternetConnection)
             if (!autoFetchDataAlreadyDone && autoFetchDataPending && hasInternetConnection)
-                updateData()
+                updateDataIfConnectedToInternet()
         }
     }
 
