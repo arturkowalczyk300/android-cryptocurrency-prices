@@ -27,4 +27,5 @@
     <string name="radioButtonOneWeek">1 week</string>
     <string name="radioButtonOneDay">24 hours</string>
     <string name="UNWRAP_PRICE_DATA_FAILURE">Unwrapping data from API failed!</string>
+    <string name="chart_no_cached_data">Lack of internet connection and no cached data in database.</string>
 </resources>

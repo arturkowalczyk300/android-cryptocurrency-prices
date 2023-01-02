@@ -255,7 +255,7 @@ class MainActivity : AppCompatActivity() {
                 viewModel.selectedCryptocurrencyId = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
                 updateDataIfConnectedToInternet()
-                chartFragment.updateDataIfConnectedToInternet()
+                chartFragment.updateData()
             }
         }
 
