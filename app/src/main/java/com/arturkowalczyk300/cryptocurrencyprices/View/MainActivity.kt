@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         assignViewsVariables()
         initViewModel()
         handleNoNetworkInfo()
-        requestUpdateDataFromNetwork()
+
         handleCryptocurrencyChoice()
         initializeDatePicker()
         addButtonsOnClickListeners()
@@ -258,7 +258,6 @@ class MainActivity : AppCompatActivity() {
                 chartFragment.updateData()
             }
         }
-
     }
 
     private fun handleNoNetworkInfo() {
@@ -266,8 +265,12 @@ class MainActivity : AppCompatActivity() {
         networkAccessLiveData.observe(this) { hasInternetConnection ->
             viewModel.hasInternetConnection = hasInternetConnection
             changeNoInternetConnectionInfoVisibility(hasInternetConnection)
-            if (!autoFetchDataAlreadyDone && autoFetchDataPending && hasInternetConnection)
-                updateDataIfConnectedToInternet()
+            if (hasInternetConnection) {
+                requestUpdateDataFromNetwork()
+                if (!autoFetchDataAlreadyDone && autoFetchDataPending) {
+                    updateDataIfConnectedToInternet()
+                }
+            }
         }
 
         viewModel.currentlyDisplayedDataUpdatedMinutesAgo.observe(this) { minutes ->

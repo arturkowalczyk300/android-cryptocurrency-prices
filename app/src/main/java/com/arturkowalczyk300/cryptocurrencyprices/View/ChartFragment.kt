@@ -93,7 +93,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
             historicalPricesliveDatas.add( //keep references to remove all observers later
                 viewModel.getHistoricalPricesOfCryptocurrencyInTimeRange(
-                    cryptocurrencyId
+                    cryptocurrencyId,
+                    viewModel.selectedDaysToSeeOnChart!!
                 )
             )
 

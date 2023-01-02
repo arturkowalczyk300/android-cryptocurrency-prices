@@ -207,6 +207,7 @@ class CryptocurrencyPricesRepository(application: Application) {
                             cryptocurrencyId = response.currencySymbol,
                             timeRangeFrom = response.unixtimeFrom,
                             timeRangeTo = response.unixTimeTo,
+                            daysCount = (((response.unixTimeTo - response.unixtimeFrom) / 3600 / 24).toInt()),
                             prices = prices,
                             market_caps = marketCaps,
                             total_volumes = totalVolume
@@ -217,10 +218,11 @@ class CryptocurrencyPricesRepository(application: Application) {
     }
 
     fun getHistoricalPricesOfCryptocurrencyInTimeRange(
-        cryptocurrencyId: String
+        cryptocurrencyId: String,
+        daysCount:Int
     ): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
         return database!!.userDao()!!
-            .getHistoricalPricesOfCryptocurrencyInTimeRange(cryptocurrencyId)
+            .getHistoricalPricesOfCryptocurrencyInTimeRange(cryptocurrencyId, daysCount)
     }
 
     fun getApiErrorCodeLiveData() = webService.mldErrorCode
