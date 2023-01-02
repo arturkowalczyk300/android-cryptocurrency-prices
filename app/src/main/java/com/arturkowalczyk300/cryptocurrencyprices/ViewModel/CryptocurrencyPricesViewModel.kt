@@ -74,9 +74,10 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     }
 
     fun getHistoricalPricesOfCryptocurrencyInTimeRange(
-        cryptocurrencyId: String
+        cryptocurrencyId: String,
+        daysCount:Int
     ): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
-        return repository.getHistoricalPricesOfCryptocurrencyInTimeRange(cryptocurrencyId)
+        return repository.getHistoricalPricesOfCryptocurrencyInTimeRange(cryptocurrencyId, daysCount)
     }
 
 }

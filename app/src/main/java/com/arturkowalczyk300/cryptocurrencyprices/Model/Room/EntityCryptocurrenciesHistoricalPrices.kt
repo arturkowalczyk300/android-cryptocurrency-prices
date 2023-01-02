@@ -11,6 +11,7 @@ data class EntityCryptocurrenciesHistoricalPrices(
     val cryptocurrencyId: String,
     val timeRangeFrom: Long, //unit time format
     val timeRangeTo: Long,
+    val daysCount: Int = 0,
     val market_caps: ListOfCryptocurrencyStatValuesWithTime? = null,
     val prices: ListOfCryptocurrencyStatValuesWithTime,
     val total_volumes: ListOfCryptocurrencyStatValuesWithTime? = null,
