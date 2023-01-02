@@ -14,6 +14,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenc
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
+import com.github.mikephil.charting.charts.Chart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -42,7 +43,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var tvTrending: TextView
     private lateinit var ivTrending: ImageView
     private lateinit var tvTimePeriod: TextView
-    private var historialPricesliveDatas: MutableList<LiveData<List<EntityCryptocurrenciesHistoricalPrices>>> =
+    private var historicalPricesliveDatas: MutableList<LiveData<List<EntityCryptocurrenciesHistoricalPrices>>> =
         mutableListOf<LiveData<List<EntityCryptocurrenciesHistoricalPrices>>>()
 
     private var chartDataSet = LineDataSet(listOf(), "")
@@ -69,20 +70,26 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         ).get(CryptocurrencyPricesViewModel::class.java)
     }
 
-    fun updateDataIfConnectedToInternet()
-    {
-        if(viewModel.hasInternetConnection)
-        getAndObserveLiveDataPriceHistoryForDateRange()
+    fun updateData() {
+        getIfInternetConnectionAndObserveLiveDataPriceHistoryForDateRange()
     }
 
-    private fun getAndObserveLiveDataPriceHistoryForDateRange() {
+    private fun showNoDataInfo() {
+        chart.data = null
+        chart.invalidate()
+        chart.notifyDataSetChanged()
+        setChartLoadingProgressBarVisibility(false)
+    }
+
+    private fun getIfInternetConnectionAndObserveLiveDataPriceHistoryForDateRange() {
         hideMarker()
         setChartLoadingProgressBarVisibility(true)
 
         viewModel.selectedCryptocurrencyId?.let { cryptocurrencyId ->
-            viewModel.updatePriceHistoryForSelectedDateRange()
+            if (viewModel.hasInternetConnection)
+                viewModel.updatePriceHistoryForSelectedDateRange()
 
-            historialPricesliveDatas.add( //keep references to remove all observers later
+            historicalPricesliveDatas.add( //keep references to remove all observers later
                 viewModel.getHistoricalPricesOfCryptocurrencyInTimeRange(
                     cryptocurrencyId
                 )
@@ -90,13 +97,16 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
             val lifecycleOwner = requireActivity()
 
-            historialPricesliveDatas.last()
+            historicalPricesliveDatas.last()
                 .observe(lifecycleOwner, androidx.lifecycle.Observer { list -> //TODO: modify it
 
                     val chosenItem = list.sortedByDescending { it.timeRangeFrom }.find {
                         ((it.timeRangeTo - it.timeRangeFrom) / 3600 / 24).toInt() ==
                                 viewModel.selectedDaysToSeeOnChart!!
                     }
+
+                    if (chosenItem == null) //failure, no cached valid data found
+                        showNoDataInfo()
 
                     chosenItem?.let {
                         if (!it.prices.list.isNullOrEmpty()) {
@@ -117,12 +127,14 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                             setChartAxisLabelsVisibility(true)
 
                             //remove observers to prevent multiple calls
-                            historialPricesliveDatas.forEach { ld ->
+                            historicalPricesliveDatas.forEach { ld ->
                                 ld.removeObservers(
                                     lifecycleOwner
                                 )
                             }
-                        } else {
+
+                        } else { //not valid data
+                            showNoDataInfo()
                             setChartVisibility(false) //no valid data to display
                             setChartAxisLabelsVisibility(false)
                         }
@@ -183,7 +195,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                 viewModel.selectedUnixTimeTo = (dateEnd.time / 1000)
                 viewModel.selectedDaysToSeeOnChart = countOfDays
 
-                updateDataIfConnectedToInternet()
+                updateData()
             }
         })
 
@@ -199,6 +211,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         updateTimePeriod()
         chart.description.isEnabled = false
         chart.legend.isEnabled = false
+
+        chart.setNoDataText(getString(R.string.chart_no_cached_data))
+        chart.getPaint(Chart.PAINT_INFO).textSize = 35f
 
         chart.xAxis.setDrawGridLines(false)
         chart.xAxis.setDrawLabels(false)
@@ -262,9 +277,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             chart.data.clearValues()
             chart.data.addDataSet(chartDataSet)
         }
-        //chart.animateX(1000)
         chart.notifyDataSetChanged()
         chart.invalidate()
+
 
         setChartVisibility(true)
         setChartLoadingProgressBarVisibility(false)
