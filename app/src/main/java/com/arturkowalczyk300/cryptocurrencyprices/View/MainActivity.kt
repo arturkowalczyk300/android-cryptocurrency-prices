@@ -269,6 +269,16 @@ class MainActivity : AppCompatActivity() {
             if (!autoFetchDataAlreadyDone && autoFetchDataPending && hasInternetConnection)
                 updateDataIfConnectedToInternet()
         }
+
+        viewModel.currentlyDisplayedDataUpdatedMinutesAgo.observe(this) { minutes ->
+            val tv: TextView = findViewById(R.id.textViewLastUpdate)
+
+            if (!viewModel.hasInternetConnection && minutes != null) {
+                tv.text = getString(R.string.lastUpdate, minutes)
+                tv.visibility = View.VISIBLE
+            } else
+                tv.visibility = View.GONE
+        }
     }
 
     //visibility switching
