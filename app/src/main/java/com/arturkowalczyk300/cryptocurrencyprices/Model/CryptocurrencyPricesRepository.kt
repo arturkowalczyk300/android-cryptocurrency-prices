@@ -31,6 +31,12 @@ class CryptocurrencyPricesRepository(application: Application) {
     }
 
     private fun addHistoricalPrice(entity: EntityCryptocurrenciesHistoricalPrices) {
+        //limit historical entries to one per currency and time range only
+        if (entity.daysCount > 0)
+            database!!.userDao()!!.deleteAllHistoricalPricesOfCryptocurrencyInGivenDaysCount(
+                entity.cryptocurrencyId,
+                entity.daysCount
+            )
         database!!.userDao()!!.addHistoricalPrice(entity)
     }
 
@@ -217,9 +223,17 @@ class CryptocurrencyPricesRepository(application: Application) {
             }
     }
 
+    fun deleteAllHistoricalPricesOfCryptocurrencyInGivenDaysCount(
+        cryptocurrencyId: String,
+        daysCount: Int
+    ){
+        database!!.userDao()!!
+            .deleteAllHistoricalPricesOfCryptocurrencyInGivenDaysCount(cryptocurrencyId, daysCount)
+    }
+
     fun getHistoricalPricesOfCryptocurrencyInTimeRange(
         cryptocurrencyId: String,
-        daysCount:Int
+        daysCount: Int
     ): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
         return database!!.userDao()!!
             .getHistoricalPricesOfCryptocurrencyInTimeRange(cryptocurrencyId, daysCount)
