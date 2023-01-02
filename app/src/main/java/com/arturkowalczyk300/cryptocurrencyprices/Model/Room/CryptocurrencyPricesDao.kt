@@ -60,6 +60,18 @@ interface CryptocurrencyPricesDao {
 
     //new requests
     @Query(
+        "DELETE FROM cryptocurrencies_price_history " +
+                "WHERE cryptocurrencyId=:cryptocurrencyId " +
+                "AND daysCount=:daysCount" +
+                " AND market_caps is not NULL" +
+                " AND total_volumes is not NULL"//single reads has those fields empty
+    )
+    fun deleteAllHistoricalPricesOfCryptocurrencyInGivenDaysCount(
+        cryptocurrencyId: String,
+        daysCount: Int
+    )
+
+    @Query(
         "SELECT * FROM cryptocurrencies_price_history " +
                 "WHERE cryptocurrencyId=:cryptocurrencyId " +
                 "AND daysCount=:daysCount" +
@@ -68,7 +80,7 @@ interface CryptocurrencyPricesDao {
     )
     fun getHistoricalPricesOfCryptocurrencyInTimeRange(
         cryptocurrencyId: String,
-        daysCount:Int
+        daysCount: Int
     ): LiveData<List<EntityCryptocurrenciesHistoricalPrices>>
 
     //todo: limit max records for every cryptocurrency id, eg 3

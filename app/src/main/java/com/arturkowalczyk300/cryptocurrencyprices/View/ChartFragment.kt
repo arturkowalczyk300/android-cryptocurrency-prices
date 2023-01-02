@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.*
@@ -102,20 +103,16 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
             historicalPricesliveDatas.last()
                 .observe(lifecycleOwner, androidx.lifecycle.Observer { list -> //TODO: modify it
+                    Log.d("myApp", "DSADASD")
 
-                    val chosenItem = list.sortedByDescending { it.timeRangeFrom }.find {
-                        ((it.timeRangeTo - it.timeRangeFrom) / 3600 / 24).toInt() ==
-                                viewModel.selectedDaysToSeeOnChart!!
-                    }
-
-                    if (chosenItem == null) //failure, no cached valid data found
+                    if (list == null) //failure, no cached valid data found
                         showNoDataInfo()
 
-                    chosenItem?.let {
-                        if (!it.prices.list.isNullOrEmpty()) {
+                    list?.let {
+                        if (!it.isNullOrEmpty() && !it.last().prices.list.isNullOrEmpty()) {
                             //create list
                             var list = arrayListOf<Entry>()
-                            it.prices.list.forEachIndexed { index, currentRow ->
+                            it.last().prices.list.forEachIndexed { index, currentRow ->
                                 list.add(
                                     Entry(
                                         currentRow.unixTime.toFloat(),
