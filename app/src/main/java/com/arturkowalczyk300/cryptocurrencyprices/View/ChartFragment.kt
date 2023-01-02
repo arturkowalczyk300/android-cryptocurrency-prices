@@ -21,6 +21,7 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import java.text.DecimalFormat
+import java.time.Period
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -79,6 +80,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chart.invalidate()
         chart.notifyDataSetChanged()
         setChartLoadingProgressBarVisibility(false)
+        viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(null)
     }
 
     private fun getIfInternetConnectionAndObserveLiveDataPriceHistoryForDateRange() {
@@ -126,6 +128,11 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                             updatePriceTrends()
                             setChartAxisLabelsVisibility(true)
 
+                            if (!viewModel.hasInternetConnection)
+                                updateInfoDataFetchMinutesAgo(list.last().x.toLong())
+                            else
+                                updateInfoDataFetchMinutesAgo(null)
+
                             //remove observers to prevent multiple calls
                             historicalPricesliveDatas.forEach { ld ->
                                 ld.removeObservers(
@@ -142,6 +149,15 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                 })
         }
 
+    }
+
+    private fun updateInfoDataFetchMinutesAgo(newestDataEntryEpochTime: Long?) {
+        if (newestDataEntryEpochTime != null) {
+            val msBetweenDates = Date().time - Date(newestDataEntryEpochTime).time
+
+            viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(msBetweenDates / 1000 / 60) //ms to min
+        } else
+            viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(null)
     }
 
     private fun setMinAvgMaxPricesValues(values: ArrayList<Entry>) {
