@@ -103,7 +103,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
             historicalPricesliveDatas.last()
                 .observe(lifecycleOwner, androidx.lifecycle.Observer { list -> //TODO: modify it
-                    Log.d("myApp", "DSADASD")
 
                     if (list == null) //failure, no cached valid data found
                         showNoDataInfo()
