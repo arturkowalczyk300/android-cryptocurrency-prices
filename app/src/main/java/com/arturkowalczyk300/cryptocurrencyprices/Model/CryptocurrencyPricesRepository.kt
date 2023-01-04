@@ -91,7 +91,8 @@ class CryptocurrencyPricesRepository(application: Application) {
                                     )
                                 )
                             ),
-                            total_volumes = null
+                            total_volumes = null,
+                            updateDate = Date()
                         )
                     )
                 }
@@ -138,7 +139,8 @@ class CryptocurrencyPricesRepository(application: Application) {
                                         response.entity!!.market_data.total_volume.usd
                                     )
                                 )
-                            )
+                            ),
+                            updateDate = Date()
                         )
                     )
                 }
@@ -216,7 +218,8 @@ class CryptocurrencyPricesRepository(application: Application) {
                             daysCount = (((response.unixTimeTo - response.unixtimeFrom) / 3600 / 24).toInt()),
                             prices = prices,
                             market_caps = marketCaps,
-                            total_volumes = totalVolume
+                            total_volumes = totalVolume,
+                            updateDate = Date()
                         )
                     )
                 }

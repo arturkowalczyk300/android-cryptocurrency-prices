@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [EntityCryptocurrenciesTop100ByMarketCap::class,
         EntityCryptocurrenciesHistoricalPrices::class],
-    version = 5
+    version = 6
 )
 abstract class CryptocurrencyPricesDatabase() : RoomDatabase() {
     abstract fun userDao(): CryptocurrencyPricesDao

@@ -188,7 +188,7 @@
         android:layout_marginTop="5dp"
         android:textColor="#FFA300"
         android:text="@string/lastUpdate"
-        android:visibility="gone"
+        android:visibility="invisible"
         tools:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
