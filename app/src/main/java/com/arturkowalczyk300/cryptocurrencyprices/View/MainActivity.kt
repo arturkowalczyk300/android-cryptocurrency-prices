@@ -199,6 +199,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+
+        viewModel.noCachedData.observe(this){ show->
+            if(show) //lack of data
+                findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
+            else
+                findViewById<TextView>(R.id.tvNoCachedData).visibility = View.GONE
+        }
     }
 
     private fun updateCurrentPriceSection() {
@@ -223,6 +230,7 @@ class MainActivity : AppCompatActivity() {
                                 msBetweenDates / 1000 / 60
                             ) //ms to min
 
+                            viewModel.noCachedData.postValue(false)
                             switchVisibilityOfCurrentPriceSection(View.VISIBLE)
                             updateTextViews(
                                 currentElement!!.cryptocurrencyId,

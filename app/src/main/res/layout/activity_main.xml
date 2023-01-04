@@ -18,8 +18,6 @@
         android:id="@+id/tvNoInternetConnection"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
         android:background="#5A0707"
         android:text="@string/no_internet_connection"
         android:textAlignment="center"
@@ -186,13 +184,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:textColor="#FFA300"
         android:text="@string/lastUpdate"
+        android:textColor="#FFA300"
+        android:textSize="16sp"
         android:visibility="invisible"
-        tools:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lblPrice" />
+        app:layout_constraintTop_toBottomOf="@+id/lblPrice"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/tvNoCachedData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/noCachedData"
+        android:textAlignment="center"
+        android:textColor="#FF0000"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

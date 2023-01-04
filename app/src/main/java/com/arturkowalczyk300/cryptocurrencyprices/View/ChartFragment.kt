@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenciesHistoricalPrices
 import com.arturkowalczyk300.cryptocurrencyprices.R
@@ -76,12 +77,17 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         getIfInternetConnectionAndObserveLiveDataPriceHistoryForDateRange()
     }
 
-    private fun showNoDataInfo() {
-        chart.data = null
-        chart.invalidate()
-        chart.notifyDataSetChanged()
-        setChartLoadingProgressBarVisibility(false)
-        viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(null)
+    private fun showNoDataInfo(show: Boolean) {
+        if(show) {
+            chart.data = null
+            chart.invalidate()
+            chart.notifyDataSetChanged()
+            setChartLoadingProgressBarVisibility(false)
+            viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(null)
+            viewModel.noCachedData.postValue(true)
+        }
+        else
+            viewModel.noCachedData.postValue(false)
     }
 
     private fun getIfInternetConnectionAndObserveLiveDataPriceHistoryForDateRange() {
@@ -104,8 +110,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             historicalPricesliveDatas.last()
                 .observe(lifecycleOwner, androidx.lifecycle.Observer { list -> //TODO: modify it
 
-                    if (list == null) //failure, no cached valid data found
-                        showNoDataInfo()
+                    if (list == null || list.isEmpty()) //failure, no cached valid data found
+                        showNoDataInfo(true)
 
                     list?.let {
                         if (!it.isNullOrEmpty() && !it.last().prices.list.isNullOrEmpty()) {
@@ -124,6 +130,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                             updateTimePeriod()
                             updatePriceTrends()
                             setChartAxisLabelsVisibility(true)
+                            showNoDataInfo(false) //hide
 
                             //remove observers to prevent multiple calls
                             historicalPricesliveDatas.forEach { ld ->
@@ -133,7 +140,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                             }
 
                         } else { //not valid data
-                            showNoDataInfo()
+                            showNoDataInfo(true)
                             setChartVisibility(false) //no valid data to display
                             setChartAxisLabelsVisibility(false)
                         }
