@@ -217,6 +217,12 @@ class MainActivity : AppCompatActivity() {
                             currentElement!!.prices.list.first().value
 
                         if (currentElement!!.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
+                            val msBetweenDates = Date().time - currentElement!!.updateDate.time
+
+                            viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(
+                                msBetweenDates / 1000 / 60
+                            ) //ms to min
+
                             switchVisibilityOfCurrentPriceSection(View.VISIBLE)
                             updateTextViews(
                                 currentElement!!.cryptocurrencyId,
@@ -290,6 +296,8 @@ class MainActivity : AppCompatActivity() {
                 requestUpdateDataFromNetwork()
                 updateDataIfConnectedToInternet()
                 chartFragment?.updateData()
+            } else { //connection lost, it will update info about using cached data
+                updateCurrentPriceSection()
             }
         }
 
@@ -300,7 +308,7 @@ class MainActivity : AppCompatActivity() {
                 tv.text = getString(R.string.lastUpdate, minutes)
                 tv.visibility = View.VISIBLE
             } else
-                tv.visibility = View.GONE
+                tv.visibility = View.INVISIBLE
         }
     }
 
