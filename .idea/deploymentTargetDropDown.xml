@@ -7,11 +7,11 @@
         <deviceKey>
           <Key>
             <type value="VIRTUAL_DEVICE_PATH" />
-            <value value="C:\Users\artur\.android\avd\Xiaomi_Redmi_Note_9_Android_10.avd" />
+            <value value="C:\Users\artur\.android\avd\Nexus_6_API_31.avd" />
           </Key>
         </deviceKey>
       </Target>
     </targetSelectedWithDropDown>
-    <timeTargetWasSelectedWithDropDown value="2022-12-25T22:28:17.343946Z" />
+    <timeTargetWasSelectedWithDropDown value="2023-01-04T18:15:01.598590700Z" />
   </component>
 </project>

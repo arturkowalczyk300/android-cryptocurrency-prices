@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
     private lateinit var rgDateActualArchivalSelection: RadioGroup
-    private lateinit var chartFragment: ChartFragment
+    private var chartFragment: ChartFragment? = null
     private lateinit var sharedPrefsInstance: SharedPreferencesHelper
     private var savedInstanceStateBundle: Bundle? = null
     private var autoFetchDataAlreadyDone = false
@@ -46,11 +46,11 @@ class MainActivity : AppCompatActivity() {
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        if (ev != null && ev.action == ACTION_UP) {
-            val chartRectangle = chartFragment.getGlobalVisibleRectOfChart()
+        if (chartFragment != null && ev != null && ev.action == ACTION_UP) {
+            val chartRectangle = chartFragment!!.getGlobalVisibleRectOfChart()
 
             if (!chartRectangle.contains(ev!!.rawX.toInt(), ev!!.rawY.toInt()))
-                chartFragment.hideMarker()
+                chartFragment!!.hideMarker()
         }
 
         return super.dispatchTouchEvent(ev)
@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() {
         chartFragment = ChartFragment()
         if (savedInstanceStateBundle == null) //prevent recreation of fragment when it already exists
             supportFragmentManager.beginTransaction().apply {
-                replace(R.id.flChart, chartFragment)
+                replace(R.id.flChart, chartFragment!!)
                 commit()
             }
     }
@@ -255,7 +255,7 @@ class MainActivity : AppCompatActivity() {
                 viewModel.selectedCryptocurrencyId = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
                 updateDataIfConnectedToInternet()
-                chartFragment.updateData()
+                chartFragment?.updateData()
             }
         }
     }
@@ -265,11 +265,10 @@ class MainActivity : AppCompatActivity() {
         networkAccessLiveData.observe(this) { hasInternetConnection ->
             viewModel.hasInternetConnection = hasInternetConnection
             changeNoInternetConnectionInfoVisibility(hasInternetConnection)
-            if (hasInternetConnection) {
+            if (viewModel.hasInternetConnection) {
                 requestUpdateDataFromNetwork()
-                if (!autoFetchDataAlreadyDone && autoFetchDataPending) {
-                    updateDataIfConnectedToInternet()
-                }
+                updateDataIfConnectedToInternet()
+                chartFragment?.updateData()
             }
         }
 
@@ -283,7 +282,6 @@ class MainActivity : AppCompatActivity() {
                 tv.visibility = View.GONE
         }
     }
-
     //visibility switching
 
     private fun changeNoInternetConnectionInfoVisibility(hasInternetConnection: Boolean?) {
