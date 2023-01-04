@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
+import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenciesHistoricalPrices
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesHelper
@@ -150,39 +151,21 @@ class MainActivity : AppCompatActivity() {
         if (isCurrenciesListInitialized && viewModel.hasInternetConnection) {
             autoFetchDataAlreadyDone = true
             autoFetchDataPending = false
-            var date: Date
             try {
-                date = DateFormatterUtil.parseDateOnly(etDate.text.toString())
                 viewModel.updatePriceData()
-                //viewModel.updatePriceHistoryForSelectedDateRange() //TODO: possible double call
             } catch (exc: Exception) {
                 Log.e("myApp", "addButtonsOnClickListeners, $exc")
             }
         } else {
             if (!autoFetchDataAlreadyDone) autoFetchDataPending = true
         }
-
-        //chartFragment.setChartVisibility(false)
-        //chartFragment.setChartLoadingProgressBarVisibility(true)
     }
 
     private fun observeLiveData() {
         //show actual price
-        viewModel.getAllHistoricalPrices().observe(this, Observer {
-            if (it.isNotEmpty()) {
-                switchVisibilityOfRecordViewer(View.VISIBLE)
-                val currentElement = it.sortedByDescending { it.timeRangeTo }.first()
-                val actualPrice =
-                    currentElement.prices.list.first().value
-                updateTextViews(
-                    currentElement.cryptocurrencyId,
-                    currentElement.timeRangeTo,
-                    actualPrice.toFloat()
-                )
-            } else
-                switchVisibilityOfRecordViewer(View.GONE)
-        }
-        )
+
+        updateCurrentPriceSection()
+
 
         viewModel.apiUnwrappingPriceDataErrorLiveData.observe(this, Observer { errorOccured ->
             if (errorOccured)
@@ -216,6 +199,41 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    private fun updateCurrentPriceSection() {
+        viewModel.getAllHistoricalPrices().observe(this, Observer { allPricesList ->
+            if (allPricesList == null)
+                switchVisibilityOfCurrentPriceSection(View.INVISIBLE) //to still take layout space
+
+
+            allPricesList?.let {
+                if (allPricesList.isNotEmpty()) {
+
+                    val currentElement = allPricesList.sortedByDescending { it.timeRangeTo }
+                        .find { it.cryptocurrencyId == viewModel.selectedCryptocurrencyId }
+                    currentElement?.let {
+                        val actualPrice =
+                            currentElement!!.prices.list.first().value
+
+                        if (currentElement!!.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
+                            switchVisibilityOfCurrentPriceSection(View.VISIBLE)
+                            updateTextViews(
+                                currentElement!!.cryptocurrencyId,
+                                currentElement!!.timeRangeTo,
+                                actualPrice.toFloat()
+                            )
+                        } else //no valid data
+                            switchVisibilityOfCurrentPriceSection(View.INVISIBLE)
+                    }
+                    if (currentElement == null)
+                        switchVisibilityOfCurrentPriceSection(View.INVISIBLE)
+                } else
+                    switchVisibilityOfCurrentPriceSection(View.INVISIBLE)
+
+            }
+        }
+        )
     }
 
     private fun handleCryptocurrencyChoice() {
@@ -255,6 +273,9 @@ class MainActivity : AppCompatActivity() {
                 viewModel.selectedCryptocurrencyId = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
                 updateDataIfConnectedToInternet()
+
+                updateCurrentPriceSection()
+
                 chartFragment?.updateData()
             }
         }
@@ -282,7 +303,6 @@ class MainActivity : AppCompatActivity() {
                 tv.visibility = View.GONE
         }
     }
-    //visibility switching
 
     private fun changeNoInternetConnectionInfoVisibility(hasInternetConnection: Boolean?) {
         if (hasInternetConnection == true)
@@ -291,7 +311,7 @@ class MainActivity : AppCompatActivity() {
             tvNoInternetConnection.visibility = View.VISIBLE
     }
 
-    private fun switchVisibilityOfRecordViewer(visible: Int) { //TODO(): todelete
+    private fun switchVisibilityOfCurrentPriceSection(visible: Int) {
         val groupRecords: androidx.constraintlayout.widget.Group = findViewById(R.id.groupRecords)
         groupRecords.visibility = visible
     }
