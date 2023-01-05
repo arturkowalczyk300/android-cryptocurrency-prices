@@ -11,67 +11,35 @@
         android:id="@+id/groupRecords"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="btnPrevRecord,tvCurrentAndMaxIndex,btnNextRecord,
+        app:constraint_referenced_ids="
         lblSymbol,lblDate,lblPrice,tvCryptocurrencySymbol,tvCryptocurrencyDate,tvCryptocurrencyPrice" />
 
     <TextView
         android:id="@+id/tvNoInternetConnection"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="10dp"
         android:background="#5A0707"
         android:text="@string/no_internet_connection"
         android:textAlignment="center"
         android:textColor="@color/white"
         android:textSize="20sp"
         android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-
-    <Button
-        android:id="@+id/btnPrevRecord"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
-        android:text="@string/btnPrev"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/tvCurrentAndMaxIndex"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:textSize="26sp"
-        app:layout_constraintEnd_toStartOf="@+id/btnNextRecord"
-        app:layout_constraintStart_toEndOf="@+id/btnPrevRecord"
-        app:layout_constraintTop_toTopOf="@+id/btnPrevRecord"
-        tools:text="1/1" />
-
-    <Button
-        android:id="@+id/btnNextRecord"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
-        android:text="@string/btnNext"
+        tools:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/btnPrevRecord" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
     <TextView
         android:id="@+id/lblSymbol"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="30dp"
         android:text="@string/cryptocurrencySymbol"
         android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="@+id/btnPrevRecord"
-        app:layout_constraintStart_toStartOf="@+id/btnPrevRecord"
-        app:layout_constraintTop_toBottomOf="@+id/btnPrevRecord" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/lblDate"
@@ -98,9 +66,10 @@
         android:id="@+id/tvCryptocurrencySymbol"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
+        android:layout_marginEnd="10dp"
         android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="@+id/btnNextRecord"
-        app:layout_constraintStart_toStartOf="@+id/btnNextRecord"
+        app:layout_constraintBottom_toBottomOf="@+id/lblSymbol"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/lblSymbol"
         tools:text="bitcoin" />
 
@@ -129,7 +98,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginHorizontal="10dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="25dp"
         android:layout_marginBottom="10dp"
         android:layout_weight="1"
         android:gravity="bottom"
@@ -166,16 +135,6 @@
         app:layout_constraintTop_toTopOf="@+id/radioGroupDate" />
 
 
-    <Button
-        android:id="@+id/btnGet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:text="Get"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
     <TextView
         android:id="@+id/lblCryptocurrency"
         android:layout_width="wrap_content"
@@ -191,9 +150,9 @@
         android:id="@+id/radioGroupDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="10dp"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/btnGet"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/lblCryptocurrency">
 
         <RadioButton
@@ -219,6 +178,35 @@
         android:text="Date:"
         app:layout_constraintBottom_toTopOf="@+id/radioGroupDate"
         app:layout_constraintStart_toStartOf="@+id/lblCryptocurrency" />
+
+    <TextView
+        android:id="@+id/textViewLastUpdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:text="@string/lastUpdate"
+        android:textColor="#FFA300"
+        android:textSize="16sp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lblPrice"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/tvNoCachedData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/noCachedData"
+        android:textAlignment="center"
+        android:textColor="#FF0000"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

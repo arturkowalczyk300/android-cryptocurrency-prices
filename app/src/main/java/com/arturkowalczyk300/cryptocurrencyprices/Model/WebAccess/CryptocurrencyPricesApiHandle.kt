@@ -8,7 +8,7 @@ import retrofit2.http.Query
 
 interface CryptocurrencyPricesApiHandle {
     @GET("api/v3/simple/price")
-    fun getActualPrice(
+    fun getActualPrice( //will be associated with cryptocurrencies list, sorted by market_cap
         @Query("ids") currencySymbol: String,
         @Query("vs_currencies") vsCurrency: String
     ): Call<ResponseBody>
@@ -18,6 +18,7 @@ interface CryptocurrencyPricesApiHandle {
         @Path("currency") currencySymbol: String,
         @Query("date") dateString: String
     ): Call<CryptocurrencyPricesEntityApi>
+
 
     @GET("api/v3/coins/markets")
     fun getListOfCryptocurrencies(

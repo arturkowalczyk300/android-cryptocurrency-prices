@@ -4,23 +4,28 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.RadioGroup
-import android.widget.TextView
+import android.widget.*
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
+import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenciesHistoricalPrices
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
+import com.github.mikephil.charting.charts.Chart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
+import kotlinx.coroutines.*
+import java.lang.Runnable
 import java.text.DecimalFormat
+import java.time.Period
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -43,12 +48,14 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var tvTrending: TextView
     private lateinit var ivTrending: ImageView
     private lateinit var tvTimePeriod: TextView
+    private var historicalPricesliveDatas: MutableList<LiveData<List<EntityCryptocurrenciesHistoricalPrices>>> =
+        mutableListOf<LiveData<List<EntityCryptocurrenciesHistoricalPrices>>>()
 
     private var chartDataSet = LineDataSet(listOf(), "")
 
+
     override fun onViewCreated(
-        view: View,
-        savedInstanceState: Bundle?
+        view: View, savedInstanceState: Bundle?
     ) { //view creation already done
         super.onViewCreated(view, savedInstanceState)
 
@@ -58,69 +65,101 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         assignViewsVariablesChart()
         handleChartRadioGroupTimeRangeActions()
         initializeChart()
+        //getAndObserveLiveDataPriceHistoryForDateRange()
     }
 
     private fun initViewModel() {
         val factory = CryptocurrencyPricesViewModelFactory(requireActivity().application)
         viewModel = ViewModelProvider(
-            requireActivity(),
-            factory
+            requireActivity(), factory
         ).get(CryptocurrencyPricesViewModel::class.java)
     }
 
-    fun requestPriceHistory() {
-        observeLiveDataPriceHistoryForDateRange()
+    fun updateData() {
+        getIfInternetConnectionAndObserveLiveDataPriceHistoryForDateRange()
     }
 
-    private fun observeLiveDataPriceHistoryForDateRange() {
-        val currencyName = tvMainActivityCryptocurrencySymbol.text.toString()
-
-        //set date range parameters
-        val calendar = Calendar.getInstance()
-        if (viewModel.showArchivalData) {
-            calendar.time = viewModel.showArchivalDataRange
-            calendar.add(Calendar.DAY_OF_MONTH, 1)
-        }
-        val dateEnd = calendar.time
-
-        when (chartRadioGroupTimeRange.checkedRadioButtonId) {
-            R.id.chartRadioButtonTimeRangeOneYear -> calendar.add(Calendar.YEAR, -1)
-            R.id.chartRadioButtonTimeRangeOneMonth -> calendar.add(Calendar.MONTH, -1)
-            R.id.chartRadioButtonTimeRangeOneWeek -> calendar.add(Calendar.DAY_OF_MONTH, -7)
-            R.id.chartRadioButtonTimeRange24Hours -> calendar.add(Calendar.DAY_OF_MONTH, -1)
-        }
-
-        val dateStart = calendar.time
-
-        hideMarker()
-        setChartLoadingProgressBarVisibility(true)
-        val priceHistoryLiveData = viewModel.requestPriceHistoryForSelectedDateRange(
-            currencyName,
-            getString(R.string.defaultVsCurrency),
-            (dateStart.time / 1000),
-            (dateEnd.time / 1000)
-        )
-        if (!priceHistoryLiveData.hasActiveObservers()) {
-            priceHistoryLiveData.observe(requireActivity(), androidx.lifecycle.Observer {
-                if (!it.isNullOrEmpty()) {
-                    //create list
-                    var list = arrayListOf<Entry>()
-                    it.forEachIndexed { index, currentRow ->
-                        list.add(Entry(currentRow[0].toFloat(), currentRow[1].toFloat()))
-                    }
-                    setChartData(list)
-                    setMinAvgMaxPricesValues(list)
-                    updateTimePeriod()
-                    updatePriceTrends()
-                    setChartAxisLabelsVisibility(true)
-                } else {
-                    setChartVisibility(false) //no valid data to display
-                    setChartAxisLabelsVisibility(false)
+    private fun showNoDataInfo(show: Boolean) {
+        if (show) {
+            viewModel.noCachedDataVisibility = true
+            CoroutineScope(Dispatchers.Default).async {
+                delay(1000)
+                if (viewModel.noCachedDataVisibility) //check again, maybe new record has been added meanwhile
+                {
+                    chart.data = null
+                    chart.invalidate()
+                    chart.notifyDataSetChanged()
+                    setChartLoadingProgressBarVisibility(false)
+                    viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(null)
+                    viewModel.noCachedData.postValue(true)
                 }
             }
-            )
+        } else {
+            viewModel.noCachedData.postValue(false)
+            viewModel.noCachedDataVisibility = false
         }
     }
+
+    private fun getIfInternetConnectionAndObserveLiveDataPriceHistoryForDateRange() {
+        hideMarker()
+        setChartLoadingProgressBarVisibility(true)
+
+        viewModel.selectedCryptocurrencyId?.let { cryptocurrencyId ->
+            if (viewModel.hasInternetConnection)
+                viewModel.updatePriceHistoryForSelectedDateRange()
+
+            historicalPricesliveDatas.add( //keep references to remove all observers later
+                viewModel.getHistoricalPricesOfCryptocurrencyInTimeRange(
+                    cryptocurrencyId,
+                    viewModel.selectedDaysToSeeOnChart!!
+                )
+            )
+
+            val lifecycleOwner = requireActivity()
+
+            historicalPricesliveDatas.last()
+                .observe(lifecycleOwner, androidx.lifecycle.Observer { list -> //TODO: modify it
+
+                    if (list == null || list.isEmpty()) //failure, no cached valid data found
+                        showNoDataInfo(true)
+
+                    list?.let {
+                        if (!it.isNullOrEmpty() && !it.last().prices.list.isNullOrEmpty()) {
+                            //create list
+                            var list = arrayListOf<Entry>()
+                            it.last().prices.list.forEachIndexed { index, currentRow ->
+                                list.add(
+                                    Entry(
+                                        currentRow.unixTime.toFloat(),
+                                        currentRow.value.toFloat()
+                                    )
+                                )
+                            }
+                            setChartData(list)
+                            setMinAvgMaxPricesValues(list)
+                            updateTimePeriod()
+                            updatePriceTrends()
+                            setChartAxisLabelsVisibility(true)
+                            showNoDataInfo(false) //hide
+
+                            //remove observers to prevent multiple calls
+                            historicalPricesliveDatas.forEach { ld ->
+                                ld.removeObservers(
+                                    lifecycleOwner
+                                )
+                            }
+
+                        } else { //not valid data
+                            showNoDataInfo(true)
+                            setChartVisibility(false) //no valid data to display
+                            setChartAxisLabelsVisibility(false)
+                        }
+                    }
+                })
+        }
+
+    }
+
 
     private fun setMinAvgMaxPricesValues(values: ArrayList<Entry>) {
         val min: Float = (values.minByOrNull { it.y }?.y) ?: -1.0f
@@ -135,9 +174,50 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
 
     private fun handleChartRadioGroupTimeRangeActions() {
+        val savedId = chartRadioGroupTimeRange.checkedRadioButtonId
+        chartRadioGroupTimeRange.clearCheck() //before listener has been set, to avoid double call
+
         chartRadioGroupTimeRange.setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener { group, checkedId ->
-            requestPriceHistory()
+
+            if (checkedId != -1) { //if anything selected
+                //set date range parameters
+                val calendar = Calendar.getInstance()
+                if (viewModel.showArchivalData) {
+                    calendar.time = viewModel.showArchivalDataRange
+                    calendar.add(Calendar.DAY_OF_MONTH, 1)
+                }
+                val dateEnd = calendar.time
+
+                var countOfDays: Int = 0
+
+                when (chartRadioGroupTimeRange.checkedRadioButtonId) {
+                    R.id.chartRadioButtonTimeRangeOneYear -> calendar.add(Calendar.YEAR, -1)
+                        .also { countOfDays = 365 }
+                    R.id.chartRadioButtonTimeRangeOneMonth -> calendar.add(Calendar.MONTH, -1)
+                        .also { countOfDays = 31 }
+                    R.id.chartRadioButtonTimeRangeOneWeek -> calendar.add(
+                        Calendar.DAY_OF_MONTH,
+                        -7
+                    )
+                        .also { countOfDays = 7 }
+                    R.id.chartRadioButtonTimeRange24Hours -> calendar.add(
+                        Calendar.DAY_OF_MONTH,
+                        -1
+                    )
+                        .also { countOfDays = 1 }
+                }
+                val dateStart = calendar.time
+
+                viewModel.selectedUnixTimeFrom = (dateStart.time / 1000)
+                viewModel.selectedUnixTimeTo = (dateEnd.time / 1000)
+                viewModel.selectedDaysToSeeOnChart = countOfDays
+
+                updateData()
+            }
         })
+
+        val radioButtonView = requireView().findViewById<RadioButton>(savedId)
+        radioButtonView.performClick() //avoid double call of listener
     }
 
     private fun initializeChart() {
@@ -149,6 +229,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chart.description.isEnabled = false
         chart.legend.isEnabled = false
 
+        chart.setNoDataText(getString(R.string.chart_no_cached_data))
+        chart.getPaint(Chart.PAINT_INFO).textSize = 35f
+
         chart.xAxis.setDrawGridLines(false)
         chart.xAxis.setDrawLabels(false)
         chart.xAxis.setDrawAxisLine(false)
@@ -156,8 +239,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chart.axisLeft.setDrawAxisLine(false)
         chart.axisLeft.textSize = 15f //increase default text size
         chart.axisLeft.setDrawGridLines(false)
-        chart.axisLeft.textColor =
-            ContextCompat.getColor(appContext, R.color.chart_font_color)
+        chart.axisLeft.textColor = ContextCompat.getColor(appContext, R.color.chart_font_color)
         chart.axisLeft.setLabelCount(6, true)
 
         chart.axisRight.setDrawAxisLine(false)
@@ -165,30 +247,27 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         chart.marker = ChartMarkerView(appContext, R.layout.chart_marker_view)
 
-        valueFormatter =
-            object : ValueFormatter() {
-                override fun getFormattedValue(value: Float): String {
-                    val digitsNumber = 6
-                    val valueConverted: String = String.format("%.5f", value)
+        valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                val digitsNumber = 6
+                val valueConverted: String = String.format("%.5f", value)
 
-                    var stringToReturn = ""
+                var stringToReturn = ""
 
-                    if (valueConverted.isNotEmpty() && valueConverted.isNotBlank()) {
-                        if (valueConverted.length >= digitsNumber) {
-                            stringToReturn = valueConverted.substring(0, digitsNumber)
-                            if (value >= 10000)
-                                stringToReturn = stringToReturn.replace(".", "")
-                        } else
-                            stringToReturn =
-                                valueConverted.substring(0, valueConverted.length - 1)
-                    }
-
-                    if (stringToReturn.last() == ',') { //delete lonely comma at end of number string if exists
-                        stringToReturn = stringToReturn.substring(0, stringToReturn.length - 1)
-                    }
-                    return stringToReturn
+                if (valueConverted.isNotEmpty() && valueConverted.isNotBlank()) {
+                    if (valueConverted.length >= digitsNumber) {
+                        stringToReturn = valueConverted.substring(0, digitsNumber)
+                        if (value >= 10000) stringToReturn = stringToReturn.replace(".", "")
+                    } else stringToReturn =
+                        valueConverted.substring(0, valueConverted.length - 1)
                 }
+
+                if (stringToReturn.last() == ',') { //delete lonely comma at end of number string if exists
+                    stringToReturn = stringToReturn.substring(0, stringToReturn.length - 1)
+                }
+                return stringToReturn
             }
+        }
 
         chart.axisLeft.valueFormatter = valueFormatter
 
@@ -215,9 +294,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             chart.data.clearValues()
             chart.data.addDataSet(chartDataSet)
         }
-        //chart.animateX(1000)
         chart.notifyDataSetChanged()
         chart.invalidate()
+
 
         setChartVisibility(true)
         setChartLoadingProgressBarVisibility(false)
@@ -292,8 +371,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     }
 
     fun setChartLoadingProgressBarVisibility(visible: Boolean) {
-        if (visible)
-            progressBarChartLoading.visibility = View.VISIBLE
+        if (visible) progressBarChartLoading.visibility = View.VISIBLE
         else {
             progressBarChartLoading.postDelayed(Runnable { //hide with delay
                 progressBarChartLoading.visibility = View.GONE
