@@ -37,6 +37,12 @@ class CryptocurrencyPricesRepository(application: Application) {
                 entity.cryptocurrencyId,
                 entity.daysCount
             )
+
+        Log.d(
+            "myApp",
+            "adding historical, date=${Date(entity.timeRangeTo)}, totalVolumesSize=${entity.total_volumes?.list?.size}, marketCap=${entity.market_caps?.list?.size}"
+        )
+
         database!!.userDao()!!.addHistoricalPrice(entity)
     }
 
@@ -115,14 +121,7 @@ class CryptocurrencyPricesRepository(application: Application) {
                             cryptocurrencyId = response.currencySymbol,
                             timeRangeFrom = response.date.time,
                             timeRangeTo = response.date.time,
-                            market_caps = ListOfCryptocurrencyStatValuesWithTime(
-                                listOf(
-                                    CryptocurrencyStatValueWithTime(
-                                        response.date.time,
-                                        response.entity!!.market_data.market_cap.usd
-                                    )
-                                )
-                            ),
+                            market_caps = null, //single read should has this field equal null
                             prices =
                             ListOfCryptocurrencyStatValuesWithTime(
                                 listOf(
@@ -132,14 +131,7 @@ class CryptocurrencyPricesRepository(application: Application) {
                                     )
                                 )
                             ),
-                            total_volumes = ListOfCryptocurrencyStatValuesWithTime(
-                                listOf(
-                                    CryptocurrencyStatValueWithTime(
-                                        response.date.time,
-                                        response.entity!!.market_data.total_volume.usd
-                                    )
-                                )
-                            ),
+                            total_volumes = null, //single read should has this field equal null
                             updateDate = Date()
                         )
                     )
@@ -229,7 +221,7 @@ class CryptocurrencyPricesRepository(application: Application) {
     fun deleteAllHistoricalPricesOfCryptocurrencyInGivenDaysCount(
         cryptocurrencyId: String,
         daysCount: Int
-    ){
+    ) {
         database!!.userDao()!!
             .deleteAllHistoricalPricesOfCryptocurrencyInGivenDaysCount(cryptocurrencyId, daysCount)
     }

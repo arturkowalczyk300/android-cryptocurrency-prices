@@ -16,6 +16,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FO
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenciesHistoricalPrices
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
+import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.DateUtils
 import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
@@ -122,6 +123,10 @@ class MainActivity : AppCompatActivity() {
             etDate.setText(dateString)
             viewModel.showArchivalDataRange =
                 DateFormatterUtil.parseDateOnly(etDate.text.toString())
+
+            viewModel.updatePriceData()
+            updateCurrentPriceSection()
+
         }
 
         viewModel.showArchivalDataRange = DateFormatterUtil.parseDateOnly(etDate.text.toString())
@@ -200,8 +205,8 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        viewModel.noCachedData.observe(this){ show->
-            if(show) //lack of data
+        viewModel.noCachedData.observe(this) { show ->
+            if (show) //lack of data
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
             else
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.GONE
@@ -218,7 +223,14 @@ class MainActivity : AppCompatActivity() {
                 if (allPricesList.isNotEmpty()) {
 
                     val currentElement = allPricesList.sortedByDescending { it.timeRangeTo }
-                        .find { it.cryptocurrencyId == viewModel.selectedCryptocurrencyId }
+                        .find {
+                            it.cryptocurrencyId == viewModel.selectedCryptocurrencyId
+                                    && (!viewModel.showArchivalData || DateUtils.areDatesEqual(
+                                Date(it.timeRangeTo),
+                                viewModel.showArchivalDataRange
+                            ))
+
+                        }
                     currentElement?.let {
                         val actualPrice =
                             currentElement!!.prices.list.first().value
