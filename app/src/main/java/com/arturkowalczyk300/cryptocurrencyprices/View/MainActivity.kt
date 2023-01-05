@@ -207,7 +207,9 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.noCachedData.observe(this) { show ->
             if (show) //lack of data
+            {
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
+            }
             else
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.GONE
         }

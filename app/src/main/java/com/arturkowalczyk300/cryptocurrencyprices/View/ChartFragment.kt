@@ -22,6 +22,8 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
+import kotlinx.coroutines.*
+import java.lang.Runnable
 import java.text.DecimalFormat
 import java.time.Period
 import java.util.*
@@ -78,16 +80,24 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     }
 
     private fun showNoDataInfo(show: Boolean) {
-        if(show) {
-            chart.data = null
-            chart.invalidate()
-            chart.notifyDataSetChanged()
-            setChartLoadingProgressBarVisibility(false)
-            viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(null)
-            viewModel.noCachedData.postValue(true)
-        }
-        else
+        if (show) {
+            viewModel.noCachedDataVisibility = true
+            CoroutineScope(Dispatchers.Default).async {
+                delay(1000)
+                if (viewModel.noCachedDataVisibility) //check again, maybe new record has been added meanwhile
+                {
+                    chart.data = null
+                    chart.invalidate()
+                    chart.notifyDataSetChanged()
+                    setChartLoadingProgressBarVisibility(false)
+                    viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(null)
+                    viewModel.noCachedData.postValue(true)
+                }
+            }
+        } else {
             viewModel.noCachedData.postValue(false)
+            viewModel.noCachedDataVisibility = false
+        }
     }
 
     private fun getIfInternetConnectionAndObserveLiveDataPriceHistoryForDateRange() {
@@ -149,7 +159,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         }
 
     }
-
 
 
     private fun setMinAvgMaxPricesValues(values: ArrayList<Entry>) {
