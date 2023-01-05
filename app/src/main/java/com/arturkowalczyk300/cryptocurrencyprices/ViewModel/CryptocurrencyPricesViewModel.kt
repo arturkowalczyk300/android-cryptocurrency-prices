@@ -26,6 +26,7 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var hasInternetConnection: Boolean = false
     var currentlyDisplayedDataUpdatedMinutesAgo: MutableLiveData<Long?> = MutableLiveData<Long?>()
     var noCachedData: MutableLiveData<Boolean> = MutableLiveData()
+    var noCachedDataVisibility: Boolean = false
 
     fun updatePriceData(
     ) {
