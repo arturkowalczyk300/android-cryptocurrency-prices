@@ -383,7 +383,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     }
 
     fun hideMarker() {
-        chart.highlightValue(null)
+        chart.let {
+            it.highlightValue(null)
+        }
     }
 
     fun getGlobalVisibleRectOfChart(): Rect {
