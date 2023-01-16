@@ -2,9 +2,7 @@ package com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
-import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
-import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
+import com.arturkowalczyk300.cryptocurrencyprices.Model.*
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -72,7 +70,7 @@ class RequestWithResponseArchival(
 class CryptocurrencyPricesWebService {
     var waitingForResponse: Boolean = false
 
-    var mldErrorCode: MutableLiveData<Pair<Boolean, Int>> = MutableLiveData()
+    var mldErrorCode: MutableLiveData<Pair<Boolean, ErrorMessage>> = MutableLiveData()
 
     var mldActualRequestWithResponse: MutableLiveData<RequestWithResponse> = MutableLiveData(
         RequestWithResponse()
@@ -114,7 +112,9 @@ class CryptocurrencyPricesWebService {
                 call: Call<ResponseBody>,
                 response: Response<ResponseBody>
             ) {
-                if (response.body() != null) {
+                if (response.code() == 429)
+                    mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
+                else if (response.body() != null) {
                     if (waitingForResponse) {
                         val bodyStr: ResponseBody = response.body()!!
                         val src = bodyStr.source().toString()
@@ -130,13 +130,18 @@ class CryptocurrencyPricesWebService {
                             mldActualRequestWithResponse.value //notify data changed
                     }
                 } else {
-                    mldErrorCode.value = Pair(true, REQUEST_PRICE_DATA_FAILURE)
+                    mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_PRICE_DATA_FAILURE))
                 }
                 waitingForResponse = false
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                mldErrorCode.value = Pair(true, REQUEST_PRICE_DATA_FAILURE)
+                mldErrorCode.value = Pair(
+                    true, ErrorMessage(
+                        REQUEST_PRICE_DATA_FAILURE,
+                        "${t.stackTraceToString()}"
+                    )
+                )
 
                 Log.e(
                     "myApp", "onFailure, url:${call.request().url().toString()}" +
@@ -170,7 +175,9 @@ class CryptocurrencyPricesWebService {
                 call: Call<CryptocurrencyPricesEntityApi>,
                 response: Response<CryptocurrencyPricesEntityApi>
             ) {
-                if (response.body() != null) {
+                if (response.code() == 429)
+                    mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
+                else if (response.body() != null) {
                     if (waitingForResponse) {
                         mldArchivalRequestWithResponse?.value?.entity = response.body()
                         mldArchivalRequestWithResponse?.value?.flagDataSet = true
@@ -178,13 +185,18 @@ class CryptocurrencyPricesWebService {
                             mldArchivalRequestWithResponse.value //notify data changed
                     }
                 } else {
-                    mldErrorCode.value = Pair(true, REQUEST_PRICE_DATA_FAILURE)
+                    mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_PRICE_DATA_FAILURE))
                 }
                 waitingForResponse = false
             }
 
             override fun onFailure(call: Call<CryptocurrencyPricesEntityApi>, t: Throwable) {
-                mldErrorCode.value = Pair(true, REQUEST_PRICE_DATA_FAILURE)
+                mldErrorCode.value = Pair(
+                    true, ErrorMessage(
+                        REQUEST_PRICE_DATA_FAILURE,
+                        "${t.stackTraceToString()}"
+                    )
+                )
 
                 Log.e(
                     "myApp", "onFailure, url:${call.request().url().toString()}" +
@@ -207,10 +219,13 @@ class CryptocurrencyPricesWebService {
                 response: Response<List<CryptocurrencyPriceFromListApi>>
             ) {
                 val responseBody = response.body()
-                if (response.body() != null && response.code() != 404) { //valid response
+                if (response.code() == 429)
+                    mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
+                else if (response.body() != null && response.code() != 404) { //valid response
                     cryptocurrenciesListSorted.value = ArrayList(response.body())
                 } else {
-                    mldErrorCode.value = Pair(true, REQUEST_CRYPTOCURRENCIES_LIST_FAILURE)
+                    mldErrorCode.value =
+                        Pair(true, ErrorMessage(REQUEST_CRYPTOCURRENCIES_LIST_FAILURE))
                     Log.e(
                         "myApp",
                         "invalid response! [size=${responseBody?.size}, code=${response.code()}]"
@@ -219,7 +234,12 @@ class CryptocurrencyPricesWebService {
             }
 
             override fun onFailure(call: Call<List<CryptocurrencyPriceFromListApi>>, t: Throwable) {
-                mldErrorCode.value = Pair(true, REQUEST_CRYPTOCURRENCIES_LIST_FAILURE)
+                mldErrorCode.value = Pair(
+                    true, ErrorMessage(
+                        REQUEST_CRYPTOCURRENCIES_LIST_FAILURE,
+                        "${t.stackTraceToString()}"
+                    )
+                )
                 Log.e("myApp", "onFailure")
             }
         })
@@ -256,21 +276,37 @@ class CryptocurrencyPricesWebService {
                 call: Call<CryptocurrencyPriceHistoryFromApi>,
                 response: Response<CryptocurrencyPriceHistoryFromApi>
             ) {
-                if (response.body() != null && response.body()?.prices?.isNotEmpty() != null && response.errorBody() == null) {
+                Log.e("myApp", "code=$response.code()")
+                if (response.code() == 429)
+                    mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
+                else if (response.body() != null && response.body()?.prices?.isNotEmpty() != null) {
                     mldPriceHistory!!.value!!.archivalPrices = response.body()?.prices
                     mldPriceHistory!!.value!!.totalVolumes = response.body()?.total_volumes
                     mldPriceHistory!!.value!!.marketCaps = response.body()?.market_caps
                     mldPriceHistory!!.postValue(mldPriceHistory!!.value) //notify data changed
                 } else {
                     mldPriceHistory!!.value = null
-                    mldErrorCode.value = Pair(true, REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
+                    mldErrorCode.value =
+                        Pair(true, ErrorMessage(REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE))
+                    Log.e(
+                        "myApp",
+                        "onResponse, invalid response, respCode=${response.code()} errorCode=${
+                            response.errorBody()?.string()
+                        } }"
+                    )
                 }
             }
 
             override fun onFailure(call: Call<CryptocurrencyPriceHistoryFromApi>, t: Throwable) {
                 mldPriceHistory!!.value = null
 
-                mldErrorCode.value = Pair(true, REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
+                mldErrorCode.value =
+                    Pair(
+                        true, ErrorMessage(
+                            REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE,
+                            "${t.stackTraceToString()}"
+                        )
+                    )
 
                 Log.e(
                     "myApp", "onFailure, url:${call.request().url().toString()}" +
