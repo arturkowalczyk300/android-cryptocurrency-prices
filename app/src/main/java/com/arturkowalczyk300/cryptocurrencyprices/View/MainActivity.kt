@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
+import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_EXCEEDED_API_RATE_LIMIT
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenciesHistoricalPrices
@@ -48,7 +49,7 @@ class MainActivity : AppCompatActivity() {
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        if (chartFragment != null && ev != null && ev.action == ACTION_UP) {
+        if (chartFragment?.isInitialized == true && ev != null && ev.action == ACTION_UP) {
             val chartRectangle = chartFragment!!.getGlobalVisibleRectOfChart()
 
             if (!chartRectangle.contains(ev!!.rawX.toInt(), ev!!.rawY.toInt()))
@@ -192,6 +193,8 @@ class MainActivity : AppCompatActivity() {
                             getString(R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE)
                         REQUEST_PRICE_DATA_FAILURE ->
                             getString(R.string.REQUEST_PRICE_DATA_FAILURE)
+                        REQUEST_EXCEEDED_API_RATE_LIMIT ->
+                            getString(R.string.REQUEST_EXCEEDED_API_RATE_LIMIT)
                         else ->
                             getString(R.string.UNKNOWN_FAILURE)
                     }
@@ -209,8 +212,7 @@ class MainActivity : AppCompatActivity() {
             if (show) //lack of data
             {
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
-            }
-            else
+            } else
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.GONE
         }
     }

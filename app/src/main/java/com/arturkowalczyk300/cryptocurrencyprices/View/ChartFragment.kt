@@ -52,6 +52,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         mutableListOf<LiveData<List<EntityCryptocurrenciesHistoricalPrices>>>()
 
     private var chartDataSet = LineDataSet(listOf(), "")
+    var isInitialized = false
 
 
     override fun onViewCreated(
@@ -65,7 +66,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         assignViewsVariablesChart()
         handleChartRadioGroupTimeRangeActions()
         initializeChart()
-        //getAndObserveLiveDataPriceHistoryForDateRange()
+
+        isInitialized = true
     }
 
     private fun initViewModel() {
