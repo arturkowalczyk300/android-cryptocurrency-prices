@@ -13,9 +13,10 @@
     <string name="defaultCryptocurrency">bitcoin</string>
     <string name="defaultDateFormat">dd.MM.yyyy</string>
     <string name="no_internet_connection">No internet connection!</string>
-    <string name="REQUEST_PRICE_DATA_FAILURE">Getting price data error!</string>
-    <string name="REQUEST_CRYPTOCURRENCIES_LIST_FAILURE">Getting cryptocurrencies list error!</string>
-    <string name="REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE">Getting price history for date range error!</string>
+    <string name="REQUEST_PRICE_DATA_FAILURE">Getting price data error! [%1$s]</string>
+    <string name="REQUEST_CRYPTOCURRENCIES_LIST_FAILURE">Getting cryptocurrencies list error! [%1$s]</string>
+    <string name="REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE">Getting price history for date range error! [%1$s]</string>
+    <string name="REQUEST_EXCEEDED_API_RATE_LIMIT">Exceeded API rate limit, try again later.</string>
     <string name="UNKNOWN_FAILURE">Unknown error!</string>
     <string name="txtMin">Min: </string>
     <string name="txtAvg">Avg: </string>
@@ -29,5 +30,5 @@
     <string name="UNWRAP_PRICE_DATA_FAILURE">Unwrapping data from API failed!</string>
     <string name="chart_no_cached_data">Lack of internet connection and no cached data in database.</string>
     <string name="lastUpdate">Cached data, updated %1$d minutes ago</string>
-    <string name="noCachedData">No cached data!\nGet access to the Internet and refresh!</string>
+    <string name="noCachedData">No cached data!\nGet access to the Internet or try again later!</string>
 </resources>

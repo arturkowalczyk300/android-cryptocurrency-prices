@@ -10,10 +10,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE
-import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_DATA_FAILURE
-import com.arturkowalczyk300.cryptocurrencyprices.Model.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE
-import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenciesHistoricalPrices
+import com.arturkowalczyk300.cryptocurrencyprices.Model.*
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.DateUtils
@@ -48,7 +45,7 @@ class MainActivity : AppCompatActivity() {
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        if (chartFragment != null && ev != null && ev.action == ACTION_UP) {
+        if (chartFragment?.isInitialized == true && ev != null && ev.action == ACTION_UP) {
             val chartRectangle = chartFragment!!.getGlobalVisibleRectOfChart()
 
             if (!chartRectangle.contains(ev!!.rawX.toInt(), ev!!.rawY.toInt()))
@@ -181,36 +178,46 @@ class MainActivity : AppCompatActivity() {
                 ).show()
         })
 
-        viewModel.getApiErrorCodeLiveData().observe(this, object : Observer<Pair<Boolean, Int>> {
-            override fun onChanged(t: Pair<Boolean, Int>?) {
+        viewModel.getApiErrorCodeLiveData()
+            .observe(this, object : Observer<Pair<Boolean, ErrorMessage>> {
+                override fun onChanged(t: Pair<Boolean, ErrorMessage>?) {
 
-                if (t!!.first) { //error occurred
-                    var toastText = when (t.second) {
-                        REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE ->
-                            getString(R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE)
-                        REQUEST_CRYPTOCURRENCIES_LIST_FAILURE ->
-                            getString(R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE)
-                        REQUEST_PRICE_DATA_FAILURE ->
-                            getString(R.string.REQUEST_PRICE_DATA_FAILURE)
-                        else ->
-                            getString(R.string.UNKNOWN_FAILURE)
+                    if (t!!.first) { //error occurred
+                        val additionalInfo = t.second.additionalInfo ?: ""
+                        var toastText = when (t.second.errorCode) {
+                            REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE ->
+                                getString(
+                                    R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE,
+                                    additionalInfo
+                                )
+                            REQUEST_CRYPTOCURRENCIES_LIST_FAILURE ->
+                                getString(
+                                    R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE,
+                                    additionalInfo
+                                )
+                            REQUEST_PRICE_DATA_FAILURE ->
+                                getString(R.string.REQUEST_PRICE_DATA_FAILURE, additionalInfo)
+                            REQUEST_EXCEEDED_API_RATE_LIMIT ->
+                                getString(R.string.REQUEST_EXCEEDED_API_RATE_LIMIT)
+                            else ->
+                                getString(R.string.UNKNOWN_FAILURE)
+                        }
+
+                        if (SHOW_DEBUG_TOASTS)
+                            Toast.makeText(
+                                applicationContext,
+                                toastText,
+                                Toast.LENGTH_SHORT
+                            ).show()
                     }
-
-                    Toast.makeText(
-                        applicationContext,
-                        toastText,
-                        Toast.LENGTH_LONG
-                    ).show()
                 }
-            }
-        })
+            })
 
         viewModel.noCachedData.observe(this) { show ->
             if (show) //lack of data
             {
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
-            }
-            else
+            } else
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.GONE
         }
     }
@@ -222,6 +229,9 @@ class MainActivity : AppCompatActivity() {
 
 
             allPricesList?.let {
+                Log.e("myApp", "updateCurrentPriceSection")
+                Log.e("myApp", allPricesList.joinToString(separator = "\n"))
+
                 if (allPricesList.isNotEmpty()) {
 
                     val currentElement = allPricesList.sortedByDescending { it.timeRangeTo }
@@ -236,6 +246,9 @@ class MainActivity : AppCompatActivity() {
                     currentElement?.let {
                         val actualPrice =
                             currentElement!!.prices.list.first().value
+
+                        Log.e("myApp", "current element, val = ${actualPrice}")
+
 
                         if (currentElement!!.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
                             val msBetweenDates = Date().time - currentElement!!.updateDate.time
