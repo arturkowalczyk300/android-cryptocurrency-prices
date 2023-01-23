@@ -229,6 +229,9 @@ class MainActivity : AppCompatActivity() {
 
 
             allPricesList?.let {
+                Log.e("myApp", "updateCurrentPriceSection")
+                Log.e("myApp", allPricesList.joinToString(separator = "\n"))
+
                 if (allPricesList.isNotEmpty()) {
 
                     val currentElement = allPricesList.sortedByDescending { it.timeRangeTo }
@@ -243,6 +246,9 @@ class MainActivity : AppCompatActivity() {
                     currentElement?.let {
                         val actualPrice =
                             currentElement!!.prices.list.first().value
+
+                        Log.e("myApp", "current element, val = ${actualPrice}")
+
 
                         if (currentElement!!.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
                             val msBetweenDates = Date().time - currentElement!!.updateDate.time

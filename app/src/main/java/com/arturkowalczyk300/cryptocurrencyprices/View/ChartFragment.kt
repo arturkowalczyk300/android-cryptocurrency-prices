@@ -56,7 +56,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
 
     override fun onViewCreated(
-        view: View, savedInstanceState: Bundle?
+        view: View, savedInstanceState: Bundle?,
     ) { //view creation already done
         super.onViewCreated(view, savedInstanceState)
 
@@ -125,9 +125,11 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                     if (list == null || list.isEmpty()) //failure, no cached valid data found
                         showNoDataInfo(true)
 
+
                     list?.let {
+
                         if (!it.isNullOrEmpty() && !it.last().prices.list.isNullOrEmpty()) {
-                            //create list
+                                                       //create list
                             var list = arrayListOf<Entry>()
                             it.last().prices.list.forEachIndexed { index, currentRow ->
                                 list.add(
@@ -144,11 +146,14 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                             setChartAxisLabelsVisibility(true)
                             showNoDataInfo(false) //hide
 
-                            //remove observers to prevent multiple calls
-                            historicalPricesliveDatas.forEach { ld ->
-                                ld.removeObservers(
-                                    lifecycleOwner
-                                )
+                            //remove observers to prevent multiple calls, except newest
+                            val size = historicalPricesliveDatas.size
+                            historicalPricesliveDatas.forEachIndexed { ind, ld ->
+                                if (ind < size - 1) {
+                                    ld.removeObservers(
+                                        lifecycleOwner
+                                    )
+                                }
                             }
 
                         } else { //not valid data

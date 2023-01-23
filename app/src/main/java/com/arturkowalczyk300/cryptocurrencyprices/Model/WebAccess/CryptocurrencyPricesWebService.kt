@@ -18,7 +18,7 @@ open class RequestWithResponse(
     var date: Date = Date(0),
     var entity: CryptocurrencyPricesEntityApi? = null,
     var actualPrice: Float? = null,
-    var flagDataSet: Boolean = false
+    var flagDataSet: Boolean = false,
 ) {
     private val sdf = SimpleDateFormat("dd.MM.yyyy")
 
@@ -56,7 +56,7 @@ class RequestWithResponseArchival(
     val unixTimeTo: Long,
     var archivalPrices: List<List<Double>>? = null,
     var totalVolumes: List<List<Double>>? = null,
-    var marketCaps: List<List<Double>>? = null
+    var marketCaps: List<List<Double>>? = null,
 ) : RequestWithResponse(
     currencySymbol,
     date,
@@ -95,7 +95,7 @@ class CryptocurrencyPricesWebService {
 
     fun requestActualPriceData(
         currencySymbol: String,
-        vs_currency: String
+        vs_currency: String,
     ): MutableLiveData<RequestWithResponse> {
         mldActualRequestWithResponse?.value?.date = Date()
         mldActualRequestWithResponse?.value?.currencySymbol = currencySymbol
@@ -110,12 +110,13 @@ class CryptocurrencyPricesWebService {
         response?.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(
                 call: Call<ResponseBody>,
-                response: Response<ResponseBody>
+                response: Response<ResponseBody>,
             ) {
                 if (response.code() == 429)
                     mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
                 else if (response.body() != null) {
                     if (waitingForResponse) {
+
                         val bodyStr: ResponseBody = response.body()!!
                         val src = bodyStr.source().toString()
                         val regex = Regex("(\\d+.\\d+)")
@@ -136,6 +137,7 @@ class CryptocurrencyPricesWebService {
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+
                 mldErrorCode.value = Pair(
                     true, ErrorMessage(
                         REQUEST_PRICE_DATA_FAILURE,
@@ -155,14 +157,14 @@ class CryptocurrencyPricesWebService {
 
     fun requestArchivalPriceData(
         currencySymbol: String,
-        date: Date
+        date: Date,
     ): MutableLiveData<RequestWithResponse> {
         mldArchivalRequestWithResponse?.value?.date = date
         mldArchivalRequestWithResponse?.value?.currencySymbol = currencySymbol
         mldArchivalRequestWithResponse?.value?.entity = null //test line
         waitingForResponse = true
 
-        val sdf = SimpleDateFormat("dd-MM-yyyy")
+        val sdf = SimpleDateFormat("dd-MM-yyyy") //TODO: refactor
         val formattedDate = sdf.format(date)
 
         val response: Call<CryptocurrencyPricesEntityApi>? =
@@ -173,7 +175,7 @@ class CryptocurrencyPricesWebService {
         response?.enqueue(object : Callback<CryptocurrencyPricesEntityApi> {
             override fun onResponse(
                 call: Call<CryptocurrencyPricesEntityApi>,
-                response: Response<CryptocurrencyPricesEntityApi>
+                response: Response<CryptocurrencyPricesEntityApi>,
             ) {
                 if (response.code() == 429)
                     mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
@@ -216,7 +218,7 @@ class CryptocurrencyPricesWebService {
         listResponse?.enqueue(object : Callback<List<CryptocurrencyPriceFromListApi>> {
             override fun onResponse(
                 call: Call<List<CryptocurrencyPriceFromListApi>>,
-                response: Response<List<CryptocurrencyPriceFromListApi>>
+                response: Response<List<CryptocurrencyPriceFromListApi>>,
             ) {
                 val responseBody = response.body()
                 if (response.code() == 429)
@@ -250,7 +252,7 @@ class CryptocurrencyPricesWebService {
         currencySymbol: String,
         vs_currency: String,
         unixtimeFrom: Long,
-        unixTimeTo: Long
+        unixTimeTo: Long,
     ): MutableLiveData<RequestWithResponseArchival?> {
         mldPriceHistory!!.value = RequestWithResponseArchival(
             currencySymbol,
@@ -274,12 +276,14 @@ class CryptocurrencyPricesWebService {
         response?.enqueue(object : Callback<CryptocurrencyPriceHistoryFromApi> {
             override fun onResponse(
                 call: Call<CryptocurrencyPriceHistoryFromApi>,
-                response: Response<CryptocurrencyPriceHistoryFromApi>
+                response: Response<CryptocurrencyPriceHistoryFromApi>,
             ) {
                 Log.e("myApp", "code=$response.code()")
                 if (response.code() == 429)
                     mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
                 else if (response.body() != null && response.body()?.prices?.isNotEmpty() != null) {
+                    Log.e("myApp", "requestPriceHistoryForDateRange onResponse, correct")
+
                     mldPriceHistory!!.value!!.archivalPrices = response.body()?.prices
                     mldPriceHistory!!.value!!.totalVolumes = response.body()?.total_volumes
                     mldPriceHistory!!.value!!.marketCaps = response.body()?.market_caps
@@ -299,7 +303,6 @@ class CryptocurrencyPricesWebService {
 
             override fun onFailure(call: Call<CryptocurrencyPriceHistoryFromApi>, t: Throwable) {
                 mldPriceHistory!!.value = null
-
                 mldErrorCode.value =
                     Pair(
                         true, ErrorMessage(
