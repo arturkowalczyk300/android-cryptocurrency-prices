@@ -1,6 +1,7 @@
 package com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Model.*
 import okhttp3.ResponseBody
@@ -68,6 +69,9 @@ class RequestWithResponseArchival(
 
 
 class CryptocurrencyPricesWebService {
+    private var _isDataUpdatedSuccessfully = MutableLiveData<Boolean>(false)
+    val isDataUpdatedSuccessfully: LiveData<Boolean> = _isDataUpdatedSuccessfully
+
     var waitingForResponse: Boolean = false
 
     var mldErrorCode: MutableLiveData<Pair<Boolean, ErrorMessage>> = MutableLiveData()
@@ -91,6 +95,10 @@ class CryptocurrencyPricesWebService {
             else -> {
             }
         }
+    }
+
+    fun resetFlagIsDataUpdatedSuccessfully(){
+        _isDataUpdatedSuccessfully.value = false
     }
 
     fun requestActualPriceData(
@@ -283,6 +291,8 @@ class CryptocurrencyPricesWebService {
                     mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
                 else if (response.body() != null && response.body()?.prices?.isNotEmpty() != null) {
                     Log.e("myApp", "requestPriceHistoryForDateRange onResponse, correct")
+
+                    _isDataUpdatedSuccessfully.value = true
 
                     mldPriceHistory!!.value!!.archivalPrices = response.body()?.prices
                     mldPriceHistory!!.value!!.totalVolumes = response.body()?.total_volumes

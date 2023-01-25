@@ -31,4 +31,5 @@
     <string name="chart_no_cached_data">Lack of internet connection and no cached data in database.</string>
     <string name="lastUpdate">Cached data, updated %1$d minutes ago</string>
     <string name="noCachedData">No cached data!\nGet access to the Internet or try again later!</string>
+    <string name="updating">Updating</string>
 </resources>

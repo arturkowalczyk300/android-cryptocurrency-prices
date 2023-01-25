@@ -4,13 +4,12 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.*
+import androidx.constraintlayout.widget.Group
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenciesHistoricalPrices
 import com.arturkowalczyk300.cryptocurrencyprices.R
@@ -25,7 +24,6 @@ import com.github.mikephil.charting.formatter.ValueFormatter
 import kotlinx.coroutines.*
 import java.lang.Runnable
 import java.text.DecimalFormat
-import java.time.Period
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -35,9 +33,10 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
     private lateinit var chart: LineChart
     private lateinit var chartValues: ArrayList<Entry>
-    private lateinit var groupChartWithOptions: androidx.constraintlayout.widget.Group
-    private lateinit var groupChartMinMaxAvgPrices: androidx.constraintlayout.widget.Group
+    private lateinit var groupChartWithOptions: Group
+    private lateinit var groupChartMinMaxAvgPrices: Group
     private lateinit var progressBarChartLoading: ProgressBar
+    private lateinit var groupUpdating: Group
     private lateinit var chartRadioGroupTimeRange: RadioGroup
     private lateinit var valueFormatter: ValueFormatter
     private lateinit var tvChartMinPrice: TextView
@@ -49,7 +48,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var ivTrending: ImageView
     private lateinit var tvTimePeriod: TextView
     private var historicalPricesliveDatas: MutableList<LiveData<List<EntityCryptocurrenciesHistoricalPrices>>> =
-        mutableListOf<LiveData<List<EntityCryptocurrenciesHistoricalPrices>>>()
+        mutableListOf()
 
     private var chartDataSet = LineDataSet(listOf(), "")
     var isInitialized = false
@@ -129,7 +128,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                     list?.let {
 
                         if (!it.isNullOrEmpty() && !it.last().prices.list.isNullOrEmpty()) {
-                                                       //create list
+                            //create list
                             var list = arrayListOf<Entry>()
                             it.last().prices.list.forEachIndexed { index, currentRow ->
                                 list.add(
@@ -280,6 +279,11 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         setChartVisibility(false)
         setChartLoadingProgressBarVisibility(false)
+        setUpdatingProgressBarVisibility(true) //data not updated yet
+
+        viewModel.isDataUpdatedSuccessfully.observe(requireActivity()) {success->
+            setUpdatingProgressBarVisibility(!success)
+        }
     }
 
     private fun setChartData(values: ArrayList<Entry>) {
@@ -303,7 +307,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         }
         chart.notifyDataSetChanged()
         chart.invalidate()
-
 
         setChartVisibility(true)
         setChartLoadingProgressBarVisibility(false)
@@ -346,6 +349,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         groupChartMinMaxAvgPrices = currentView.findViewById(R.id.groupChartMinMaxAvgPrices)
         progressBarChartLoading = currentView.findViewById(R.id.progressBarChartLoading)
         chartRadioGroupTimeRange = currentView.findViewById(R.id.chartRadioGroupTimeRange)
+        groupUpdating = currentView.findViewById(R.id.groupUpdating)
         tvChartMinPrice = currentView.findViewById(R.id.tvMinPrice)
         tvChartAvgPrice = currentView.findViewById(R.id.tvAvgPrice)
         tvChartMaxPrice = currentView.findViewById(R.id.tvMaxPrice)
@@ -381,9 +385,17 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         if (visible) progressBarChartLoading.visibility = View.VISIBLE
         else {
             progressBarChartLoading.postDelayed(Runnable { //hide with delay
-                progressBarChartLoading.visibility = View.GONE
+                progressBarChartLoading.visibility = View.INVISIBLE
             }, 200)
+        }
+    }
 
+    fun setUpdatingProgressBarVisibility(visible: Boolean) {
+        if (visible) groupUpdating.visibility = View.VISIBLE
+        else {
+            groupUpdating.postDelayed(Runnable { //hide with delay
+                groupUpdating.visibility = View.INVISIBLE
+            }, 200)
         }
     }
 

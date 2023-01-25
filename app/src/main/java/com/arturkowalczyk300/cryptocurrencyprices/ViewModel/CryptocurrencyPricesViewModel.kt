@@ -1,7 +1,6 @@
 package com.arturkowalczyk300.cryptocurrencyprices.ViewModel
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -22,11 +21,24 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var vsCurrency: String? = null
     var selectedUnixTimeFrom: Long? = null
     var selectedUnixTimeTo: Long? = null
+
     var selectedDaysToSeeOnChart: Int? = null
+        set(value) {
+            if (value != field) {
+                resetFlagIsDataUpdatedSuccessfully()
+            }
+            field = value
+        }
+
     var hasInternetConnection: Boolean = false
     var currentlyDisplayedDataUpdatedMinutesAgo: MutableLiveData<Long?> = MutableLiveData<Long?>()
     var noCachedData: MutableLiveData<Boolean> = MutableLiveData()
     var noCachedDataVisibility: Boolean = false
+    var isDataUpdatedSuccessfully = repository.isDataUpdatedSuccessfully
+
+    private fun resetFlagIsDataUpdatedSuccessfully() {
+        repository.resetFlagIsDataUpdatedSuccessfully()
+    }
 
     fun updatePriceData(
     ) {
@@ -78,7 +90,7 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
 
     fun getHistoricalPricesOfCryptocurrencyInTimeRange(
         cryptocurrencyId: String,
-        daysCount: Int
+        daysCount: Int,
     ): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
         return repository.getHistoricalPricesOfCryptocurrencyInTimeRange(
             cryptocurrencyId,

@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.*
 import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPricesWebService
-import retrofit2.http.GET
 import java.util.*
 
 class CryptocurrencyPricesRepository(application: Application) {
@@ -14,12 +13,18 @@ class CryptocurrencyPricesRepository(application: Application) {
         CryptocurrencyPricesDatabase.getDatabase(application)
     val webService: CryptocurrencyPricesWebService = CryptocurrencyPricesWebService()
 
+    var isDataUpdatedSuccessfully = webService.isDataUpdatedSuccessfully
+
     /////////////////////////////////////////////////////////////////////////////////////
     //database CRUD methods
     /////////////////////////////////////////////////////////////////////////////////////
 
     private fun addCryptocurrencyToTop100ByMarketCapTable(entity: EntityCryptocurrenciesTop100ByMarketCap) {
         database!!.userDao()!!.addCryptocurrencyToTop100ByMarketCapTable(entity)
+    }
+
+    fun resetFlagIsDataUpdatedSuccessfully(){
+        webService.resetFlagIsDataUpdatedSuccessfully()
     }
 
     fun getAllCryptocurrencies(): LiveData<List<EntityCryptocurrenciesTop100ByMarketCap>> {
