@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
+import android.os.Handler
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.*
@@ -271,6 +272,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                 if (stringToReturn.last() == ',') { //delete lonely comma at end of number string if exists
                     stringToReturn = stringToReturn.substring(0, stringToReturn.length - 1)
                 }
+
                 return stringToReturn
             }
         }
@@ -281,7 +283,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         setChartLoadingProgressBarVisibility(false)
         setUpdatingProgressBarVisibility(true) //data not updated yet
 
-        viewModel.isDataUpdatedSuccessfully.observe(requireActivity()) {success->
+        viewModel.isDataUpdatedSuccessfully.observe(requireActivity()) { success ->
             setUpdatingProgressBarVisibility(!success)
         }
     }
