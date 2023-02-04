@@ -94,6 +94,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                     setChartLoadingProgressBarVisibility(false)
                     viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(null)
                     viewModel.noCachedData.postValue(true)
+
+                    setChartVisibility(false) //no valid data to display
+                    setChartAxisLabelsVisibility(false)
                 }
             }
         } else {
@@ -158,8 +161,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
                         } else { //not valid data
                             showNoDataInfo(true)
-                            setChartVisibility(false) //no valid data to display
-                            setChartAxisLabelsVisibility(false)
                         }
                     }
                 })
