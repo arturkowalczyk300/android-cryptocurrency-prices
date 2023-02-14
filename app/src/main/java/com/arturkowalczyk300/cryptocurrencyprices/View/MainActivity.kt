@@ -3,6 +3,7 @@ package com.arturkowalczyk300.cryptocurrencyprices.View
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.MotionEvent.ACTION_UP
 import android.view.View
@@ -18,6 +19,10 @@ import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesH
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.sql.Timestamp
 import java.util.*
 import kotlin.collections.ArrayList
@@ -55,6 +60,21 @@ class MainActivity : AppCompatActivity() {
         return super.dispatchTouchEvent(ev)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) =
+        when (item.itemId) {
+            R.id.action_refresh -> {
+                updateDataIfConnectedToInternet()
+                true
+            }
+            else ->
+                super.onOptionsItemSelected(item)
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -85,11 +105,6 @@ class MainActivity : AppCompatActivity() {
     private fun requestUpdateDataFromNetwork() {
         if (viewModel.hasInternetConnection)
             viewModel.updateCryptocurrenciesList()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
     }
 
     private fun assignViewsVariables() {
@@ -155,6 +170,7 @@ class MainActivity : AppCompatActivity() {
             autoFetchDataPending = false
             try {
                 viewModel.updatePriceData()
+                chartFragment?.setChartLoadingProgressBarVisibility(true)
             } catch (exc: Exception) {
                 Log.e("myApp", "addButtonsOnClickListeners, $exc")
             }

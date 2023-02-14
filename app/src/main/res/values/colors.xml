@@ -10,4 +10,5 @@
     <color name="gray">#6B6262</color>
     <color name="spinner_background">#9F9E9E</color>
     <color name="chart_font_color">#000000</color>
+    <color name="blue">#0000FF</color>
 </resources>

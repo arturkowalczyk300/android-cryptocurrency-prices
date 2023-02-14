@@ -32,4 +32,5 @@
     <string name="lastUpdate">Cached data, updated %1$d minutes ago</string>
     <string name="noCachedData">No cached data!\nGet access to the Internet or try again later!</string>
     <string name="updating">Updating</string>
+    <string name="action_refresh">Refresh</string>
 </resources>
