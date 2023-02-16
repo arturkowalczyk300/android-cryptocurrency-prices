@@ -14,15 +14,10 @@ import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.*
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
-import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.DateUtils
 import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.sql.Timestamp
 import java.util.*
 import kotlin.collections.ArrayList
@@ -136,7 +131,7 @@ class MainActivity : AppCompatActivity() {
             viewModel.showArchivalDataRange =
                 DateFormatterUtil.parseDateOnly(etDate.text.toString())
 
-            viewModel.updatePriceData()
+            viewModel.updateSelectedCryptocurrencyPriceData()
             updateCurrentPriceSection()
 
         }
@@ -165,11 +160,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateDataIfConnectedToInternet() {
+        Log.d("myApp", "isCurrenciesListInitialized=$isCurrenciesListInitialized, viewModel.hasInternetConnection=${viewModel.hasInternetConnection}")
         if (isCurrenciesListInitialized && viewModel.hasInternetConnection) {
             autoFetchDataAlreadyDone = true
             autoFetchDataPending = false
             try {
-                viewModel.updatePriceData()
+                Log.d("myApp", "updateDataIfConnectedToInternet, inside try block")
+                viewModel.updateSelectedCryptocurrencyPriceData()
+                viewModel.updateCryptocurrenciesInfoInDateRange()
                 chartFragment?.setChartLoadingProgressBarVisibility(true)
             } catch (exc: Exception) {
                 Log.e("myApp", "addButtonsOnClickListeners, $exc")
@@ -239,49 +237,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateCurrentPriceSection() {
-        viewModel.getAllHistoricalPrices().observe(this, Observer { allPricesList ->
+        viewModel.getAllCryptocurrenciesPrices().observe(this, Observer { allPricesList ->
             if (allPricesList == null)
                 switchVisibilityOfCurrentPriceSection(View.INVISIBLE) //to still take layout space
 
+            val currentElement =
+                allPricesList.filter { it.cryptocurrencyId == viewModel.selectedCryptocurrencyId }
+                    .maxByOrNull { it.date }
 
-            allPricesList?.let {
+            if (currentElement != null) {
                 if (allPricesList.isNotEmpty()) {
-                    val currentElement = allPricesList.sortedByDescending { it.timeRangeTo }
-                        .find {
-                            it.cryptocurrencyId == viewModel.selectedCryptocurrencyId
-                                    && (!viewModel.showArchivalData || DateUtils.areDatesEqual(
-                                Date(it.timeRangeTo),
-                                viewModel.showArchivalDataRange
-                            ))
+                    val actualPrice =
+                        currentElement.price
 
-                        }
-                    currentElement?.let {
-                        val actualPrice =
-                            currentElement!!.prices.list.first().value
+                    if (currentElement.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
+                        val msBetweenDates = Date().time - currentElement.date.time
 
-                        if (currentElement!!.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
-                            val msBetweenDates = Date().time - currentElement!!.updateDate.time
+                        viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(
+                            msBetweenDates / 1000 / 60
+                        ) //ms to min
 
-                            viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(
-                                msBetweenDates / 1000 / 60
-                            ) //ms to min
-
-                            viewModel.noCachedData.postValue(false)
-                            switchVisibilityOfCurrentPriceSection(View.VISIBLE)
-                            updateTextViews(
-                                currentElement!!.cryptocurrencyId,
-                                currentElement!!.timeRangeTo,
-                                actualPrice.toFloat()
-                            )
-                        } else //no valid data
-                            switchVisibilityOfCurrentPriceSection(View.INVISIBLE)
-                    }
-                    if (currentElement == null)
+                        viewModel.noCachedData.postValue(false)
+                        switchVisibilityOfCurrentPriceSection(View.VISIBLE)
+                        updateTextViews(
+                            currentElement.cryptocurrencyId,
+                            currentElement.date.time,
+                            actualPrice.toFloat()
+                        )
+                    } else //no valid data
                         switchVisibilityOfCurrentPriceSection(View.INVISIBLE)
-                } else
-                    switchVisibilityOfCurrentPriceSection(View.INVISIBLE)
+                }
+            } else
+                switchVisibilityOfCurrentPriceSection(View.INVISIBLE)
 
-            }
         }
         )
     }
@@ -374,7 +362,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateTextViews(currencySymbol: String, dateUnixTime: Long, price: Float) {
         tvCryptocurrencySymbol.text = currencySymbol
-        tvCryptocurrencyDate.text = DateFormatterUtil.formatDateOnly(Timestamp(dateUnixTime))
+        tvCryptocurrencyDate.text = DateFormatterUtil.formatDateWithTime(Timestamp(dateUnixTime))
         tvCryptocurrencyPrice.text =
             "%.3f %s".format(
                 price,

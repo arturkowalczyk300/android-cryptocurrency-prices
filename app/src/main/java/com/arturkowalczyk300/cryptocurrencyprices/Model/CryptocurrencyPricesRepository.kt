@@ -3,15 +3,16 @@ package com.arturkowalczyk300.cryptocurrencyprices.Model
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.room.Query
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.*
 import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPricesWebService
 import java.util.*
 
 class CryptocurrencyPricesRepository(application: Application) {
 
-    val database: CryptocurrencyPricesDatabase? =
+    private val database: CryptocurrencyPricesDatabase? =
         CryptocurrencyPricesDatabase.getDatabase(application)
-    val webService: CryptocurrencyPricesWebService = CryptocurrencyPricesWebService()
+    private val webService: CryptocurrencyPricesWebService = CryptocurrencyPricesWebService()
 
     var isDataUpdatedSuccessfully = webService.isDataUpdatedSuccessfully
 
@@ -19,15 +20,15 @@ class CryptocurrencyPricesRepository(application: Application) {
     //database CRUD methods
     /////////////////////////////////////////////////////////////////////////////////////
 
-    private fun addCryptocurrencyToTop100ByMarketCapTable(entity: EntityCryptocurrenciesTop100ByMarketCap) {
+    private fun addCryptocurrencyToTop100ByMarketCapTable(entity: EntityCryptocurrencyTop100ByMarketCap) {
         database!!.userDao()!!.addCryptocurrencyToTop100ByMarketCapTable(entity)
     }
 
-    fun resetFlagIsDataUpdatedSuccessfully(){
+    fun resetFlagIsDataUpdatedSuccessfully() {
         webService.resetFlagIsDataUpdatedSuccessfully()
     }
 
-    fun getAllCryptocurrencies(): LiveData<List<EntityCryptocurrenciesTop100ByMarketCap>> {
+    fun getAllCryptocurrencies(): LiveData<List<EntityCryptocurrencyTop100ByMarketCap>> {
         return database!!.userDao()!!.getAllCryptocurrencies()
     }
 
@@ -35,40 +36,64 @@ class CryptocurrencyPricesRepository(application: Application) {
         database!!.userDao()!!.deleteAllCryptocurrencies()
     }
 
-    private fun addHistoricalPrice(entity: EntityCryptocurrenciesHistoricalPrices) {
+    fun getAllCryptocurrenciesPrices(): LiveData<List<EntityCryptocurrencyPrice>> {
+        return database!!.userDao().getAllCryptocurrenciesPrices()
+    }
+
+    private fun deleteAllCryptocurrenciesPrices(){
+        database!!.userDao().deleteAllCryptocurrenciesPrices()
+    }
+
+    private fun deletePricesOfGivenCryptocurrency(cryptocurrencyId: String){
+        database!!.userDao().deletePricesOfGivenCryptocurrency(cryptocurrencyId)
+    }
+
+    private fun addCryptocurrencyPrice(entity: EntityCryptocurrencyPrice) {
+        //limit historical entries to one per currency
+        database!!.userDao()!!.deletePricesOfGivenCryptocurrency(entity.cryptocurrencyId)
+
+        Log.d(
+            "myApp",
+            "adding simple price, ID=${entity.cryptocurrencyId}, price = ${entity.price}"
+        )
+
+        database!!.userDao()!!.addCryptocurrencyPrice(entity)
+    }
+
+    private fun addCryptocurrencyInfoInTimeRange(entity: EntityCryptocurrencyInfoInTimeRange) {
         //limit historical entries to one per currency and time range only
         if (entity.daysCount > 0)
-            database!!.userDao()!!.deleteAllHistoricalPricesOfCryptocurrencyInGivenDaysCount(
+            database!!.userDao()!!.deleteAllCryptocurrenciesInfoInGivenDaysCount(
                 entity.cryptocurrencyId,
                 entity.daysCount
             )
 
         Log.d(
             "myApp",
-            "adding historical, date=${Date(entity.timeRangeTo)}, totalVolumesSize=${entity.total_volumes?.list?.size}, marketCap=${entity.market_caps?.list?.size}"
+            "adding historical, date=${Date(entity.timeRangeTo * 1000)}, totalVolumesSize=${entity.total_volumes?.list?.size}, marketCap=${entity.market_caps?.list?.size}"
         )
 
-        database!!.userDao()!!.addHistoricalPrice(entity)
+        database!!.userDao()!!.addCryptocurrencyInfoInTimeRange(entity)
     }
 
-    fun getAllHistoricalPrices(): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
-        return database!!.userDao()!!.getAllHistoricalPrices()
+    fun getAllCryptocurrenciesInfo(): LiveData<List<EntityCryptocurrencyInfoInTimeRange>> {
+        return database!!.userDao()!!.getAllCryptocurrenciesInfo()
     }
 
-    private fun deleteAllHistoricalPrices() {
-        database!!.userDao()!!.deleteAllHistoricalPrices()
+    private fun deleteAllCryptocurrenciesInfo() {
+        database!!.userDao()!!.deleteAllCryptocurrenciesInfo()
     }
 
-    fun getHistoricalPriceOfCryptocurrenciesWithTimeRange(): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
-        return database!!.userDao()!!.getHistoricalPriceOfCryptocurrenciesWithTimeRange(
+    fun getCryptocurrencyInfoInTimeRange(): LiveData<List<EntityCryptocurrencyInfoInTimeRange>> {
+        return database!!.userDao()!!.getCryptocurrencyInfoInTimeRange(
         )
     }
 
-    private fun deleteHistoricalPriceOfCryptocurrencyContainsGivenDay(
+    private fun deleteCryptocurrencyInfoContainsGivenDay(
         cryptocurrencyId: String,
-        unixTimeDay: Long
+        unixTimeDay: Long,
     ) {
-        database!!.userDao()!!.deleteHistoricalPriceOfCryptocurrencyContainsGivenDay(
+        database!!.userDao()!!.deleteCryptocurrencyInfoContainsGivenDay(
             cryptocurrencyId,
             unixTimeDay
         )
@@ -77,71 +102,32 @@ class CryptocurrencyPricesRepository(application: Application) {
     //methods for request update data in database through webservice
     /////////////////////////////////////////////////////////////////////////////////////
 
-    fun updateActualPriceData(
+    fun updatePriceData(
         currencySymbol: String,
-        vs_currency: String
+        vs_currency: String,
+        archival: Boolean = false,
+        archivalDate: Date? = null,
     ) {
-        val liveData = webService.requestActualPriceData(currencySymbol, vs_currency)
-        if (!liveData.hasActiveObservers())
-            liveData.observeForever { response ->
-                if (response?.actualPrice != null) //value check
-                {
-                    this.addHistoricalPrice(
-                        EntityCryptocurrenciesHistoricalPrices(
-                            index = 0, //auto-increment, no need to specify manually
-                            cryptocurrencyId = response.currencySymbol,
-                            timeRangeFrom = response.date.time,
-                            timeRangeTo = response.date.time,
-                            market_caps = null,
-                            prices =
-                            ListOfCryptocurrencyStatValuesWithTime(
-                                listOf(
-                                    CryptocurrencyStatValueWithTime(
-                                        response.date.time,
-                                        response.actualPrice!!.toDouble()
-                                    )
-                                )
-                            ),
-                            total_volumes = null,
-                            updateDate = Date()
-                        )
-                    )
-                }
+        if (!archival || archivalDate != null) {
+            val liveData = when (archival) {
+                true -> webService.requestArchivalPriceData(currencySymbol, archivalDate!!)
+                else -> webService.requestActualPriceData(currencySymbol, vs_currency)
             }
-    }
-
-    fun updateArchivalPriceData(
-        currencySymbol: String,
-        date: Date
-    ) {
-        val liveData = webService.requestArchivalPriceData(currencySymbol, date)
-        if (!liveData.hasActiveObservers())
-            liveData.observeForever { response ->
-                if (response?.entity != null) //value check
-                {
-
-                    this.addHistoricalPrice(
-                        EntityCryptocurrenciesHistoricalPrices(
-                            index = 0, //auto-increment, no need to specify manually
-                            cryptocurrencyId = response.currencySymbol,
-                            timeRangeFrom = response.date.time,
-                            timeRangeTo = response.date.time,
-                            market_caps = null, //single read should has this field equal null
-                            prices =
-                            ListOfCryptocurrencyStatValuesWithTime(
-                                listOf(
-                                    CryptocurrencyStatValueWithTime(
-                                        response.date.time,
-                                        response.entity!!.market_data.current_price.usd
-                                    )
-                                )
-                            ),
-                            total_volumes = null, //single read should has this field equal null
-                            updateDate = Date()
+            if (!liveData.hasActiveObservers())
+                liveData.observeForever { response ->
+                    if (response?.actualPrice != null) //value check
+                    {
+                        this.addCryptocurrencyPrice(
+                            EntityCryptocurrencyPrice(
+                                index = 0, //auto-increment, no need to specify manually
+                                cryptocurrencyId = response.currencySymbol,
+                                price = response.actualPrice!!.toDouble(),
+                                date = Date(response.date.time * 1000),
+                            )
                         )
-                    )
+                    }
                 }
-            }
+        }
     }
 
     fun updateCryptocurrenciesList() {
@@ -151,7 +137,7 @@ class CryptocurrencyPricesRepository(application: Application) {
                 this.deleteAllCryptocurrencies()
                 response.forEach { row ->
                     this.addCryptocurrencyToTop100ByMarketCapTable(
-                        EntityCryptocurrenciesTop100ByMarketCap(
+                        EntityCryptocurrencyTop100ByMarketCap(
                             market_cap_rank = row.market_cap_rank,
                             cryptocurrencyId = row.id,
                             name = row.name,
@@ -165,9 +151,9 @@ class CryptocurrencyPricesRepository(application: Application) {
             }
     }
 
-    fun updatePriceHistoryForDateRange(
+    fun updateCryptocurrenciesInfoInDateRange(
         currencySymbol: String, vs_currency: String, unixtimeFrom: Long,
-        unixTimeTo: Long
+        unixTimeTo: Long,
     ) {
         val liveData = webService.requestPriceHistoryForDateRange(
             currencySymbol,
@@ -206,8 +192,8 @@ class CryptocurrencyPricesRepository(application: Application) {
                                 )
                             })
 
-                    this.addHistoricalPrice(
-                        EntityCryptocurrenciesHistoricalPrices(
+                    this.addCryptocurrencyInfoInTimeRange(
+                        EntityCryptocurrencyInfoInTimeRange(
                             index = 0, //auto-increment, no need to specify manually
                             cryptocurrencyId = response.currencySymbol,
                             timeRangeFrom = response.unixtimeFrom,
@@ -223,20 +209,20 @@ class CryptocurrencyPricesRepository(application: Application) {
             }
     }
 
-    fun deleteAllHistoricalPricesOfCryptocurrencyInGivenDaysCount(
+    fun deleteAllCryptocurrenciesInfoInGivenDaysCount(
         cryptocurrencyId: String,
-        daysCount: Int
+        daysCount: Int,
     ) {
         database!!.userDao()!!
-            .deleteAllHistoricalPricesOfCryptocurrencyInGivenDaysCount(cryptocurrencyId, daysCount)
+            .deleteAllCryptocurrenciesInfoInGivenDaysCount(cryptocurrencyId, daysCount)
     }
 
-    fun getHistoricalPricesOfCryptocurrencyInTimeRange(
+    fun getCryptocurrenciesInfoInTimeRange(
         cryptocurrencyId: String,
-        daysCount: Int
-    ): LiveData<List<EntityCryptocurrenciesHistoricalPrices>> {
+        daysCount: Int,
+    ): LiveData<List<EntityCryptocurrencyInfoInTimeRange>> {
         return database!!.userDao()!!
-            .getHistoricalPricesOfCryptocurrencyInTimeRange(cryptocurrencyId, daysCount)
+            .getInfoOfCryptocurrencyInTimeRange(cryptocurrencyId, daysCount)
     }
 
     fun getApiErrorCodeLiveData() = webService.mldErrorCode

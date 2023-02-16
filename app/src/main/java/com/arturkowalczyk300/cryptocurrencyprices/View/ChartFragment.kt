@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.os.Handler
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.*
@@ -12,7 +11,7 @@ import androidx.constraintlayout.widget.Group
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
-import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrenciesHistoricalPrices
+import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyInfoInTimeRange
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
@@ -48,7 +47,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var tvTrending: TextView
     private lateinit var ivTrending: ImageView
     private lateinit var tvTimePeriod: TextView
-    private var historicalPricesliveDatas: MutableList<LiveData<List<EntityCryptocurrenciesHistoricalPrices>>> =
+    private var historicalPricesliveDatas: MutableList<LiveData<List<EntityCryptocurrencyInfoInTimeRange>>> =
         mutableListOf()
 
     private var chartDataSet = LineDataSet(listOf(), "")
@@ -111,10 +110,10 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         viewModel.selectedCryptocurrencyId?.let { cryptocurrencyId ->
             if (viewModel.hasInternetConnection)
-                viewModel.updatePriceHistoryForSelectedDateRange()
+                viewModel.updateCryptocurrenciesInfoInDateRange()
 
             historicalPricesliveDatas.add( //keep references to remove all observers later
-                viewModel.getHistoricalPricesOfCryptocurrencyInTimeRange(
+                viewModel.getCryptocurrenciesInfoInTimeRange(
                     cryptocurrencyId,
                     viewModel.selectedDaysToSeeOnChart!!
                 )

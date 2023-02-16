@@ -270,6 +270,8 @@ class CryptocurrencyPricesWebService {
             unixTimeTo
         )
 
+        Log.d("myApp", "requestPriceHistoryForDateRange, date=${Date(unixTimeTo * 1000)}")
+
 
         val response: Call<CryptocurrencyPriceHistoryFromApi>? =
             CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
@@ -286,11 +288,11 @@ class CryptocurrencyPricesWebService {
                 call: Call<CryptocurrencyPriceHistoryFromApi>,
                 response: Response<CryptocurrencyPriceHistoryFromApi>,
             ) {
-                Log.e("myApp", "code=$response.code()")
+                Log.d("myApp", "code=$response.code()")
                 if (response.code() == 429)
                     mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
                 else if (response.body() != null && response.body()?.prices?.isNotEmpty() != null) {
-                    Log.e("myApp", "requestPriceHistoryForDateRange onResponse, correct")
+                    Log.d("myApp", "requestPriceHistoryForDateRange onResponse, correct, date=${Date(mldPriceHistory!!.value!!.unixTimeTo * 1000)}")
 
                     _isDataUpdatedSuccessfully.value = true
 

@@ -5,9 +5,9 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import java.util.*
 
-@Entity(tableName = "cryptocurrencies_price_history")
+@Entity(tableName = "cryptocurrencies_info_in_time_range")
 @TypeConverters(ListOfCryptocurrencyStatValuesWithTimeConverter::class, DateConverter::class)
-data class EntityCryptocurrenciesHistoricalPrices(
+data class EntityCryptocurrencyInfoInTimeRange(
     @PrimaryKey(autoGenerate = true) val index: Int,
     val cryptocurrencyId: String,
     val timeRangeFrom: Long, //unit time format

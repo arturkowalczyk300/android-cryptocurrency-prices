@@ -7,7 +7,7 @@ import java.util.*
 
 @Entity(tableName = "top100_cryptocurrencies")
 @TypeConverters(DateConverter::class)
-data class EntityCryptocurrenciesTop100ByMarketCap(
+data class EntityCryptocurrencyTop100ByMarketCap(
     @PrimaryKey val market_cap_rank: Int,
     val cryptocurrencyId: String,
     val name: String,
