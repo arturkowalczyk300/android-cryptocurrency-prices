@@ -187,37 +187,18 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chartRadioGroupTimeRange.setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener { group, checkedId ->
 
             if (checkedId != -1) { //if anything selected
-                //set date range parameters
-                val calendar = Calendar.getInstance()
-                if (viewModel.showArchivalData) {
-                    calendar.time = viewModel.showArchivalDataRange
-                    calendar.add(Calendar.DAY_OF_MONTH, 1)
-                }
-                val dateEnd = calendar.time
-
                 var countOfDays: Int = 0
 
                 when (chartRadioGroupTimeRange.checkedRadioButtonId) {
-                    R.id.chartRadioButtonTimeRangeOneYear -> calendar.add(Calendar.YEAR, -1)
-                        .also { countOfDays = 365 }
-                    R.id.chartRadioButtonTimeRangeOneMonth -> calendar.add(Calendar.MONTH, -1)
-                        .also { countOfDays = 31 }
-                    R.id.chartRadioButtonTimeRangeOneWeek -> calendar.add(
-                        Calendar.DAY_OF_MONTH,
-                        -7
-                    )
-                        .also { countOfDays = 7 }
-                    R.id.chartRadioButtonTimeRange24Hours -> calendar.add(
-                        Calendar.DAY_OF_MONTH,
-                        -1
-                    )
-                        .also { countOfDays = 1 }
+                    R.id.chartRadioButtonTimeRange24Hours -> countOfDays = 1
+                    R.id.chartRadioButtonTimeRangeOneWeek -> countOfDays = 7
+                    R.id.chartRadioButtonTimeRangeOneMonth -> countOfDays = 31
+                    R.id.chartRadioButtonTimeRangeOneYear -> countOfDays = 365
                 }
-                val dateStart = calendar.time
 
-                viewModel.selectedUnixTimeFrom = (dateStart.time / 1000)
-                viewModel.selectedUnixTimeTo = (dateEnd.time / 1000)
                 viewModel.selectedDaysToSeeOnChart = countOfDays
+                viewModel.recalculateTimeRange()
+
 
                 updateData()
             }

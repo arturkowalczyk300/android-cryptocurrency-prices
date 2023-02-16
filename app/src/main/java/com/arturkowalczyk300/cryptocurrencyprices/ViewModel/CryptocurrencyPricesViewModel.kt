@@ -8,11 +8,13 @@ import com.arturkowalczyk300.cryptocurrencyprices.Model.CryptocurrencyPricesRepo
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyInfoInTimeRange
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyPrice
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyTop100ByMarketCap
+import com.arturkowalczyk300.cryptocurrencyprices.R
 import java.util.*
 
 
 class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
-    private var repository: CryptocurrencyPricesRepository = CryptocurrencyPricesRepository(application)
+    private var repository: CryptocurrencyPricesRepository =
+        CryptocurrencyPricesRepository(application)
     val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
 
     //parameters for data fetching
@@ -36,6 +38,27 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var noCachedData: MutableLiveData<Boolean> = MutableLiveData()
     var noCachedDataVisibility: Boolean = false
     var isDataUpdatedSuccessfully = repository.isDataUpdatedSuccessfully
+
+    fun recalculateTimeRange() {
+
+        val calendar = Calendar.getInstance()
+        if (showArchivalData) { //TODO: check this
+            calendar.time = showArchivalDataRange
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+        }
+        val dateEnd = calendar.time
+
+        when (selectedDaysToSeeOnChart) {
+            1 -> calendar.add(Calendar.DAY_OF_MONTH, -1)
+            7 -> calendar.add(Calendar.DAY_OF_MONTH, -7)
+            31 -> calendar.add(Calendar.MONTH, -1)
+            365 -> calendar.add(Calendar.YEAR, -1)
+        }
+        val dateStart = calendar.time
+
+        selectedUnixTimeFrom = (dateStart.time / 1000)
+        selectedUnixTimeTo = (dateEnd.time / 1000)
+    }
 
     private fun resetFlagIsDataUpdatedSuccessfully() {
         repository.resetFlagIsDataUpdatedSuccessfully()
@@ -72,6 +95,8 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
 
     fun updateCryptocurrenciesInfoInDateRange(
     ) {
+        recalculateTimeRange()
+
         if (this.selectedCryptocurrencyId != null && this.vsCurrency != null && this.selectedUnixTimeFrom != null && this.selectedUnixTimeTo != null) {
             repository.updateCryptocurrenciesInfoInDateRange(
                 this.selectedCryptocurrencyId!!,
