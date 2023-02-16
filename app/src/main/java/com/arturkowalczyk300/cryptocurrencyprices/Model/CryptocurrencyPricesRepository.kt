@@ -3,7 +3,6 @@ package com.arturkowalczyk300.cryptocurrencyprices.Model
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.room.Query
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.*
 import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPricesWebService
 import java.util.*
@@ -77,7 +76,7 @@ class CryptocurrencyPricesRepository(application: Application) {
     }
 
     fun getAllCryptocurrenciesInfo(): LiveData<List<EntityCryptocurrencyInfoInTimeRange>> {
-        return database!!.userDao()!!.getAllCryptocurrenciesInfo()
+        return database!!.userDao()!!.getAllCryptocurrenciesInfoInTimeRange()
     }
 
     private fun deleteAllCryptocurrenciesInfo() {
@@ -85,8 +84,7 @@ class CryptocurrencyPricesRepository(application: Application) {
     }
 
     fun getCryptocurrencyInfoInTimeRange(): LiveData<List<EntityCryptocurrencyInfoInTimeRange>> {
-        return database!!.userDao()!!.getCryptocurrencyInfoInTimeRange(
-        )
+        return database!!.userDao()!!.getAllCryptocurrenciesInfoInTimeRange()
     }
 
     private fun deleteCryptocurrencyInfoContainsGivenDay(

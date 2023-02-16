@@ -52,18 +52,22 @@ interface CryptocurrencyPricesDao {
     @Query(
         "SELECT * FROM cryptocurrencies_info_in_time_range "
     )
-    fun getAllCryptocurrenciesInfo(): LiveData<List<EntityCryptocurrencyInfoInTimeRange>>
+    fun getAllCryptocurrenciesInfoInTimeRange(): LiveData<List<EntityCryptocurrencyInfoInTimeRange>>
+
+    @Query(
+        "SELECT * FROM cryptocurrencies_info_in_time_range " +
+                "WHERE cryptocurrencyId=:cryptocurrencyId " +
+                "AND daysCount=:daysCount"
+    )
+    fun getInfoOfCryptocurrencyInTimeRange(
+        cryptocurrencyId: String,
+        daysCount: Int,
+    ): LiveData<List<EntityCryptocurrencyInfoInTimeRange>>
 
     @Query("DELETE FROM cryptocurrencies_info_in_time_range")
     fun deleteAllCryptocurrenciesInfo()
 
     //get by a) cryptocurrency id, b) time range
-    @Query(
-        "SELECT * FROM cryptocurrencies_info_in_time_range"
-    )
-    fun getCryptocurrencyInfoInTimeRange(
-    ): LiveData<List<EntityCryptocurrencyInfoInTimeRange>>
-
     @Query(
         "DELETE FROM cryptocurrencies_info_in_time_range " +
                 "WHERE cryptocurrencyId=:cryptocurrencyId " +
@@ -85,14 +89,4 @@ interface CryptocurrencyPricesDao {
         cryptocurrencyId: String,
         daysCount: Int,
     )
-
-    @Query(
-        "SELECT * FROM cryptocurrencies_info_in_time_range " +
-                "WHERE cryptocurrencyId=:cryptocurrencyId " +
-                "AND daysCount=:daysCount"
-    )
-    fun getInfoOfCryptocurrencyInTimeRange(
-        cryptocurrencyId: String,
-        daysCount: Int,
-    ): LiveData<List<EntityCryptocurrencyInfoInTimeRange>>
 }
