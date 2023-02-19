@@ -4,11 +4,13 @@ import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.arturkowalczyk300.cryptocurrencyprices.Model.CryptocurrencyPricesRepository
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyInfoInTimeRange
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyPrice
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyTop100ByMarketCap
 import com.arturkowalczyk300.cryptocurrencyprices.R
+import kotlinx.coroutines.launch
 import java.util.*
 
 
@@ -66,44 +68,53 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
 
     fun updateSelectedCryptocurrencyPriceData(
     ) {
-        selectedCryptocurrencyId ?: return
-        var dateRequest: Date
+        if (selectedCryptocurrencyId == null ||
+            (showArchivalData && showArchivalDataRange == null)
+        ) return
 
-        if (showArchivalData) {
-            showArchivalDataRange ?: return
-            dateRequest = showArchivalDataRange!!
+        viewModelScope.launch {
 
-            repository.updatePriceData(
-                currencySymbol = selectedCryptocurrencyId!!,
-                vs_currency = vsCurrency!!,
-                archival = true,
-                archivalDate = dateRequest
-            )
-        } else {
-            repository.updatePriceData(
-                currencySymbol = selectedCryptocurrencyId!!,
-                vs_currency = vsCurrency!!
-            )
+            var dateRequest: Date
+
+            if (showArchivalData) {
+                dateRequest = showArchivalDataRange!!
+
+                repository.updatePriceData(
+                    currencySymbol = selectedCryptocurrencyId!!,
+                    vs_currency = vsCurrency!!,
+                    archival = true,
+                    archivalDate = dateRequest
+                )
+            } else {
+                repository.updatePriceData(
+                    currencySymbol = selectedCryptocurrencyId!!,
+                    vs_currency = vsCurrency!!
+                )
+            }
         }
         //TODO(): add api errors handling
     }
 
 
     fun updateCryptocurrenciesList() {
-        repository.updateCryptocurrenciesList()
+        viewModelScope.launch {
+            repository.updateCryptocurrenciesList()
+        }
     }
 
     fun updateCryptocurrenciesInfoInDateRange(
     ) {
         recalculateTimeRange()
 
-        if (this.selectedCryptocurrencyId != null && this.vsCurrency != null && this.selectedUnixTimeFrom != null && this.selectedUnixTimeTo != null) {
-            repository.updateCryptocurrenciesInfoInDateRange(
-                this.selectedCryptocurrencyId!!,
-                this.vsCurrency!!,
-                this.selectedUnixTimeFrom!!,
-                this.selectedUnixTimeTo!!
-            )
+        viewModelScope.launch {
+            if (selectedCryptocurrencyId != null && vsCurrency != null && selectedUnixTimeFrom != null && selectedUnixTimeTo != null) {
+                repository.updateCryptocurrenciesInfoInDateRange(
+                    selectedCryptocurrencyId!!,
+                    vsCurrency!!,
+                    selectedUnixTimeFrom!!,
+                    selectedUnixTimeTo!!
+                )
+            }
         }
     }
 

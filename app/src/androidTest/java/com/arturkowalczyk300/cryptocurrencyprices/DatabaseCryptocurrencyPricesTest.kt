@@ -7,6 +7,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.*
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -50,7 +52,9 @@ class DatabaseCryptocurrencyPricesTest {
             Date(1676576168375)
         )
 
-        dao.addCryptocurrencyToTop100ByMarketCapTable(entity1)
+        runBlockingTest {
+            dao.addCryptocurrencyToTop100ByMarketCapTable(entity1)
+        }
 
         val records = dao.getAllCryptocurrencies().getOrAwaitValue()
 
@@ -77,10 +81,13 @@ class DatabaseCryptocurrencyPricesTest {
             Date(1676576168376)
         )
 
-        dao.addCryptocurrencyToTop100ByMarketCapTable(entity1)
-        dao.addCryptocurrencyToTop100ByMarketCapTable(entity2)
+        runBlockingTest {
+            dao.addCryptocurrencyToTop100ByMarketCapTable(entity1)
+            dao.addCryptocurrencyToTop100ByMarketCapTable(entity2)
 
-        dao.deleteAllCryptocurrencies()
+            dao.deleteAllCryptocurrencies()
+        }
+
         val records = dao.getAllCryptocurrencies().getOrAwaitValue()
         assertThat(records.size).isEqualTo(0)
     }
@@ -97,7 +104,9 @@ class DatabaseCryptocurrencyPricesTest {
             Date(1676576166499000)
         )
 
-        dao.addCryptocurrencyPrice(entity1)
+        runBlockingTest {
+            dao.addCryptocurrencyPrice(entity1)
+        }
 
         val records = dao.getAllCryptocurrenciesPrices().getOrAwaitValue()
         assertThat(records).contains(entity1)
@@ -119,10 +128,12 @@ class DatabaseCryptocurrencyPricesTest {
             Date(1676579784442000)
         )
 
-        dao.addCryptocurrencyPrice(entity1)
-        dao.addCryptocurrencyPrice(entity2)
+        runBlockingTest {
+            dao.addCryptocurrencyPrice(entity1)
+            dao.addCryptocurrencyPrice(entity2)
 
-        dao.deleteAllCryptocurrenciesPrices()
+            dao.deleteAllCryptocurrenciesPrices()
+        }
 
         val records = dao.getAllCryptocurrenciesPrices().getOrAwaitValue()
         assertThat(records.size).isEqualTo(0)
@@ -144,10 +155,12 @@ class DatabaseCryptocurrencyPricesTest {
             Date(1676579784442000)
         )
 
-        dao.addCryptocurrencyPrice(entity1)
-        dao.addCryptocurrencyPrice(entity2)
+        runBlockingTest {
+            dao.addCryptocurrencyPrice(entity1)
+            dao.addCryptocurrencyPrice(entity2)
 
-        dao.deletePricesOfGivenCryptocurrency("bitcoin")
+            dao.deletePricesOfGivenCryptocurrency("bitcoin")
+        }
 
         val records = dao.getAllCryptocurrenciesPrices().getOrAwaitValue()
 
@@ -187,7 +200,9 @@ class DatabaseCryptocurrencyPricesTest {
             Date(1676574678059)
         )
 
-        dao.addCryptocurrencyInfoInTimeRange(entity1)
+        runBlockingTest {
+            dao.addCryptocurrencyInfoInTimeRange(entity1)
+        }
 
         val records = dao.getAllCryptocurrenciesInfoInTimeRange().getOrAwaitValue()
 
@@ -250,8 +265,10 @@ class DatabaseCryptocurrencyPricesTest {
             Date(1676574678059)
         )
 
-        dao.addCryptocurrencyInfoInTimeRange(entity1)
-        dao.addCryptocurrencyInfoInTimeRange(entity2)
+        runBlockingTest {
+            dao.addCryptocurrencyInfoInTimeRange(entity1)
+            dao.addCryptocurrencyInfoInTimeRange(entity2)
+        }
 
         val records = dao.getInfoOfCryptocurrencyInTimeRange("bitcoin", 7).getOrAwaitValue()
 
@@ -315,10 +332,12 @@ class DatabaseCryptocurrencyPricesTest {
             Date(1676574678059)
         )
 
-        dao.addCryptocurrencyInfoInTimeRange(entity1)
-        dao.addCryptocurrencyInfoInTimeRange(entity2)
+        runBlockingTest {
+            dao.addCryptocurrencyInfoInTimeRange(entity1)
+            dao.addCryptocurrencyInfoInTimeRange(entity2)
 
-        dao.deleteAllCryptocurrenciesInfo()
+            dao.deleteAllCryptocurrenciesInfo()
+        }
 
         val records = dao.getAllCryptocurrenciesInfoInTimeRange().getOrAwaitValue()
 
@@ -354,8 +373,10 @@ class DatabaseCryptocurrencyPricesTest {
             Date(1676574678059)
         )
 
-        dao.addCryptocurrencyInfoInTimeRange(entity1)
-        dao.deleteCryptocurrencyInfoContainsGivenDay("bitcoin", 1675969877)
+        runBlockingTest {
+            dao.addCryptocurrencyInfoInTimeRange(entity1)
+            dao.deleteCryptocurrencyInfoContainsGivenDay("bitcoin", 1675969877)
+        }
 
         val records = dao.getAllCryptocurrenciesInfoInTimeRange().getOrAwaitValue()
 
@@ -391,8 +412,10 @@ class DatabaseCryptocurrencyPricesTest {
             Date(1676574678059)
         )
 
-        dao.addCryptocurrencyInfoInTimeRange(entity1)
-        dao.deleteAllCryptocurrenciesInfoInGivenDaysCount("bitcoin", 7)
+        runBlockingTest {
+            dao.addCryptocurrencyInfoInTimeRange(entity1)
+            dao.deleteAllCryptocurrenciesInfoInGivenDaysCount("bitcoin", 7)
+        }
 
         val records = dao.getAllCryptocurrenciesInfoInTimeRange().getOrAwaitValue()
 

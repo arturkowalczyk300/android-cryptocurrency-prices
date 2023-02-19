@@ -13,19 +13,19 @@ interface CryptocurrencyPricesDao {
     //********************************************************************
 
     @Insert(onConflict = REPLACE)
-    fun addCryptocurrencyToTop100ByMarketCapTable(entity: EntityCryptocurrencyTop100ByMarketCap)
+    suspend fun addCryptocurrencyToTop100ByMarketCapTable(entity: EntityCryptocurrencyTop100ByMarketCap)
 
     @Query("SELECT * FROM top100_cryptocurrencies ORDER BY market_cap_rank ASC")
     fun getAllCryptocurrencies(): LiveData<List<EntityCryptocurrencyTop100ByMarketCap>>
 
     @Query("DELETE FROM top100_cryptocurrencies")
-    fun deleteAllCryptocurrencies()
+    suspend fun deleteAllCryptocurrencies()
 
     //********************************************************************
     // table cryptocurrencies prices (just simple price)
     //********************************************************************
     @Insert(onConflict = REPLACE)
-    fun addCryptocurrencyPrice(entity: EntityCryptocurrencyPrice)
+    suspend fun addCryptocurrencyPrice(entity: EntityCryptocurrencyPrice)
 
     @Query(
         "SELECT * FROM cryptocurrencies_prices"
@@ -35,19 +35,19 @@ interface CryptocurrencyPricesDao {
     @Query(
         "DELETE FROM cryptocurrencies_prices"
     )
-    fun deleteAllCryptocurrenciesPrices()
+    suspend fun deleteAllCryptocurrenciesPrices()
 
     @Query(
         "DELETE FROM cryptocurrencies_prices WHERE cryptocurrencyId=:cryptocurrencyId"
     )
-    fun deletePricesOfGivenCryptocurrency(cryptocurrencyId: String)
+    suspend fun deletePricesOfGivenCryptocurrency(cryptocurrencyId: String)
 
     //********************************************************************
     // table cryptocurrencies info in time range (price also)
     //********************************************************************
 
     @Insert(onConflict = REPLACE)
-    fun addCryptocurrencyInfoInTimeRange(entity: EntityCryptocurrencyInfoInTimeRange)
+    suspend fun addCryptocurrencyInfoInTimeRange(entity: EntityCryptocurrencyInfoInTimeRange)
 
     @Query(
         "SELECT * FROM cryptocurrencies_info_in_time_range "
@@ -65,7 +65,7 @@ interface CryptocurrencyPricesDao {
     ): LiveData<List<EntityCryptocurrencyInfoInTimeRange>>
 
     @Query("DELETE FROM cryptocurrencies_info_in_time_range")
-    fun deleteAllCryptocurrenciesInfo()
+    suspend fun deleteAllCryptocurrenciesInfo()
 
     //get by a) cryptocurrency id, b) time range
     @Query(
@@ -74,7 +74,7 @@ interface CryptocurrencyPricesDao {
                 "AND timeRangeFrom <= :unixTimeDay " +
                 "AND timeRangeTo >= :unixTimeDay"
     )
-    fun deleteCryptocurrencyInfoContainsGivenDay(
+    suspend fun deleteCryptocurrencyInfoContainsGivenDay(
         cryptocurrencyId: String,
         unixTimeDay: Long,
     )
@@ -85,7 +85,7 @@ interface CryptocurrencyPricesDao {
                 "WHERE cryptocurrencyId=:cryptocurrencyId " +
                 "AND daysCount=:daysCount"
     )
-    fun deleteAllCryptocurrenciesInfoInGivenDaysCount(
+    suspend fun deleteAllCryptocurrenciesInfoInGivenDaysCount(
         cryptocurrencyId: String,
         daysCount: Int,
     )
