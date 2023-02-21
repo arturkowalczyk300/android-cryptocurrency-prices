@@ -222,12 +222,12 @@ class MainActivity : AppCompatActivity() {
                 }
             })
 
-        viewModel.noCachedData.observe(this) { show ->
-            if (show) //lack of data
+        viewModel.isDataCached.observe(this) { it ->
+            if (it) //lack of data
             {
-                findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
-            } else
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.GONE
+            } else
+                findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
         }
     }
 
@@ -248,11 +248,11 @@ class MainActivity : AppCompatActivity() {
                     if (currentElement.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
                         val msBetweenDates = Date().time - currentElement.date.time
 
-                        viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(
+                        viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo(
                             msBetweenDates / 1000 / 60
                         ) //ms to min
 
-                        viewModel.noCachedData.postValue(false)
+                        viewModel.setDataCached(true)
                         switchVisibilityOfCurrentPriceSection(View.VISIBLE)
                         updateTextViews(
                             currentElement.cryptocurrencyId,

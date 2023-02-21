@@ -21,8 +21,6 @@
     <string name="txtMin">Min: </string>
     <string name="txtAvg">Avg: </string>
     <string name="txtMax">Max: </string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="radioButtonOneYear">1 year</string>
     <string name="radioButtonOneMonth">1 month</string>
     <string name="radioButtonOneWeek">1 week</string>

@@ -138,7 +138,6 @@ class CryptocurrencyPricesRepository(application: Application) {
                         )
                     )
                 }
-
             }
     }
 
@@ -161,7 +160,7 @@ class CryptocurrencyPricesRepository(application: Application) {
                             CryptocurrencyStatValueWithTime(
                                 it[0].toLong(),
                                 it[1]
-                            ) //TODO: check type
+                            )
                         }
                     val prices = ListOfCryptocurrencyStatValuesWithTime(list)
 

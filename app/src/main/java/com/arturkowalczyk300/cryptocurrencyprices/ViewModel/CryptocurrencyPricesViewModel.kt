@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arturkowalczyk300.cryptocurrencyprices.Model.CryptocurrencyPricesRepository
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyInfoInTimeRange
-import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyPrice
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -18,20 +17,29 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
 
     //livedata properties
-    //TODO: change get methods into livedata properties
     private var _allCryptocurrencies = repository.getAllCryptocurrencies()
     val allCryptocurrencies = _allCryptocurrencies
 
     private var _allCryptocurrenciesPrices = repository.getAllCryptocurrenciesPrices()
     val allCryptocurrenciesPrices = _allCryptocurrenciesPrices
 
-    private var _cryptocurrenciesInfoInTimeRange: LiveData<List<EntityCryptocurrencyInfoInTimeRange>>? = null
+    private var _cryptocurrenciesInfoInTimeRange: LiveData<List<EntityCryptocurrencyInfoInTimeRange>>? =
+        null
     var cryptocurrenciesInfoInTimeRange: LiveData<List<EntityCryptocurrencyInfoInTimeRange>>? =
         _cryptocurrenciesInfoInTimeRange
 
-    //status of operations
+    //statuses of operations
     private var _apiErrorCode = repository.getApiErrorCodeLiveData()
     val apiErrorCode = _apiErrorCode
+
+    private var _currentlyDisplayedDataUpdatedMinutesAgo: MutableLiveData<Long?> =
+        MutableLiveData<Long?>()
+    val currentlyDisplayedDataUpdatedMinutesAgo: LiveData<Long?> =
+        _currentlyDisplayedDataUpdatedMinutesAgo
+
+    private var _isDataCached: MutableLiveData<Boolean> =
+        MutableLiveData()
+    val isDataCached: LiveData<Boolean> = _isDataCached
 
     //parameters for data fetching
     var selectedCryptocurrencyId: String? = null
@@ -50,9 +58,7 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
 
     //info
     var hasInternetConnection: Boolean = false
-    var currentlyDisplayedDataUpdatedMinutesAgo: MutableLiveData<Long?> = MutableLiveData<Long?>()
-    var noCachedData: MutableLiveData<Boolean> = MutableLiveData()
-    var noCachedDataVisibility: Boolean = false
+    var noDataCachedVisibility: Boolean = false
     var isDataUpdatedSuccessfully = repository.isDataUpdatedSuccessfully
 
     fun recalculateTimeRange() {
@@ -148,6 +154,14 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
             daysCount
         )
         cryptocurrenciesInfoInTimeRange = _cryptocurrenciesInfoInTimeRange //TODO: refactor
+    }
+
+    fun setCurrentlyDisplayedDataUpdatedMinutesAgo(value: Long?) {
+        _currentlyDisplayedDataUpdatedMinutesAgo.postValue(value)
+    }
+
+    fun setDataCached(value: Boolean) {
+        _isDataCached.postValue(value)
     }
 
 }

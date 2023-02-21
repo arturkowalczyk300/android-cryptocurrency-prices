@@ -78,25 +78,25 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
     private fun showNoDataInfo(show: Boolean) { //todo: move it into viewmodel as property
         if (show) {
-            viewModel.noCachedDataVisibility = true
+            viewModel.noDataCachedVisibility = true
             CoroutineScope(Dispatchers.Default).async {
                 delay(1000)
-                if (viewModel.noCachedDataVisibility) //check again, maybe new record has been added meanwhile
+                if (viewModel.noDataCachedVisibility) //check again, maybe new record has been added meanwhile
                 {
                     chart.data = null
                     chart.invalidate()
                     chart.notifyDataSetChanged()
                     setChartLoadingProgressBarVisibility(false)
-                    viewModel.currentlyDisplayedDataUpdatedMinutesAgo.postValue(null)
-                    viewModel.noCachedData.postValue(true)
+                    viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo(null)
+                    viewModel.setDataCached(false)
 
                     setChartVisibility(false) //no valid data to display
                     setChartAxisLabelsVisibility(false)
                 }
             }
         } else {
-            viewModel.noCachedData.postValue(false)
-            viewModel.noCachedDataVisibility = false
+            viewModel.setDataCached(true)
+            viewModel.noDataCachedVisibility = false
         }
     }
 
