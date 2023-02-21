@@ -6,13 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [EntityCryptocurrencyTop100ByMarketCap::class,
-        EntityCryptocurrencyInfoInTimeRange::class,
-        EntityCryptocurrencyPrice::class],
-    version = 8
+    entities = [CryptocurrencyEntity::class,
+        InfoWithinTimeRangeEntity::class,
+        PriceEntity::class],
+    version = 9
 )
 abstract class CryptocurrencyPricesDatabase() : RoomDatabase() {
-    abstract fun userDao(): CryptocurrencyPricesDao
+    abstract fun userDao(): Dao
 
     companion object {
         private var databaseInstance: CryptocurrencyPricesDatabase? = null
@@ -23,7 +23,7 @@ abstract class CryptocurrencyPricesDatabase() : RoomDatabase() {
                 CryptocurrencyPricesDatabase::class.java,
                 "main_database"
             ).fallbackToDestructiveMigration()
-                .allowMainThreadQueries()
+                .allowMainThreadQueries() //TODO: delete?
                 .build()
 
             return databaseInstance

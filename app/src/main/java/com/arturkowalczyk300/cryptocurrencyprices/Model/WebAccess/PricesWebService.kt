@@ -17,7 +17,7 @@ import kotlin.collections.ArrayList
 open class RequestWithResponse(
     var currencySymbol: String = "",
     var date: Date = Date(0),
-    var entity: CryptocurrencyPricesEntityApi? = null,
+    var entity: PricesResponse? = null,
     var actualPrice: Float? = null,
     var flagDataSet: Boolean = false,
 ) {
@@ -86,11 +86,11 @@ class CryptocurrencyPricesWebService {
 
     var mldPriceHistory: MutableLiveData<RequestWithResponseArchival?>? = MutableLiveData()
 
-    var cryptocurrenciesListSorted: MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>> =
+    var cryptocurrenciesListSorted: MutableLiveData<ArrayList<PriceResponseSimplified>> =
         MutableLiveData()
 
     init {
-        when (CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()) {
+        when (PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()) {
             null -> Log.e("myApp", "ApiHandleInstance is null")
             else -> {
             }
@@ -111,7 +111,7 @@ class CryptocurrencyPricesWebService {
         waitingForResponse = true
 
         val response: Call<ResponseBody>? =
-            CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
+            PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
                 ?.getActualPrice(currencySymbol, vs_currency)
 
 
@@ -175,15 +175,15 @@ class CryptocurrencyPricesWebService {
         val sdf = SimpleDateFormat("dd-MM-yyyy") //TODO: refactor
         val formattedDate = sdf.format(date)
 
-        val response: Call<CryptocurrencyPricesEntityApi>? =
-            CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
+        val response: Call<PricesResponse>? =
+            PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
                 ?.getArchivalPrice(currencySymbol, formattedDate)
 
 
-        response?.enqueue(object : Callback<CryptocurrencyPricesEntityApi> {
+        response?.enqueue(object : Callback<PricesResponse> {
             override fun onResponse(
-                call: Call<CryptocurrencyPricesEntityApi>,
-                response: Response<CryptocurrencyPricesEntityApi>,
+                call: Call<PricesResponse>,
+                response: Response<PricesResponse>,
             ) {
                 if (response.code() == 429)
                     mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
@@ -200,7 +200,7 @@ class CryptocurrencyPricesWebService {
                 waitingForResponse = false
             }
 
-            override fun onFailure(call: Call<CryptocurrencyPricesEntityApi>, t: Throwable) {
+            override fun onFailure(call: Call<PricesResponse>, t: Throwable) {
                 mldErrorCode.value = Pair(
                     true, ErrorMessage(
                         REQUEST_PRICE_DATA_FAILURE,
@@ -218,15 +218,15 @@ class CryptocurrencyPricesWebService {
         return mldArchivalRequestWithResponse
     }
 
-    fun requestCryptocurrenciesList(): MutableLiveData<ArrayList<CryptocurrencyPriceFromListApi>> {
-        val listResponse: Call<List<CryptocurrencyPriceFromListApi>>? =
-            CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
-                ?.getListOfCryptocurrencies("USD", "market_cap_desc", 100, 1, false)
+    fun requestCryptocurrenciesList(): MutableLiveData<ArrayList<PriceResponseSimplified>> {
+        val listResponse: Call<List<PriceResponseSimplified>>? =
+            PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
+                ?.getCryptocurrenciesList("USD", "market_cap_desc", 100, 1, false)
 
-        listResponse?.enqueue(object : Callback<List<CryptocurrencyPriceFromListApi>> {
+        listResponse?.enqueue(object : Callback<List<PriceResponseSimplified>> {
             override fun onResponse(
-                call: Call<List<CryptocurrencyPriceFromListApi>>,
-                response: Response<List<CryptocurrencyPriceFromListApi>>,
+                call: Call<List<PriceResponseSimplified>>,
+                response: Response<List<PriceResponseSimplified>>,
             ) {
                 val responseBody = response.body()
                 if (response.code() == 429)
@@ -243,7 +243,7 @@ class CryptocurrencyPricesWebService {
                 }
             }
 
-            override fun onFailure(call: Call<List<CryptocurrencyPriceFromListApi>>, t: Throwable) {
+            override fun onFailure(call: Call<List<PriceResponseSimplified>>, t: Throwable) {
                 mldErrorCode.value = Pair(
                     true, ErrorMessage(
                         REQUEST_CRYPTOCURRENCIES_LIST_FAILURE,
@@ -273,8 +273,8 @@ class CryptocurrencyPricesWebService {
         Log.d("myApp", "requestPriceHistoryForDateRange, date=${Date(unixTimeTo * 1000)}")
 
 
-        val response: Call<CryptocurrencyPriceHistoryFromApi>? =
-            CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
+        val response: Call<PriceHistoryResponse>? =
+            PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
                 ?.getHistoryOfPriceForDateRange(
                     currencySymbol,
                     vs_currency,
@@ -283,10 +283,10 @@ class CryptocurrencyPricesWebService {
                 )
 
 
-        response?.enqueue(object : Callback<CryptocurrencyPriceHistoryFromApi> {
+        response?.enqueue(object : Callback<PriceHistoryResponse> {
             override fun onResponse(
-                call: Call<CryptocurrencyPriceHistoryFromApi>,
-                response: Response<CryptocurrencyPriceHistoryFromApi>,
+                call: Call<PriceHistoryResponse>,
+                response: Response<PriceHistoryResponse>,
             ) {
                 Log.d("myApp", "code=$response.code()")
                 if (response.code() == 429)
@@ -313,7 +313,7 @@ class CryptocurrencyPricesWebService {
                 }
             }
 
-            override fun onFailure(call: Call<CryptocurrencyPriceHistoryFromApi>, t: Throwable) {
+            override fun onFailure(call: Call<PriceHistoryResponse>, t: Throwable) {
                 mldPriceHistory!!.value = null
                 mldErrorCode.value =
                     Pair(

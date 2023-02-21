@@ -10,10 +10,10 @@ import android.widget.*
 import androidx.constraintlayout.widget.Group
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
-import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyInfoInTimeRange
+import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.InfoWithinTimeRangeEntity
 import com.arturkowalczyk300.cryptocurrencyprices.R
-import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
-import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
+import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.MainViewModel
+import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.MainViewModelFactory
 import com.github.mikephil.charting.charts.Chart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
@@ -27,7 +27,7 @@ import kotlin.collections.ArrayList
 
 class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var appContext: Context
-    private lateinit var viewModel: CryptocurrencyPricesViewModel
+    private lateinit var viewModel: MainViewModel
 
     private lateinit var chart: LineChart
     private lateinit var chartValues: ArrayList<Entry>
@@ -66,10 +66,10 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     }
 
     private fun initViewModel() {
-        val factory = CryptocurrencyPricesViewModelFactory(requireActivity().application)
+        val factory = MainViewModelFactory(requireActivity().application)
         viewModel = ViewModelProvider(
             requireActivity(), factory
-        ).get(CryptocurrencyPricesViewModel::class.java)
+        ).get(MainViewModel::class.java)
     }
 
     fun updateData() {
@@ -111,13 +111,13 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             viewModel.updateCryptocurrenciesInfoInDateRange()
 
             val lifecycleOwner = requireActivity()
-            val liveData = viewModel.cryptocurrenciesInfoInTimeRange!!
+            val liveData = viewModel.cryptocurrenciesInfoWithinTimeRange!!
 
-                viewModel.cryptocurrenciesInfoInTimeRange?.observe(
+                viewModel.cryptocurrenciesInfoWithinTimeRange?.observe(
                     lifecycleOwner,
                     object :
-                        androidx.lifecycle.Observer<List<EntityCryptocurrencyInfoInTimeRange>> {
-                        override fun onChanged(list: List<EntityCryptocurrencyInfoInTimeRange>?) {
+                        androidx.lifecycle.Observer<List<InfoWithinTimeRangeEntity>> {
+                        override fun onChanged(list: List<InfoWithinTimeRangeEntity>?) {
                             var isResponseHandled = false
                             if(list!=null && list.isNotEmpty()){
                                 if (!list.isNullOrEmpty() && !list.last().prices.list.isNullOrEmpty()) {

@@ -6,13 +6,13 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-object CryptocurrencyPricesRetrofitClient {
+object PricesRetrofitClient {
     private var okHttpClientInstance: OkHttpClient? = null
     private var retrofitInstance: Retrofit? = null
-    private var cryptocurrencyPricesApiHandle: CryptocurrencyPricesApiHandle? = null
+    private var pricesApiHandle: PricesApiHandle? = null
     val baseUrlAddress: String = "https://api.coingecko.com/"
 
-    fun getCryptocurrencyPricesApiHandleInstance(): CryptocurrencyPricesApiHandle? {
+    fun getCryptocurrencyPricesApiHandleInstance(): PricesApiHandle? {
 
         try {
             okHttpClientInstance =
@@ -28,21 +28,21 @@ object CryptocurrencyPricesRetrofitClient {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
 
-            cryptocurrencyPricesApiHandle =
-                cryptocurrencyPricesApiHandle ?: retrofitInstance?.create(
-                    CryptocurrencyPricesApiHandle::class.java
+            pricesApiHandle =
+                pricesApiHandle ?: retrofitInstance?.create(
+                    PricesApiHandle::class.java
                 )
 
 
             okHttpClientInstance!!
             retrofitInstance!!
-            cryptocurrencyPricesApiHandle!!
+            pricesApiHandle!!
         } catch (exc: Exception) {
             Log.e("myApp", "getCryptocurrencyPricesApiHandleInstance, $exc")
             return null
         }
 
-        return cryptocurrencyPricesApiHandle
+        return pricesApiHandle
     }
 
     fun getRetrofitInstance(): Retrofit?{

@@ -1,7 +1,7 @@
 package com.arturkowalczyk300.cryptocurrencyprices
 
-import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPricesApiHandle
-import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.CryptocurrencyPricesRetrofitClient
+import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.PricesApiHandle
+import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.PricesRetrofitClient
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -9,19 +9,19 @@ import retrofit2.Retrofit
 
 class RetrofitTest {
     private var retrofitInstance: Retrofit? = null
-    private var apiHandle: CryptocurrencyPricesApiHandle? = null
+    private var apiHandle: PricesApiHandle? = null
 
     @Before
     fun setup(){
-         retrofitInstance = CryptocurrencyPricesRetrofitClient.getRetrofitInstance()
+         retrofitInstance = PricesRetrofitClient.getRetrofitInstance()
          apiHandle =
-            CryptocurrencyPricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
+            PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
     }
 
     @Test
     fun testRetrofitInstance() {
         val currentUrl = retrofitInstance!!.baseUrl().url().toString()
-        val baseUrl = CryptocurrencyPricesRetrofitClient.baseUrlAddress
+        val baseUrl = PricesRetrofitClient.baseUrlAddress
         assertThat(currentUrl).isEqualTo(baseUrl)
     }
 
@@ -45,7 +45,7 @@ class RetrofitTest {
 
     @Test
     fun testApiCallGetListOfCryptocurrencies() {
-        val response = apiHandle!!.getListOfCryptocurrencies(
+        val response = apiHandle!!.getCryptocurrenciesList(
             "USD",
             "market_cap_desc",
             100,

@@ -1,6 +1,6 @@
 package com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess
 
-data class CryptocurrencyPriceFromListApi(
+data class PriceResponseSimplified(
     val id: String,
     val symbol: String,
     val name: String,

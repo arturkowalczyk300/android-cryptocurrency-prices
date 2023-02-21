@@ -7,30 +7,23 @@ import androidx.room.OnConflictStrategy.REPLACE
 import androidx.room.Query
 
 @Dao
-interface CryptocurrencyPricesDao {
-    //********************************************************************
-    // table top100_cryptocurrencies
-    //********************************************************************
-
+interface Dao {
     @Insert(onConflict = REPLACE)
-    suspend fun addCryptocurrencyToTop100ByMarketCapTable(entity: EntityCryptocurrencyTop100ByMarketCap)
+    suspend fun addCryptocurrency(entity: CryptocurrencyEntity)
 
-    @Query("SELECT * FROM top100_cryptocurrencies ORDER BY market_cap_rank ASC")
-    fun getAllCryptocurrencies(): LiveData<List<EntityCryptocurrencyTop100ByMarketCap>>
+    @Query("SELECT * FROM cryptocurrencies ORDER BY market_cap_rank ASC")
+    fun getAllCryptocurrencies(): LiveData<List<CryptocurrencyEntity>>
 
-    @Query("DELETE FROM top100_cryptocurrencies")
+    @Query("DELETE FROM cryptocurrencies")
     suspend fun deleteAllCryptocurrencies()
 
-    //********************************************************************
-    // table cryptocurrencies prices (just simple price)
-    //********************************************************************
     @Insert(onConflict = REPLACE)
-    suspend fun addCryptocurrencyPrice(entity: EntityCryptocurrencyPrice)
+    suspend fun addCryptocurrencyPrice(entity: PriceEntity)
 
     @Query(
         "SELECT * FROM cryptocurrencies_prices"
     )
-    fun getAllCryptocurrenciesPrices(): LiveData<List<EntityCryptocurrencyPrice>>
+    fun getAllCryptocurrenciesPrices(): LiveData<List<PriceEntity>>
 
     @Query(
         "DELETE FROM cryptocurrencies_prices"
@@ -42,32 +35,27 @@ interface CryptocurrencyPricesDao {
     )
     suspend fun deletePricesOfGivenCryptocurrency(cryptocurrencyId: String)
 
-    //********************************************************************
-    // table cryptocurrencies info in time range (price also)
-    //********************************************************************
-
     @Insert(onConflict = REPLACE)
-    suspend fun addCryptocurrencyInfoInTimeRange(entity: EntityCryptocurrencyInfoInTimeRange)
+    suspend fun addCryptocurrencyInfoWithinTimeRange(entity: InfoWithinTimeRangeEntity)
 
     @Query(
         "SELECT * FROM cryptocurrencies_info_in_time_range "
     )
-    fun getAllCryptocurrenciesInfoInTimeRange(): LiveData<List<EntityCryptocurrencyInfoInTimeRange>>
+    fun getAllCryptocurrenciesInfoWithinTimeRange(): LiveData<List<InfoWithinTimeRangeEntity>>
 
     @Query(
         "SELECT * FROM cryptocurrencies_info_in_time_range " +
                 "WHERE cryptocurrencyId=:cryptocurrencyId " +
                 "AND daysCount=:daysCount"
     )
-    fun getInfoOfCryptocurrencyInTimeRange(
+    fun getInfoOfCryptocurrencyWithinTimeRange(
         cryptocurrencyId: String,
         daysCount: Int,
-    ): LiveData<List<EntityCryptocurrencyInfoInTimeRange>>
+    ): LiveData<List<InfoWithinTimeRangeEntity>>
 
     @Query("DELETE FROM cryptocurrencies_info_in_time_range")
     suspend fun deleteAllCryptocurrenciesInfo()
 
-    //get by a) cryptocurrency id, b) time range
     @Query(
         "DELETE FROM cryptocurrencies_info_in_time_range " +
                 "WHERE cryptocurrencyId=:cryptocurrencyId " +
@@ -79,7 +67,6 @@ interface CryptocurrencyPricesDao {
         unixTimeDay: Long,
     )
 
-    //new requests
     @Query(
         "DELETE FROM cryptocurrencies_info_in_time_range " +
                 "WHERE cryptocurrencyId=:cryptocurrencyId " +

@@ -5,9 +5,9 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import java.util.*
 
-@Entity(tableName = "top100_cryptocurrencies")
-@TypeConverters(DateConverter::class)
-data class EntityCryptocurrencyTop100ByMarketCap(
+@Entity(tableName = "cryptocurrencies")
+@TypeConverters(DateConverterDb::class)
+data class CryptocurrencyEntity(
     @PrimaryKey val market_cap_rank: Int,
     val cryptocurrencyId: String,
     val name: String,

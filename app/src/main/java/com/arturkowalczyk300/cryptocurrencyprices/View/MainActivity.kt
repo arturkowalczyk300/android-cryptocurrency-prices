@@ -16,14 +16,14 @@ import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.Other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.Other.Prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
-import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModel
-import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.CryptocurrencyPricesViewModelFactory
+import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.MainViewModel
+import com.arturkowalczyk300.cryptocurrencyprices.ViewModel.MainViewModelFactory
 import java.sql.Timestamp
 import java.util.*
 import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var viewModel: CryptocurrencyPricesViewModel
+    private lateinit var viewModel: MainViewModel
     private lateinit var tvSelectedCurrencyId: TextView
     private lateinit var etDate: EditText
     private lateinit var tvCryptocurrencySymbol: TextView
@@ -114,8 +114,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViewModel() {
-        val factory = CryptocurrencyPricesViewModelFactory(application)
-        viewModel = ViewModelProvider(this, factory).get(CryptocurrencyPricesViewModel::class.java)
+        val factory = MainViewModelFactory(application)
+        viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
 
         viewModel.vsCurrency = getString(R.string.defaultVsCurrency)
     }

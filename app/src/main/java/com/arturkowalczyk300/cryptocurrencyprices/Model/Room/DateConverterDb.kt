@@ -3,7 +3,7 @@ package com.arturkowalczyk300.cryptocurrencyprices.Model.Room
 import androidx.room.TypeConverter
 import java.util.*
 
-class DateConverter {
+class DateConverterDb {
     @TypeConverter
     fun toDate(dateLong: Long): Date{
         return Date(dateLong)
