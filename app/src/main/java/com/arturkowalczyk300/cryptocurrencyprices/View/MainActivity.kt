@@ -160,12 +160,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateDataIfConnectedToInternet() {
-        Log.d("myApp", "isCurrenciesListInitialized=$isCurrenciesListInitialized, viewModel.hasInternetConnection=${viewModel.hasInternetConnection}")
         if (isCurrenciesListInitialized && viewModel.hasInternetConnection) {
             autoFetchDataAlreadyDone = true
             autoFetchDataPending = false
             try {
-                Log.d("myApp", "updateDataIfConnectedToInternet, inside try block")
                 viewModel.updateSelectedCryptocurrencyPriceData()
                 viewModel.updateCryptocurrenciesInfoInDateRange()
                 chartFragment?.setChartLoadingProgressBarVisibility(true)
@@ -178,10 +176,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeLiveData() {
-        //show actual price
-
-        updateCurrentPriceSection()
-
+        updateCurrentPriceSection()         //show actual price
 
         viewModel.apiUnwrappingPriceDataErrorLiveData.observe(this, Observer { errorOccured ->
             if (errorOccured)
@@ -192,7 +187,7 @@ class MainActivity : AppCompatActivity() {
                 ).show()
         })
 
-        viewModel.getApiErrorCodeLiveData()
+        viewModel.apiErrorCode
             .observe(this, object : Observer<Pair<Boolean, ErrorMessage>> {
                 override fun onChanged(t: Pair<Boolean, ErrorMessage>?) {
 
@@ -237,7 +232,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateCurrentPriceSection() {
-        viewModel.getAllCryptocurrenciesPrices().observe(this, Observer { allPricesList ->
+        viewModel.allCryptocurrenciesPrices.observe(this, Observer { allPricesList ->
             if (allPricesList == null)
                 switchVisibilityOfCurrentPriceSection(View.INVISIBLE) //to still take layout space
 
@@ -275,7 +270,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleCryptocurrencyChoice() {
-        viewModel.getAllCryptocurrencies().observe(this, Observer { it ->
+        viewModel.allCryptocurrencies.observe(this, Observer { it ->
             listOfCryptocurrenciesNames.clear()
 
             it.forEach { nextIt ->

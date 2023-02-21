@@ -51,30 +51,16 @@ class CryptocurrencyPricesRepository(application: Application) {
     }
 
     private suspend fun addCryptocurrencyPrice(entity: EntityCryptocurrencyPrice) {
-        //limit historical entries to one per currency
         database!!.userDao()!!.deletePricesOfGivenCryptocurrency(entity.cryptocurrencyId)
-
-        Log.d(
-            "myApp",
-            "adding simple price, ID=${entity.cryptocurrencyId}, price = ${entity.price}"
-        )
-
         database!!.userDao()!!.addCryptocurrencyPrice(entity)
     }
 
     private suspend fun addCryptocurrencyInfoInTimeRange(entity: EntityCryptocurrencyInfoInTimeRange) {
-        //limit historical entries to one per currency and time range only
         if (entity.daysCount > 0)
             database!!.userDao()!!.deleteAllCryptocurrenciesInfoInGivenDaysCount(
                 entity.cryptocurrencyId,
                 entity.daysCount
             )
-
-        Log.d(
-            "myApp",
-            "adding historical, date=${Date(entity.timeRangeTo * 1000)}, totalVolumesSize=${entity.total_volumes?.list?.size}, marketCap=${entity.market_caps?.list?.size}"
-        )
-
         database!!.userDao()!!.addCryptocurrencyInfoInTimeRange(entity)
     }
 

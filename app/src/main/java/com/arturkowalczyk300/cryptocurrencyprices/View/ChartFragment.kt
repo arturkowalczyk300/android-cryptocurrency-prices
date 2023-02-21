@@ -9,7 +9,6 @@ import android.view.View
 import android.widget.*
 import androidx.constraintlayout.widget.Group
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyInfoInTimeRange
 import com.arturkowalczyk300.cryptocurrencyprices.R
@@ -24,7 +23,6 @@ import com.github.mikephil.charting.formatter.ValueFormatter
 import kotlinx.coroutines.*
 import java.lang.Runnable
 import java.text.DecimalFormat
-import java.util.*
 import kotlin.collections.ArrayList
 
 class ChartFragment : Fragment(R.layout.fragment_chart) {
@@ -47,8 +45,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var tvTrending: TextView
     private lateinit var ivTrending: ImageView
     private lateinit var tvTimePeriod: TextView
-    private var historicalPricesliveDatas: MutableList<LiveData<List<EntityCryptocurrencyInfoInTimeRange>>> =
-        mutableListOf()
 
     private var chartDataSet = LineDataSet(listOf(), "")
     var isInitialized = false
@@ -80,7 +76,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         getIfInternetConnectionAndObserveLiveDataPriceHistoryForDateRange()
     }
 
-    private fun showNoDataInfo(show: Boolean) {
+    private fun showNoDataInfo(show: Boolean) { //todo: move it into viewmodel as property
         if (show) {
             viewModel.noCachedDataVisibility = true
             CoroutineScope(Dispatchers.Default).async {
@@ -108,65 +104,50 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         hideMarker()
         setChartLoadingProgressBarVisibility(true)
 
-        viewModel.selectedCryptocurrencyId?.let { cryptocurrencyId ->
+        viewModel.selectedCryptocurrencyId?.let { _ ->
             if (viewModel.hasInternetConnection)
                 viewModel.updateCryptocurrenciesInfoInDateRange()
 
-            historicalPricesliveDatas.add( //keep references to remove all observers later
-                viewModel.getCryptocurrenciesInfoInTimeRange(
-                    cryptocurrencyId,
-                    viewModel.selectedDaysToSeeOnChart!!
-                )
-            )
+            viewModel.updateCryptocurrenciesInfoInDateRange()
 
             val lifecycleOwner = requireActivity()
+            val liveData = viewModel.cryptocurrenciesInfoInTimeRange!!
 
-            historicalPricesliveDatas.last()
-                .observe(lifecycleOwner, androidx.lifecycle.Observer { list -> //TODO: modify it
-
-                    if (list == null || list.isEmpty()) //failure, no cached valid data found
-                        showNoDataInfo(true)
-
-
-                    list?.let {
-
-                        if (!it.isNullOrEmpty() && !it.last().prices.list.isNullOrEmpty()) {
-                            //create list
-                            var list = arrayListOf<Entry>()
-                            it.last().prices.list.forEachIndexed { index, currentRow ->
-                                list.add(
-                                    Entry(
-                                        currentRow.unixTime.toFloat(),
-                                        currentRow.value.toFloat()
-                                    )
-                                )
-                            }
-                            setChartData(list)
-                            setMinAvgMaxPricesValues(list)
-                            updateTimePeriod()
-                            updatePriceTrends()
-                            setChartAxisLabelsVisibility(true)
-                            showNoDataInfo(false) //hide
-
-                            //remove observers to prevent multiple calls, except newest
-                            val size = historicalPricesliveDatas.size
-                            historicalPricesliveDatas.forEachIndexed { ind, ld ->
-                                if (ind < size - 1) {
-                                    ld.removeObservers(
-                                        lifecycleOwner
-                                    )
+                viewModel.cryptocurrenciesInfoInTimeRange?.observe(
+                    lifecycleOwner,
+                    object :
+                        androidx.lifecycle.Observer<List<EntityCryptocurrencyInfoInTimeRange>> {
+                        override fun onChanged(list: List<EntityCryptocurrencyInfoInTimeRange>?) {
+                            var isResponseHandled = false
+                            if(list!=null && list.isNotEmpty()){
+                                if (!list.isNullOrEmpty() && !list.last().prices.list.isNullOrEmpty()) {
+                                    var chartData = arrayListOf<Entry>()
+                                    list.last().prices.list.forEachIndexed { index, currentRow ->
+                                        chartData.add(
+                                            Entry(
+                                                currentRow.unixTime.toFloat(),
+                                                currentRow.value.toFloat()
+                                            )
+                                        )
+                                    }
+                                    setChartData(chartData)
+                                    setMinAvgMaxPricesValues(chartData)
+                                    updateTimePeriod()
+                                    updatePriceTrends()
+                                    setChartAxisLabelsVisibility(true)
+                                    showNoDataInfo(false) //hide
+                                    isResponseHandled = true
                                 }
                             }
-
-                        } else { //not valid data
-                            showNoDataInfo(true)
+                            if(isResponseHandled)
+                                liveData!!.removeObserver(this) //only when valid data is handled
+                            else
+                                showNoDataInfo(true)
                         }
-                    }
-                })
+                    })
+
         }
-
     }
-
 
     private fun setMinAvgMaxPricesValues(values: ArrayList<Entry>) {
         val min: Float = (values.minByOrNull { it.y }?.y) ?: -1.0f

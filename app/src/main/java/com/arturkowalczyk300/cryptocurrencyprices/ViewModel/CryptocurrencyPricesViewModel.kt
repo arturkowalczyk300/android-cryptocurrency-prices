@@ -8,8 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.arturkowalczyk300.cryptocurrencyprices.Model.CryptocurrencyPricesRepository
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyInfoInTimeRange
 import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyPrice
-import com.arturkowalczyk300.cryptocurrencyprices.Model.Room.EntityCryptocurrencyTop100ByMarketCap
-import com.arturkowalczyk300.cryptocurrencyprices.R
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -19,14 +17,29 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
         CryptocurrencyPricesRepository(application)
     val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
 
+    //livedata properties
+    //TODO: change get methods into livedata properties
+    private var _allCryptocurrencies = repository.getAllCryptocurrencies()
+    val allCryptocurrencies = _allCryptocurrencies
+
+    private var _allCryptocurrenciesPrices = repository.getAllCryptocurrenciesPrices()
+    val allCryptocurrenciesPrices = _allCryptocurrenciesPrices
+
+    private var _cryptocurrenciesInfoInTimeRange: LiveData<List<EntityCryptocurrencyInfoInTimeRange>>? = null
+    var cryptocurrenciesInfoInTimeRange: LiveData<List<EntityCryptocurrencyInfoInTimeRange>>? =
+        _cryptocurrenciesInfoInTimeRange
+
+    //status of operations
+    private var _apiErrorCode = repository.getApiErrorCodeLiveData()
+    val apiErrorCode = _apiErrorCode
+
     //parameters for data fetching
     var selectedCryptocurrencyId: String? = null
     var showArchivalData = false
     var showArchivalDataRange: Date? = null
     var vsCurrency: String? = null
-    var selectedUnixTimeFrom: Long? = null
-    var selectedUnixTimeTo: Long? = null
-
+    private var selectedUnixTimeFrom: Long? = null
+    private var selectedUnixTimeTo: Long? = null
     var selectedDaysToSeeOnChart: Int? = null
         set(value) {
             if (value != field) {
@@ -35,6 +48,7 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
             field = value
         }
 
+    //info
     var hasInternetConnection: Boolean = false
     var currentlyDisplayedDataUpdatedMinutesAgo: MutableLiveData<Long?> = MutableLiveData<Long?>()
     var noCachedData: MutableLiveData<Boolean> = MutableLiveData()
@@ -42,7 +56,6 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
     var isDataUpdatedSuccessfully = repository.isDataUpdatedSuccessfully
 
     fun recalculateTimeRange() {
-
         val calendar = Calendar.getInstance()
         if (showArchivalData) { //TODO: check this
             calendar.time = showArchivalDataRange
@@ -107,7 +120,15 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
         recalculateTimeRange()
 
         viewModelScope.launch {
-            if (selectedCryptocurrencyId != null && vsCurrency != null && selectedUnixTimeFrom != null && selectedUnixTimeTo != null) {
+            if (selectedCryptocurrencyId != null && vsCurrency != null
+                && selectedUnixTimeFrom != null && selectedUnixTimeTo != null
+                && selectedDaysToSeeOnChart != null
+            ) {
+                getCryptocurrenciesInfoInTimeRange(
+                    selectedCryptocurrencyId!!,
+                    selectedDaysToSeeOnChart!!
+                )
+
                 repository.updateCryptocurrenciesInfoInDateRange(
                     selectedCryptocurrencyId!!,
                     vsCurrency!!,
@@ -118,33 +139,15 @@ class CryptocurrencyPricesViewModel(application: Application) : ViewModel() {
         }
     }
 
-    fun getApiErrorCodeLiveData() = repository.getApiErrorCodeLiveData()
-
-    fun getAllCryptocurrencies(): LiveData<List<EntityCryptocurrencyTop100ByMarketCap>> {
-        return repository.getAllCryptocurrencies()
-    }
-
-    fun getAllCryptocurrenciesPrices(): LiveData<List<EntityCryptocurrencyPrice>> {
-        return repository.getAllCryptocurrenciesPrices()
-    }
-
-    fun getAllCryptocurrenciesInfo(): LiveData<List<EntityCryptocurrencyInfoInTimeRange>> {
-        return repository.getAllCryptocurrenciesInfo()
-    }
-
-    fun getCryptocurrencyInfoInTimeRange(): LiveData<List<EntityCryptocurrencyInfoInTimeRange>> {
-        return repository.getCryptocurrencyInfoInTimeRange()
-    }
-
-
-    fun getCryptocurrenciesInfoInTimeRange(
+    private fun getCryptocurrenciesInfoInTimeRange(
         cryptocurrencyId: String,
         daysCount: Int,
-    ): LiveData<List<EntityCryptocurrencyInfoInTimeRange>> {
-        return repository.getCryptocurrenciesInfoInTimeRange(
+    ) {
+        _cryptocurrenciesInfoInTimeRange = repository.getCryptocurrenciesInfoInTimeRange(
             cryptocurrencyId,
             daysCount
         )
+        cryptocurrenciesInfoInTimeRange = _cryptocurrenciesInfoInTimeRange //TODO: refactor
     }
 
 }
