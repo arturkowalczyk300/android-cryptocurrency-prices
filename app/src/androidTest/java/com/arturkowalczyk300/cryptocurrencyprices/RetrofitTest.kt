@@ -1,7 +1,7 @@
 package com.arturkowalczyk300.cryptocurrencyprices
 
-import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.PricesApiHandle
-import com.arturkowalczyk300.cryptocurrencyprices.Model.WebAccess.PricesRetrofitClient
+import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.PricesApiHandle
+import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.PricesRetrofitClient
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
