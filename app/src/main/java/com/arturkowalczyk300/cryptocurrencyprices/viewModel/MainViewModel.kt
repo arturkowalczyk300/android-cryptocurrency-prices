@@ -147,11 +147,6 @@ class MainViewModel(application: Application) : ViewModel() {
                     selectedUnixTimeFrom!!,
                     selectedUnixTimeTo!!
                 )
-
-//                getCryptocurrenciesInfoWithinTimeRange( //TODO: DRY rule violation
-//                    selectedCryptocurrencyId!!,
-//                    selectedDaysToSeeOnChart!!
-//                )
             }
         }
     }

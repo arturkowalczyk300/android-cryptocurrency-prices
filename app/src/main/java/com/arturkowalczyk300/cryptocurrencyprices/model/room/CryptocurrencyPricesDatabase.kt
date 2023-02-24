@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.arturkowalczyk300.cryptocurrencyprices.other.Constants
 
 @Database(
     entities = [CryptocurrencyEntity::class,
@@ -21,7 +22,7 @@ abstract class CryptocurrencyPricesDatabase() : RoomDatabase() {
             databaseInstance = databaseInstance ?: Room.databaseBuilder(
                 context.applicationContext,
                 CryptocurrencyPricesDatabase::class.java,
-                "main_database"
+                Constants.DB_NAME
             ).fallbackToDestructiveMigration()
                 .build()
 

@@ -221,7 +221,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chart.marker = ChartMarkerView(appContext, R.layout.chart_marker_view)
 
         valueFormatter = object : ValueFormatter() {
-            override fun getFormattedValue(value: Float): String { //TODO: simplify
+            override fun getFormattedValue(value: Float): String {
                 val digitsNumber = 6
                 val valueConverted: String = String.format("%.5f", value)
 

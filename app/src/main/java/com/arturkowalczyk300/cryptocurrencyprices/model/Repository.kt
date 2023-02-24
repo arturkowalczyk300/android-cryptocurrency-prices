@@ -16,10 +16,6 @@ class Repository(application: Application) {
 
     var isDataUpdatedSuccessfully = webService.isDataUpdatedSuccessfully
 
-    /////////////////////////////////////////////////////////////////////////////////////
-    //database CRUD methods
-    /////////////////////////////////////////////////////////////////////////////////////
-
     private fun addCryptocurrency(entity: CryptocurrencyEntity) {
         runBlocking {
             database!!.userDao()!!.addCryptocurrency(entity)
@@ -86,9 +82,6 @@ class Repository(application: Application) {
             unixTimeDay
         )
     }
-    /////////////////////////////////////////////////////////////////////////////////////
-    //methods for request update data in database through webservice
-    /////////////////////////////////////////////////////////////////////////////////////
 
     suspend fun updatePriceData(
         currencySymbol: String,
@@ -120,7 +113,7 @@ class Repository(application: Application) {
         }
     }
 
-    suspend fun updateCryptocurrenciesList() { //TODO: modify
+    suspend fun updateCryptocurrenciesList() {
         val liveData = webService.requestCryptocurrenciesList()
         if (!liveData.hasActiveObservers())
             liveData.observeForever() { response ->

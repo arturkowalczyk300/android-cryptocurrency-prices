@@ -1,6 +1,7 @@
 package com.arturkowalczyk300.cryptocurrencyprices.model.webAccess
 
 import android.util.Log
+import com.arturkowalczyk300.cryptocurrencyprices.other.Constants
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -10,7 +11,6 @@ object PricesRetrofitClient {
     private var okHttpClientInstance: OkHttpClient? = null
     private var retrofitInstance: Retrofit? = null
     private var pricesApiHandle: PricesApiHandle? = null
-    val baseUrlAddress: String = "https://api.coingecko.com/"
 
     fun getCryptocurrencyPricesApiHandleInstance(): PricesApiHandle? {
 
@@ -23,7 +23,7 @@ object PricesRetrofitClient {
                     .build()
 
             retrofitInstance = retrofitInstance ?: Retrofit.Builder()
-                .baseUrl(baseUrlAddress)
+                .baseUrl(Constants.BASE_URL)
                 .client(okHttpClientInstance)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()

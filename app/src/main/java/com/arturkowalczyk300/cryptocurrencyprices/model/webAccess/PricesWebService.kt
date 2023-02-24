@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.model.*
+import com.arturkowalczyk300.cryptocurrencyprices.other.Constants
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -21,32 +22,7 @@ open class RequestWithResponse(
     var actualPrice: Float? = null,
     var flagDataSet: Boolean = false,
 ) {
-    private val sdf = SimpleDateFormat("dd.MM.yyyy")
 
-    fun formatPrice(price: Double): String { //TODO: delete
-        val df = DecimalFormat("#.###")
-        return df.format(price)
-    }
-
-    fun getFormattedDate(): String {
-        return sdf.format(date)
-    }
-
-    override fun toString(): String { //TODO: delete
-        val sb: StringBuilder = StringBuilder()
-        sb.append("== Request ==\n")
-        sb.append("CurrencySymbol: ${currencySymbol}\n")
-        sb.append("Date: ${getFormattedDate()}\n")
-        sb.append("== Response ==\n")
-        sb.append("Price data:\n")
-        sb.append("id: ${entity?.id}\n")
-        sb.append("symbol: ${entity?.symbol}\n")
-        sb.append("name: ${entity?.name}\n")
-        sb.append("price: ${entity?.market_data?.current_price?.usd}\n")
-
-        return sb.toString()
-
-    }
 }
 
 class RequestWithResponseArchival(
@@ -172,7 +148,7 @@ class CryptocurrencyPricesWebService {
         mldArchivalRequestWithResponse?.value?.entity = null //test line
         waitingForResponse = true
 
-        val sdf = SimpleDateFormat("dd-MM-yyyy") //TODO: refactor
+        val sdf = SimpleDateFormat(Constants.API_DATE_FORMAT)
         val formattedDate = sdf.format(date)
 
         val response: Call<PricesResponse>? =
