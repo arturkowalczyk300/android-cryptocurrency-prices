@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.InfoWithinTimeRangeEntity
 import com.arturkowalczyk300.cryptocurrencyprices.R
+import com.arturkowalczyk300.cryptocurrencyprices.viewModel.DataState
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModelFactory
 import com.github.mikephil.charting.charts.Chart
@@ -49,8 +50,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var tvTimePeriod: TextView
 
     private var chartDataSet = LineDataSet(listOf(), "")
-    var isInitialized = false
-
 
     override fun onViewCreated(
         view: View, savedInstanceState: Bundle?,
@@ -66,14 +65,19 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         observeDataUpdatedVariable()
 
         viewModel.isChartFragmentInitialized = true
+        viewModel.updateCryptocurrenciesInfoInDateRange()
     }
 
     private fun observeDataUpdatedVariable() {
-        viewModel.dataForChartUpdated.observe(
+        viewModel.chartDataLoadingState.observe(
             requireActivity()
-        ) { dataUpdated ->
-            if (dataUpdated)
+        ) { state ->
+            val dataLoaded = state == DataState.DONE
+
+            if (dataLoaded)
                 observeChartData()
+
+            setUpdatingProgressBarVisibility(!dataLoaded)
         }
     }
 
@@ -122,10 +126,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         )[MainViewModel::class.java]
     }
 
-    fun updateData() {
-        getPriceHistoryWithinTimeRangeAndObserve()
-    }
-
     private fun showNoDataInfo(show: Boolean) { //todo: move it into viewmodel as property
         if (show) {
             viewModel.noDataCachedVisibility = true
@@ -155,8 +155,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         setChartLoadingProgressBarVisibility(true)
 
         viewModel.selectedCryptocurrencyId?.let { _ ->
-            if (viewModel.hasInternetConnection)
-                viewModel.updateCryptocurrenciesInfoInDateRange()
+            viewModel.updateCryptocurrenciesInfoInDateRange()
         }
     }
 
@@ -173,7 +172,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
 
     private fun handleChartRadioGroupTimeRangeActions() {
-        chartRadioGroupTimeRange.setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener { group, checkedId ->
+        chartRadioGroupTimeRange.setOnCheckedChangeListener { _, checkedId ->
 
             if (checkedId != -1) { //if anything selected
                 var countOfDays: Int = 0
@@ -187,8 +186,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
                 viewModel.selectedDaysToSeeOnChart = countOfDays
                 viewModel.recalculateTimeRange()
+                viewModel.updateData()
             }
-        })
+        }
 
         viewModel.selectedDaysToSeeOnChart = 1 //default value
     }
@@ -247,11 +247,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         setChartVisibility(false)
         setChartLoadingProgressBarVisibility(false)
-        setUpdatingProgressBarVisibility(true) //data not updated yet
-
-        viewModel.isDataUpdatedSuccessfully.observe(requireActivity()) { success ->
-            setUpdatingProgressBarVisibility(!success)
-        }
     }
 
     private fun setChartData(values: ArrayList<Entry>) {
@@ -330,7 +325,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             requireActivity().findViewById(R.id.tvCryptocurrencyDate)
     }
 
-    fun setChartVisibility(visible: Boolean) {
+    private fun setChartVisibility(visible: Boolean) {
         if (visible) {
             chart.axisLeft.setDrawLabels(true)
             groupChartWithOptions.postDelayed(Runnable { //show with delay
@@ -349,7 +344,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chart.axisLeft.setDrawLabels(visible)
     }
 
-    fun setChartLoadingProgressBarVisibility(visible: Boolean) {
+    private fun setChartLoadingProgressBarVisibility(visible: Boolean) { //for cached data
         if (visible) progressBarChartLoading.visibility = View.VISIBLE
         else {
             progressBarChartLoading.postDelayed(Runnable { //hide with delay
@@ -358,7 +353,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         }
     }
 
-    fun setUpdatingProgressBarVisibility(visible: Boolean) {
+    private fun setUpdatingProgressBarVisibility(visible: Boolean) { //for data from remote
         if (visible) groupUpdating.visibility = View.VISIBLE
         else {
             groupUpdating.postDelayed(Runnable { //hide with delay

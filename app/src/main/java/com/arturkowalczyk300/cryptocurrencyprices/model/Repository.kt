@@ -14,16 +14,10 @@ class Repository(application: Application) {
         CryptocurrencyPricesDatabase.getDatabase(application)
     private val webService: CryptocurrencyPricesWebService = CryptocurrencyPricesWebService()
 
-    var isDataUpdatedSuccessfully = webService.isDataUpdatedSuccessfully
-
     private fun addCryptocurrency(entity: CryptocurrencyEntity) {
         runBlocking {
             database!!.userDao()!!.addCryptocurrency(entity)
         }
-    }
-
-    fun resetFlagIsDataUpdatedSuccessfully() {
-        webService.resetFlagIsDataUpdatedSuccessfully()
     }
 
     fun getAllCryptocurrencies(): LiveData<List<CryptocurrencyEntity>> {

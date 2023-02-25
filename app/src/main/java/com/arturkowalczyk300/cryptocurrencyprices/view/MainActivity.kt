@@ -16,6 +16,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
+import com.arturkowalczyk300.cryptocurrencyprices.viewModel.DataState
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModelFactory
 import kotlinx.coroutines.*
@@ -32,6 +33,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
     private lateinit var rgDateActualArchivalSelection: RadioGroup
+    private lateinit var progressBarPrice: ProgressBar
     private var chartFragment: ChartFragment? = null
     private lateinit var sharedPrefsInstance: SharedPreferencesHelper
     private var savedInstanceStateBundle: Bundle? = null
@@ -40,13 +42,12 @@ class MainActivity : AppCompatActivity() {
 
     private var isCurrenciesListInitialized: Boolean = false
 
-
     private var datePicker = CustomDatePickerHandler()
 
     private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        if (chartFragment?.isInitialized == true && ev != null && ev.action == ACTION_UP) {
+        if (viewModel.isChartFragmentInitialized && ev != null && ev.action == ACTION_UP) {
             val chartRectangle = chartFragment!!.getGlobalVisibleRectOfChart()
 
             if (!chartRectangle.contains(ev!!.rawX.toInt(), ev!!.rawY.toInt()))
@@ -110,6 +111,7 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
         tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
+        progressBarPrice = findViewById(R.id.progressBarCryptocurrencyPrice)
 
         rgDateActualArchivalSelection = findViewById(R.id.radioGroupDate)
     }
@@ -132,15 +134,13 @@ class MainActivity : AppCompatActivity() {
             viewModel.showArchivalDataRange =
                 DateFormatterUtil.parseDateOnly(etDate.text.toString())
 
-            viewModel.updateSelectedCryptocurrencyPriceData()
+            viewModel.updateData()
             updateCurrentPriceSection()
 
         }
 
         viewModel.showArchivalDataRange = DateFormatterUtil.parseDateOnly(etDate.text.toString())
     }
-
-    //listeners
 
     private fun addButtonsOnClickListeners() {
 
@@ -168,10 +168,7 @@ class MainActivity : AppCompatActivity() {
                     if (!viewModel.isChartFragmentInitialized) //wait until fragment is initialized
                         delay(1)
 
-                    viewModel.updateSelectedCryptocurrencyPriceData()
-                    chartFragment!!.updateData()
-                    chartFragment!!.setChartLoadingProgressBarVisibility(true)
-
+                    viewModel.updateData()
                 }
             } catch (exc: Exception) {
                 val stackTrace = exc.stackTrace
@@ -237,13 +234,18 @@ class MainActivity : AppCompatActivity() {
             } else
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
         }
+
+        viewModel.priceLoadingState.observe(this) {
+            switchVisibilityOfCurrentPriceSection(it == DataState.DONE)
+        }
+
+        viewModel.currenciesListLoadingState.observe(this) {
+            //TODO: implement
+        }
     }
 
     private fun updateCurrentPriceSection() {
         viewModel.allCryptocurrenciesPrices.observe(this, Observer { allPricesList ->
-            if (allPricesList == null)
-                switchVisibilityOfCurrentPriceSection(View.INVISIBLE) //to still take layout space
-
             val currentElement =
                 allPricesList.filter { it.cryptocurrencyId == viewModel.selectedCryptocurrencyId }
                     .maxByOrNull { it.date }
@@ -261,18 +263,14 @@ class MainActivity : AppCompatActivity() {
                         ) //ms to min
 
                         viewModel.setDataCached(true)
-                        switchVisibilityOfCurrentPriceSection(View.VISIBLE)
                         updateTextViews(
                             currentElement.cryptocurrencyId,
                             currentElement.date.time,
                             actualPrice.toFloat()
                         )
-                    } else //no valid data
-                        switchVisibilityOfCurrentPriceSection(View.INVISIBLE)
+                    }
                 }
-            } else
-                switchVisibilityOfCurrentPriceSection(View.INVISIBLE)
-
+            }
         }
         )
     }
@@ -316,8 +314,6 @@ class MainActivity : AppCompatActivity() {
                 updateDataIfConnectedToInternet()
 
                 updateCurrentPriceSection()
-
-                chartFragment?.updateData()
             }
         }
     }
@@ -330,7 +326,6 @@ class MainActivity : AppCompatActivity() {
             if (viewModel.hasInternetConnection) { //TODO: DRY rule
                 requestUpdateDataFromNetwork()
                 updateDataIfConnectedToInternet()
-                chartFragment?.updateData()
             } else { //connection lost, it will update info about using cached data
                 updateCurrentPriceSection()
             }
@@ -354,9 +349,10 @@ class MainActivity : AppCompatActivity() {
             tvNoInternetConnection.visibility = View.VISIBLE
     }
 
-    private fun switchVisibilityOfCurrentPriceSection(visible: Int) {
+    private fun switchVisibilityOfCurrentPriceSection(visible: Boolean) {
         val groupRecords: androidx.constraintlayout.widget.Group = findViewById(R.id.groupRecords)
-        groupRecords.visibility = visible
+        groupRecords.visibility = if (visible) View.VISIBLE else View.INVISIBLE
+        progressBarPrice.visibility = if (visible) View.INVISIBLE else View.VISIBLE
     }
 
     private fun openDatePicker() {

@@ -45,9 +45,6 @@ class RequestWithResponseArchival(
 
 
 class CryptocurrencyPricesWebService {
-    private var _isDataUpdatedSuccessfully = MutableLiveData<Boolean>(false)
-    val isDataUpdatedSuccessfully: LiveData<Boolean> = _isDataUpdatedSuccessfully
-
     var waitingForResponse: Boolean = false
 
     var mldErrorCode: MutableLiveData<Pair<Boolean, ErrorMessage>> = MutableLiveData()
@@ -71,10 +68,6 @@ class CryptocurrencyPricesWebService {
             else -> {
             }
         }
-    }
-
-    fun resetFlagIsDataUpdatedSuccessfully(){
-        _isDataUpdatedSuccessfully.value = false
     }
 
     fun requestActualPriceData(
@@ -265,8 +258,6 @@ class CryptocurrencyPricesWebService {
                 if (response.code() == 429)
                     mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
                 else if (response.body() != null && response.body()?.prices?.isNotEmpty() != null) {
-                    _isDataUpdatedSuccessfully.value = true
-
                     mldPriceHistory!!.value!!.archivalPrices = response.body()?.prices
                     mldPriceHistory!!.value!!.totalVolumes = response.body()?.total_volumes
                     mldPriceHistory!!.value!!.marketCaps = response.body()?.market_caps

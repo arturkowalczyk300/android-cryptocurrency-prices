@@ -1,16 +1,22 @@
 package com.arturkowalczyk300.cryptocurrencyprices.viewModel
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arturkowalczyk300.cryptocurrencyprices.model.Repository
+import com.arturkowalczyk300.cryptocurrencyprices.model.room.CryptocurrencyEntity
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.InfoWithinTimeRangeEntity
+import com.arturkowalczyk300.cryptocurrencyprices.model.room.PriceEntity
 import kotlinx.coroutines.launch
 import java.util.*
 
+enum class DataState {
+    DEFAULT,
+    LOADING,
+    DONE
+}
 
 class MainViewModel(application: Application) : ViewModel() {
     private var repository: Repository =
@@ -42,8 +48,15 @@ class MainViewModel(application: Application) : ViewModel() {
         MutableLiveData()
     val isDataCached: LiveData<Boolean> = _isDataCached
 
-    private var _dataForChartUpdated: MutableLiveData<Boolean> = MutableLiveData()
-    val dataForChartUpdated: LiveData<Boolean> = _dataForChartUpdated
+    private var _currenciesListLoadingState = MutableLiveData<DataState>()
+    val currenciesListLoadingState: LiveData<DataState> = _currenciesListLoadingState
+
+    private var _priceLoadingState = MutableLiveData<DataState>()
+    val priceLoadingState: LiveData<DataState> = _priceLoadingState
+
+    private var _chartDataLoadingState = MutableLiveData<DataState>()
+    val chartDataLoadingState: LiveData<DataState> = _chartDataLoadingState
+
 
     //parameters for data fetching
     var selectedCryptocurrencyId: String? = null
@@ -53,19 +66,11 @@ class MainViewModel(application: Application) : ViewModel() {
     private var selectedUnixTimeFrom: Long? = null
     private var selectedUnixTimeTo: Long? = null
     var selectedDaysToSeeOnChart: Int? = null
-        set(value) {
-            if (value != field) {
-                resetFlagIsDataUpdatedSuccessfully()
-            }
-            field = value
-        }
-
     var isChartFragmentInitialized = false
 
     //info
     var hasInternetConnection: Boolean = false
     var noDataCachedVisibility: Boolean = false
-    var isDataUpdatedSuccessfully = repository.isDataUpdatedSuccessfully
 
     fun recalculateTimeRange() {
         val calendar = Calendar.getInstance()
@@ -87,17 +92,20 @@ class MainViewModel(application: Application) : ViewModel() {
         selectedUnixTimeTo = (dateEnd.time / 1000)
     }
 
-    private fun resetFlagIsDataUpdatedSuccessfully() {
-        repository.resetFlagIsDataUpdatedSuccessfully()
+    fun updateData() {
+        updateSelectedCryptocurrencyPriceData()
+        updateCryptocurrenciesInfoInDateRange()
     }
 
-    fun updateSelectedCryptocurrencyPriceData(
+    private fun updateSelectedCryptocurrencyPriceData(
     ) {
         if (selectedCryptocurrencyId == null ||
             (showArchivalData && showArchivalDataRange == null)
         ) return
 
         viewModelScope.launch {
+            _allCryptocurrenciesPrices.removeObserver(_allCryptocurrenciesPricesObserver)
+            _allCryptocurrenciesPrices.observeForever(_allCryptocurrenciesPricesObserver)
 
             var dateRequest: Date
 
@@ -120,9 +128,11 @@ class MainViewModel(application: Application) : ViewModel() {
         //TODO(): add api errors handling
     }
 
-
     fun updateCryptocurrenciesList() {
         viewModelScope.launch {
+            _allCryptocurrencies.removeObserver(_allCryptocurrenciesObserver)
+            _allCryptocurrencies.observeForever(_allCryptocurrenciesObserver)
+
             repository.updateCryptocurrenciesList()
         }
     }
@@ -136,24 +146,37 @@ class MainViewModel(application: Application) : ViewModel() {
                 && selectedUnixTimeFrom != null && selectedUnixTimeTo != null
                 && selectedDaysToSeeOnChart != null
             ) {
-                getCryptocurrenciesInfoWithinTimeRange(
+                getCryptocurrenciesInfoWithinTimeRangeLiveData(
                     selectedCryptocurrencyId!!,
                     selectedDaysToSeeOnChart!!
                 )
 
-                repository.updateCryptocurrenciesInfoInDateRange(
-                    selectedCryptocurrencyId!!,
-                    vsCurrency!!,
-                    selectedUnixTimeFrom!!,
-                    selectedUnixTimeTo!!
-                )
+                if (hasInternetConnection)
+                    repository.updateCryptocurrenciesInfoInDateRange(
+                        selectedCryptocurrencyId!!,
+                        vsCurrency!!,
+                        selectedUnixTimeFrom!!,
+                        selectedUnixTimeTo!!
+                    )
             }
         }
     }
 
+    private val _allCryptocurrenciesObserver =
+        androidx.lifecycle.Observer<List<CryptocurrencyEntity>> {
+            if (it.isNotEmpty())
+                _currenciesListLoadingState.value = DataState.DONE
+        }
+
+    private val _allCryptocurrenciesPricesObserver =
+        androidx.lifecycle.Observer<List<PriceEntity>> {
+            if (it.isNotEmpty())
+                _priceLoadingState.value = DataState.DONE
+        }
+
     private val _cryptocurrenciesInfoWithinTimeRangeObserver =
         androidx.lifecycle.Observer<List<InfoWithinTimeRangeEntity>> {
-            _dataForChartUpdated.value = true
+            _chartDataLoadingState.value = DataState.DONE
 
             _cryptocurrenciesInfoWithinTimeRange =
                 repository.getCryptocurrenciesInfoWithinTimeRange(
@@ -163,7 +186,7 @@ class MainViewModel(application: Application) : ViewModel() {
             cryptocurrenciesInfoWithinTimeRange = _cryptocurrenciesInfoWithinTimeRange
         }
 
-    private fun getCryptocurrenciesInfoWithinTimeRange(
+    private fun getCryptocurrenciesInfoWithinTimeRangeLiveData(
         cryptocurrencyId: String,
         daysCount: Int,
     ) {
@@ -176,6 +199,7 @@ class MainViewModel(application: Application) : ViewModel() {
             daysCount
         )
         cryptocurrenciesInfoWithinTimeRange = _cryptocurrenciesInfoWithinTimeRange
+        _chartDataLoadingState.value = DataState.LOADING
 
 
         _cryptocurrenciesInfoWithinTimeRange?.observeForever(
