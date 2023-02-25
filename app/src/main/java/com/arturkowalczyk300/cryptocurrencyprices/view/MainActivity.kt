@@ -16,6 +16,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
+import com.arturkowalczyk300.cryptocurrencyprices.other.DateFormatterUtil.Companion.customDateWithTimeFormat
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.DataState
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModelFactory
@@ -76,6 +77,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         DateFormatterUtil.customDateOnlyFormat = getString(R.string.defaultDateFormat)
+        DateFormatterUtil.customDateWithTimeFormat = getString(R.string.defaultDateTimeFormat)
 
         savedInstanceStateBundle = savedInstanceState
         assignViewsVariables()
@@ -256,16 +258,16 @@ class MainActivity : AppCompatActivity() {
                         currentElement.price
 
                     if (currentElement.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
-                        val msBetweenDates = Date().time - currentElement.date.time
+                        val msBetweenDates = Date().time - currentElement.date.time / 1000
 
-                        viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo(
+                        viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo( //TODO: move this into viewmodel
                             msBetweenDates / 1000 / 60
                         ) //ms to min
 
                         viewModel.setDataCached(true)
                         updateTextViews(
                             currentElement.cryptocurrencyId,
-                            currentElement.date.time,
+                            currentElement.date.time / 1000,
                             actualPrice.toFloat()
                         )
                     }
