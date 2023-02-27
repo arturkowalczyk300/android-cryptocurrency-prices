@@ -14,5 +14,11 @@ App contains local database. It is used for caching downloaded data - it saves d
 # Install
 Download and install newest CryptocurrencyPrices*.apk file from **Releases** section (*install from unknown sources* option must be enabled in settings of Android system).
 
+# Todo
+I'm planning constant development of this project. In closest future I want to add following features:
+- [ ] Customizable notifications with possibility to set price alarm
+- [ ] Phone's main screen widget with price of favorite currency
+- [ ] Support more FIAT currencies (now it's only USD)
+
 # Demo
 <img src="res/demo.gif" alt="Dark theme" width="40%" height="40%"> 
