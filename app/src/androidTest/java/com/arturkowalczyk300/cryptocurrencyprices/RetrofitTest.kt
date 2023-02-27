@@ -2,6 +2,7 @@ package com.arturkowalczyk300.cryptocurrencyprices
 
 import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.PricesApiHandle
 import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.PricesRetrofitClient
+import com.arturkowalczyk300.cryptocurrencyprices.other.Constants
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -21,7 +22,7 @@ class RetrofitTest {
     @Test
     fun testRetrofitInstance() {
         val currentUrl = retrofitInstance!!.baseUrl().url().toString()
-        val baseUrl = PricesRetrofitClient.baseUrlAddress
+        val baseUrl = Constants.BASE_URL
         assertThat(currentUrl).isEqualTo(baseUrl)
     }
 
