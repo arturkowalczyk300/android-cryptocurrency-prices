@@ -5,7 +5,7 @@
     android:id="@+id/mainLayoutManager"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".View.MainActivity">
+    tools:context=".view.MainActivity">
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/groupRecords"
@@ -92,6 +92,16 @@
         app:layout_constraintTop_toTopOf="@+id/lblPrice"
         tools:text="34000 USD" />
 
+    <ProgressBar
+        android:id="@+id/progressBarCryptocurrencyPrice"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/lblPrice"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/lblSymbol"
+        android:visibility="invisible"/>
 
     <FrameLayout
         android:id="@+id/flChart"
