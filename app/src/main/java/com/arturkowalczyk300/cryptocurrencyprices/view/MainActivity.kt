@@ -183,8 +183,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeLiveData() {
-        updateCurrentPriceSection()         //show actual price
-
         viewModel.apiUnwrappingPriceDataErrorLiveData.observe(this, Observer { errorOccured ->
             if (errorOccured)
                 Toast.makeText(
@@ -193,6 +191,13 @@ class MainActivity : AppCompatActivity() {
                     Toast.LENGTH_LONG
                 ).show()
         })
+
+        viewModel.currenciesListLoadingState.observe(this) {
+            if (it == DataState.DONE) {
+                updateCurrentPriceSection()
+                viewModel.updateData()
+            }
+        }
 
         viewModel.apiErrorCode
             .observe(this, object : Observer<Pair<Boolean, ErrorMessage>> {
@@ -247,34 +252,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateCurrentPriceSection() {
-        viewModel.allCryptocurrenciesPrices.observe(this, Observer { allPricesList ->
-            val currentElement =
-                allPricesList.filter { it.cryptocurrencyId == viewModel.selectedCryptocurrencyId }
-                    .maxByOrNull { it.date }
+        if (isCurrenciesListInitialized && viewModel.selectedCryptocurrencyId != null)
+            viewModel.allCryptocurrenciesPrices.observe(this, Observer { allPricesList ->
+                val currentElement =
+                    allPricesList.filter { it.cryptocurrencyId == viewModel.selectedCryptocurrencyId }
+                        .maxByOrNull { it.date }
 
-            if (currentElement != null) {
-                if (allPricesList.isNotEmpty()) {
-                    val actualPrice =
-                        currentElement.price
+                if (currentElement != null) {
+                    if (allPricesList.isNotEmpty()) {
+                        val actualPrice =
+                            currentElement.price
 
-                    if (currentElement.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
-                        val msBetweenDates = Date().time - currentElement.date.time / 1000
+                        if (currentElement.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
+                            val msBetweenDates = Date().time - currentElement.date.time / 1000
 
-                        viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo( //TODO: move this into viewmodel
-                            msBetweenDates / 1000 / 60
-                        ) //ms to min
+                            viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo( //TODO: move this into viewmodel
+                                msBetweenDates / 1000 / 60
+                            ) //ms to min
 
-                        viewModel.setDataCached(true)
-                        updateTextViews(
-                            currentElement.cryptocurrencyId,
-                            currentElement.date.time / 1000,
-                            actualPrice.toFloat()
-                        )
+                            viewModel.setDataCached(true)
+                            updateTextViews(
+                                currentElement.cryptocurrencyId,
+                                currentElement.date.time / 1000,
+                                actualPrice.toFloat()
+                            )
+                        }
                     }
                 }
             }
-        }
-        )
+            )
     }
 
     private fun handleCryptocurrencyChoice() {
