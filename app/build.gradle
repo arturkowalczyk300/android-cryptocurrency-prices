@@ -10,8 +10,8 @@ android {
         applicationId "com.arturkowalczyk300.cryptocurrencyprices"
         minSdk 26
         targetSdk 31
-        versionCode 1
-        versionName "1.0"
+        versionCode 830
+        versionName "0.8.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
