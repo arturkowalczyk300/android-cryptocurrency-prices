@@ -1,7 +1,6 @@
 package com.arturkowalczyk300.cryptocurrencyprices.model
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.LiveData
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.*
 import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.CryptocurrencyPricesWebService
@@ -129,7 +128,7 @@ class Repository(application: Application) {
             }
     }
 
-    suspend fun updateCryptocurrenciesInfoInDateRange(
+    suspend fun updateCryptocurrenciesInfoWithinDateRange(
         currencySymbol: String, vs_currency: String, unixtimeFrom: Long,
         unixTimeTo: Long,
     ) {

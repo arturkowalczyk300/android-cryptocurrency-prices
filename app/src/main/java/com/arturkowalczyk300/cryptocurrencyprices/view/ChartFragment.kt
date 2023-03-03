@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.*
@@ -65,14 +64,14 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         observeDataUpdatedVariable()
 
         viewModel.isChartFragmentInitialized = true
-        viewModel.updateCryptocurrenciesInfoInDateRange()
+        viewModel.updateData()
     }
 
     private fun observeDataUpdatedVariable() {
-        viewModel.chartDataLoadingState.observe(
+        viewModel.infoWithinDataRangeLoadingState.observe(
             requireActivity()
         ) { state ->
-            val dataLoaded = state == DataState.DONE
+            val dataLoaded = (state == DataState.SHOW_CACHED_DATA || state == DataState.UPDATE_DONE)
 
             if (dataLoaded)
                 observeChartData()
@@ -147,15 +146,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         } else {
             viewModel.setDataCached(true)
             viewModel.noDataCachedVisibility = false
-        }
-    }
-
-    private fun getPriceHistoryWithinTimeRangeAndObserve() {
-        hideMarker()
-        setChartLoadingProgressBarVisibility(true)
-
-        viewModel.selectedCryptocurrencyId?.let { _ ->
-            viewModel.updateCryptocurrenciesInfoInDateRange()
         }
     }
 
