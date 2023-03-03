@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.isChartFragmentInitialized && ev != null && ev.action == ACTION_UP) {
             val chartRectangle = chartFragment!!.getGlobalVisibleRectOfChart()
 
-            if (!chartRectangle.contains(ev!!.rawX.toInt(), ev!!.rawY.toInt()))
+            if (!chartRectangle.contains(ev.rawX.toInt(), ev.rawY.toInt()))
                 chartFragment!!.hideMarker()
         }
 
@@ -103,7 +103,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestUpdateDataFromNetwork() {
         if (viewModel.hasInternetConnection)
-            viewModel.updateCryptocurrenciesList()
+            viewModel.requestUpdateCryptocurrenciesList()
     }
 
     private fun assignViewsVariables() {
@@ -137,8 +137,6 @@ class MainActivity : AppCompatActivity() {
                 DateFormatterUtil.parseDateOnly(etDate.text.toString())
 
             viewModel.updateData()
-            updateCurrentPriceSection()
-
         }
 
         viewModel.showArchivalDataRange = DateFormatterUtil.parseDateOnly(etDate.text.toString())
@@ -146,7 +144,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun addButtonsOnClickListeners() {
 
-        rgDateActualArchivalSelection.setOnCheckedChangeListener { group, checkedId ->
+        rgDateActualArchivalSelection.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.radioButtonDateActual -> {
                     etDate.visibility = View.GONE
@@ -173,7 +171,6 @@ class MainActivity : AppCompatActivity() {
                     viewModel.updateData()
                 }
             } catch (exc: Exception) {
-                val stackTrace = exc.stackTrace
                 Log.e("myApp", "addButtonsOnClickListeners, $exc")
                 exc.printStackTrace()
             }
@@ -193,8 +190,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         viewModel.currenciesListLoadingState.observe(this) {
-            if (it == DataState.DONE) {
-                updateCurrentPriceSection()
+            if (it == DataState.SHOW_CACHED_DATA || it == DataState.UPDATE_DONE) {
                 viewModel.updateData()
             }
         }
@@ -235,52 +231,51 @@ class MainActivity : AppCompatActivity() {
             })
 
         viewModel.isDataCached.observe(this) { it ->
-            if (it) //lack of data
-            {
+            if (it) {
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.GONE
             } else
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
         }
 
         viewModel.priceLoadingState.observe(this) {
-            switchVisibilityOfCurrentPriceSection(it == DataState.DONE)
+            switchVisibilityOfCurrentPriceSection(
+                it == DataState.SHOW_CACHED_DATA ||
+                        it == DataState.UPDATE_DONE
+            )
         }
 
         viewModel.currenciesListLoadingState.observe(this) {
             //TODO: implement
         }
-    }
 
-    private fun updateCurrentPriceSection() {
-        if (isCurrenciesListInitialized && viewModel.selectedCryptocurrencyId != null)
-            viewModel.allCryptocurrenciesPrices.observe(this, Observer { allPricesList ->
-                val currentElement =
-                    allPricesList.filter { it.cryptocurrencyId == viewModel.selectedCryptocurrencyId }
-                        .maxByOrNull { it.date }
+        viewModel.allCryptocurrenciesPrices.observe(this, Observer { allPricesList ->
+            val currentElement =
+                allPricesList.filter { it.cryptocurrencyId == viewModel.selectedCryptocurrencyId }
+                    .maxByOrNull { it.date }
 
-                if (currentElement != null) {
-                    if (allPricesList.isNotEmpty()) {
-                        val actualPrice =
-                            currentElement.price
+            if (currentElement != null) {
+                if (allPricesList.isNotEmpty()) {
+                    val actualPrice =
+                        currentElement.price
 
-                        if (currentElement.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
-                            val msBetweenDates = Date().time - currentElement.date.time / 1000
+                    if (currentElement.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
+                        val msBetweenDates = Date().time - currentElement.date.time / 1000
 
-                            viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo( //TODO: move this into viewmodel
-                                msBetweenDates / 1000 / 60
-                            ) //ms to min
+                        viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo( //TODO: move this into viewmodel
+                            msBetweenDates / 1000 / 60
+                        ) //ms to min
 
-                            viewModel.setDataCached(true)
-                            updateTextViews(
-                                currentElement.cryptocurrencyId,
-                                currentElement.date.time / 1000,
-                                actualPrice.toFloat()
-                            )
-                        }
+                        viewModel.setDataCached(true)
+                        updateTextViews(
+                            currentElement.cryptocurrencyId,
+                            currentElement.date.time / 1000,
+                            actualPrice.toFloat()
+                        )
                     }
                 }
             }
-            )
+        }
+        )
     }
 
     private fun handleCryptocurrencyChoice() {
@@ -320,8 +315,6 @@ class MainActivity : AppCompatActivity() {
                 viewModel.selectedCryptocurrencyId = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
                 updateDataIfConnectedToInternet()
-
-                updateCurrentPriceSection()
             }
         }
     }
@@ -335,7 +328,6 @@ class MainActivity : AppCompatActivity() {
                 requestUpdateDataFromNetwork()
                 updateDataIfConnectedToInternet()
             } else { //connection lost, it will update info about using cached data
-                updateCurrentPriceSection()
             }
         }
 

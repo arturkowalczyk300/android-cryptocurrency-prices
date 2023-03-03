@@ -6,8 +6,8 @@ import java.util.Date
 class DateFormatterUtil { //TODO: refactor
 
     companion object {
-        const val DEFAULT_DATE_ONLY_FORMAT = "dd.MM.yyyy" //use in case when custom is not provided
-        const val DEFAULT_DATE_WITH_TIME_FORMAT = "dd.MM.yyyy HH:mm"
+        private const val DEFAULT_DATE_ONLY_FORMAT = "dd.MM.yyyy" //use in case when custom is not provided
+        private const val DEFAULT_DATE_WITH_TIME_FORMAT = "dd.MM.yyyy HH:mm"
         private var dateOnlyFormatter: SimpleDateFormat? = null
         private var dateWithTimeFormatter: SimpleDateFormat? = null
 
