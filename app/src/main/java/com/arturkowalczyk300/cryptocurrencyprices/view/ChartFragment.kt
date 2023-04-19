@@ -13,7 +13,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.InfoWithinTimeRangeEntity
 import com.arturkowalczyk300.cryptocurrencyprices.R
-import com.arturkowalczyk300.cryptocurrencyprices.viewModel.DataState
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModelFactory
 import com.github.mikephil.charting.charts.Chart
@@ -64,51 +63,48 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         observeDataUpdatedVariable()
 
         viewModel.isChartFragmentInitialized = true
-        viewModel.updateData()
+        //viewModel.updateData() TODO: delete after debugging
     }
 
     private fun observeDataUpdatedVariable() {
-        viewModel.infoWithinDataRangeLoadingState.observe(
+        viewModel.isCurrencyChartDataLoadedFromCache.observe(
             requireActivity()
-        ) { state ->
-            val dataLoaded = (state == DataState.SHOW_CACHED_DATA || state == DataState.UPDATE_DONE)
-
-            if (dataLoaded)
+        ) { loaded ->
+            if (loaded)
                 observeChartData()
 
-            setUpdatingProgressBarVisibility(!dataLoaded)
+            setUpdatingProgressBarVisibility(!loaded)
         }
     }
 
     private fun observeChartData() {
-        val liveData = viewModel.cryptocurrenciesInfoWithinTimeRange!!
+        val liveData = viewModel.cryptocurrencyChartData!!
 
-        viewModel.cryptocurrenciesInfoWithinTimeRange?.observe(
+        viewModel.cryptocurrencyChartData?.observe(
             requireActivity(),
             object :
-                Observer<List<InfoWithinTimeRangeEntity>> {
-                override fun onChanged(list: List<InfoWithinTimeRangeEntity>?) {
+                Observer<InfoWithinTimeRangeEntity> {
+                override fun onChanged(info: InfoWithinTimeRangeEntity?) {
                     var isResponseHandled = false
-                    if (list != null && list.isNotEmpty()) {
-                        if (!list.isNullOrEmpty() && !list.last().prices.list.isNullOrEmpty()) {
-                            var chartData = arrayListOf<Entry>()
-                            list.last().prices.list.forEachIndexed { index, currentRow ->
-                                chartData.add(
-                                    Entry(
-                                        currentRow.unixTime.toFloat(),
-                                        currentRow.value.toFloat()
-                                    )
+                    if (info != null) {
+                        var chartData = arrayListOf<Entry>()
+                        info.prices.list.forEachIndexed { index, currentRow ->
+                            chartData.add(
+                                Entry(
+                                    currentRow.unixTime.toFloat(),
+                                    currentRow.value.toFloat()
                                 )
-                            }
-
-                            setChartData(chartData)
-                            setMinAvgMaxPricesValues(chartData)
-                            updateTimePeriod()
-                            updatePriceTrends()
-                            setChartAxisLabelsVisibility(true)
-                            showNoDataInfo(false) //hide
-                            isResponseHandled = true
+                            )
                         }
+
+                        setChartData(chartData)
+                        setMinAvgMaxPricesValues(chartData)
+                        updateTimePeriod()
+                        updatePriceTrends()
+                        setChartAxisLabelsVisibility(true)
+                        showNoDataInfo(false) //hide
+                        isResponseHandled = true
+
                     }
                     if (isResponseHandled)
                         liveData!!.removeObserver(this) //only when valid data is handled
@@ -176,7 +172,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
                 viewModel.selectedDaysToSeeOnChart = countOfDays
                 viewModel.recalculateTimeRange()
-                viewModel.updateData()
+                //viewModel.updateData() TODO: delete after debugging
             }
         }
 

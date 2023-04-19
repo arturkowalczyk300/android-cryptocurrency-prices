@@ -1,7 +1,9 @@
 package com.arturkowalczyk300.cryptocurrencyprices.model
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.*
 import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.CryptocurrencyPricesWebService
 import kotlinx.coroutines.runBlocking
@@ -13,6 +15,10 @@ class Repository(application: Application) {
         CryptocurrencyPricesDatabase.getDatabase(application)
     private val webService: CryptocurrencyPricesWebService = CryptocurrencyPricesWebService()
 
+    private var _cryptocurrencyChartData = MutableLiveData<InfoWithinTimeRangeEntity>()
+    private val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity> =
+        _cryptocurrencyChartData
+
     private fun addCryptocurrency(entity: CryptocurrencyEntity) {
         runBlocking {
             database!!.userDao()!!.addCryptocurrency(entity)
@@ -20,6 +26,7 @@ class Repository(application: Application) {
     }
 
     fun getAllCryptocurrencies(): LiveData<List<CryptocurrencyEntity>> {
+        //Log.d("myApp", "REPOSITORY, getAllCryptocurrencies")
         return database!!.userDao()!!.getAllCryptocurrencies()
     }
 
@@ -28,6 +35,7 @@ class Repository(application: Application) {
     }
 
     fun getAllCryptocurrenciesPrices(): LiveData<List<PriceEntity>> {
+        Log.d("myApp", "REPOSITORY, getAllCryptocurrenciesPrices")
         return database!!.userDao().getAllCryptocurrenciesPrices()
     }
 
@@ -58,13 +66,31 @@ class Repository(application: Application) {
         return database!!.userDao()!!.getAllCryptocurrenciesInfoWithinTimeRange()
     }
 
+    fun getCryptocurrencyChartData(
+        cryptocurrencyId: String? = null,
+        daysCount: Int? = null,
+    ): LiveData<InfoWithinTimeRangeEntity> {
+        if (cryptocurrencyId != null
+            && daysCount != null
+        ) { //update data, if parameters are given
+            database!!.userDao()!!
+                .getInfoOfCryptocurrencyWithinTimeRange(
+                    cryptocurrencyId,
+                    daysCount
+                ).observeForever { currenciesChartData ->
+                    _cryptocurrencyChartData.value = currenciesChartData
+                        .filter { it.cryptocurrencyId == cryptocurrencyId && it.daysCount == daysCount }
+                        .maxByOrNull { it.updateDate.time }!!
+                }
+        }
+
+        return cryptocurrencyChartData
+    }
+
     private suspend fun deleteAllCryptocurrenciesInfo() {
         database!!.userDao()!!.deleteAllCryptocurrenciesInfo()
     }
 
-    fun getCryptocurrencyInfoWithinTimeRange(): LiveData<List<InfoWithinTimeRangeEntity>> {
-        return database!!.userDao()!!.getAllCryptocurrenciesInfoWithinTimeRange()
-    }
 
     private suspend fun deleteCryptocurrencyInfoContainsGivenDay(
         cryptocurrencyId: String,
@@ -186,14 +212,6 @@ class Repository(application: Application) {
                     }
                 }
             }
-    }
-
-    fun getCryptocurrenciesInfoWithinTimeRange(
-        cryptocurrencyId: String,
-        daysCount: Int,
-    ): LiveData<List<InfoWithinTimeRangeEntity>> {
-        return database!!.userDao()!!
-            .getInfoOfCryptocurrencyWithinTimeRange(cryptocurrencyId, daysCount)
     }
 
     fun getApiErrorCodeLiveData() = webService.mldErrorCode

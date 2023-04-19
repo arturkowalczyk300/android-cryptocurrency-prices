@@ -16,8 +16,6 @@ import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
-import com.arturkowalczyk300.cryptocurrencyprices.other.DateFormatterUtil.Companion.customDateWithTimeFormat
-import com.arturkowalczyk300.cryptocurrencyprices.viewModel.DataState
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModelFactory
 import kotlinx.coroutines.*
@@ -136,7 +134,7 @@ class MainActivity : AppCompatActivity() {
             viewModel.showArchivalDataRange =
                 DateFormatterUtil.parseDateOnly(etDate.text.toString())
 
-            viewModel.updateData()
+            //viewModel.updateData() TODO: delete after debugging
         }
 
         viewModel.showArchivalDataRange = DateFormatterUtil.parseDateOnly(etDate.text.toString())
@@ -168,7 +166,7 @@ class MainActivity : AppCompatActivity() {
                     if (!viewModel.isChartFragmentInitialized) //wait until fragment is initialized
                         delay(1)
 
-                    viewModel.updateData()
+                    //viewModel.updateData() TODO: delete after debugging
                 }
             } catch (exc: Exception) {
                 Log.e("myApp", "addButtonsOnClickListeners, $exc")
@@ -188,12 +186,6 @@ class MainActivity : AppCompatActivity() {
                     Toast.LENGTH_LONG
                 ).show()
         })
-
-        viewModel.currenciesListLoadingState.observe(this) {
-            if (it == DataState.SHOW_CACHED_DATA || it == DataState.UPDATE_DONE) {
-                viewModel.updateData()
-            }
-        }
 
         viewModel.apiErrorCode
             .observe(this, object : Observer<Pair<Boolean, ErrorMessage>> {
@@ -237,16 +229,16 @@ class MainActivity : AppCompatActivity() {
                 findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
         }
 
-        viewModel.priceLoadingState.observe(this) {
+        viewModel.isCurrencyPriceDataLoadedFromCache.observe(this) { loaded ->
+            Log.d("myApp/MainActivity/isCurrencyPriceDataLoaded", "loadedState=$loaded")
             switchVisibilityOfCurrentPriceSection(
-                it == DataState.SHOW_CACHED_DATA ||
-                        it == DataState.UPDATE_DONE
+                visible = loaded
             )
         }
 
-        viewModel.currenciesListLoadingState.observe(this) {
-            //TODO: implement
-        }
+        //viewModel.currenciesListLoadingState.observe(this) {
+        //TODO: implement
+        //}
 
         viewModel.allCryptocurrenciesPrices.observe(this, Observer { allPricesList ->
             val currentElement =
