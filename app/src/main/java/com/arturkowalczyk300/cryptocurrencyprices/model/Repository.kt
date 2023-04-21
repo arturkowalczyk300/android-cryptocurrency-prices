@@ -31,7 +31,6 @@ class Repository(application: Application) {
     }
 
     fun getAllCryptocurrencies(): LiveData<List<CryptocurrencyEntity>> {
-        //Log.d("myApp", "REPOSITORY, getAllCryptocurrencies")
         return database!!.userDao()!!.getAllCryptocurrencies()
     }
 
@@ -40,7 +39,6 @@ class Repository(application: Application) {
     }
 
     fun getAllCryptocurrenciesPrices(): LiveData<List<PriceEntity>> {
-        Log.d("myApp", "REPOSITORY, getAllCryptocurrenciesPrices")
         return database!!.userDao().getAllCryptocurrenciesPrices()
     }
 
@@ -58,7 +56,6 @@ class Repository(application: Application) {
     }
 
     private suspend fun addCryptocurrencyInfoWithinTimeRange(entity: InfoWithinTimeRangeEntity) {
-        Log.e("myApp", "ADD")
         if (entity.daysCount > 0)
             database!!.userDao()!!.deleteAllCryptocurrenciesInfoInGivenDaysCount(
                 entity.cryptocurrencyId,
@@ -76,8 +73,6 @@ class Repository(application: Application) {
         cryptocurrencyId: String? = null,
         daysCount: Int? = null,
     ): LiveData<InfoWithinTimeRangeEntity?> {
-        Log.e("myApp", "getCryptocurrencyChartData, id=$cryptocurrencyId, daysCount=$daysCount")
-
         if (cryptocurrencyId != null
             && daysCount != null
         ) { //update data, if parameters are given
@@ -85,10 +80,7 @@ class Repository(application: Application) {
                 object : androidx.lifecycle.Observer<List<InfoWithinTimeRangeEntity>?> {
                     override fun onChanged(currenciesChartData: List<InfoWithinTimeRangeEntity>?) {
                         if (currenciesChartData != null) {
-                            Log.d(
-                                "myApp",
-                                "REPOSITORY, data change!, observerAddr=${this.hashCode()}"
-                            )
+
                             _cryptocurrencyChartData.value = currenciesChartData
                                 .filter { it.cryptocurrencyId == cryptocurrencyId && it.daysCount == daysCount }
                                 .maxByOrNull { it.updateDate.time }
@@ -105,7 +97,6 @@ class Repository(application: Application) {
                     cryptocurrencyId,
                     daysCount
                 ).also {
-                    Log.e("myApp", "liveData Addr= ${it}")
                     it.observeForever(observer)
                     _lastChartDataFromDaoObserver = observer
                 }
@@ -117,7 +108,6 @@ class Repository(application: Application) {
     private fun removeChartDataObserver(observer: Observer<List<InfoWithinTimeRangeEntity>?>) {
         if (_lastChartDataFromDaoRef != null && _lastChartDataFromDaoRef!!.hasActiveObservers())
             _lastChartDataFromDaoRef!!.removeObserver(observer)
-                .also { Log.e("myApp", "removing observer!") }
     }
 
     private suspend fun deleteAllCryptocurrenciesInfo() {

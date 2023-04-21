@@ -135,7 +135,6 @@ class MainViewModel(application: Application) : ViewModel() {
 
 
         _cryptocurrencyChartData.observeForever {
-            Log.d("myApp", "newChartDataAppeared/observer, objAddr=${it}")
             //TODO: distinct between cache and network data
             _isCurrencyChartDataLoadedFromCache.value = true
         }
@@ -241,7 +240,6 @@ class MainViewModel(application: Application) : ViewModel() {
         }
 
         viewModelScope.launch {
-            Log.e("myApp", "REF from coroutine")
             getCryptocurrenciesInfoWithinTimeRangeLiveData(
                 selectedCryptocurrencyId!!,
                 selectedDaysToSeeOnChart!!
@@ -272,7 +270,6 @@ class MainViewModel(application: Application) : ViewModel() {
         }
 
         viewModelScope.launch {
-            Log.e("myApp", "REF from method")
             getCryptocurrenciesInfoWithinTimeRangeLiveData(
                 selectedCryptocurrencyId!!,
                 selectedDaysToSeeOnChart!!
@@ -299,7 +296,6 @@ class MainViewModel(application: Application) : ViewModel() {
     }
 
     fun requestUpdateAllData() {
-        Log.e("myApp", "REQ UPDATE ALL DATA")
         requestUpdateCryptocurrencyChartData()
         requestUpdateSelectedCryptocurrencyPriceData()
 

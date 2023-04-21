@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateDataIfConnectedToInternet() {
+    private fun updateDataIfConnectedToInternet() { //TODO: remove
         if (isCurrenciesListInitialized && viewModel.hasInternetConnection) {
             autoFetchDataAlreadyDone = true
             autoFetchDataPending = false
@@ -306,7 +306,8 @@ class MainActivity : AppCompatActivity() {
                 tvSelectedCurrencyId.text = cryptocurrencyId
                 viewModel.selectedCryptocurrencyId = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
-                updateDataIfConnectedToInternet()
+                viewModel.recalculateTimeRange()
+                viewModel.requestUpdateAllData()
             }
         }
     }
