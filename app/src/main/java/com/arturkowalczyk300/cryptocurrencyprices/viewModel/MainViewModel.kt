@@ -28,7 +28,7 @@ class MainViewModel(application: Application) : ViewModel() {
     val allCryptocurrenciesPrices = _allCryptocurrenciesPrices
 
     private var _cryptocurrencyChartData = repository.getCryptocurrencyChartData()
-    val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity>? =
+    val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity?>? =
         _cryptocurrencyChartData
 
     //statuses of operations
@@ -123,7 +123,7 @@ class MainViewModel(application: Application) : ViewModel() {
 
             }
 
-            requestUpdateSelectedCryptocurrencyPriceData()
+            requestUpdateSelectedCryptocurrencyPriceData() //TODO: create auto-update
                 .also { Log.d("myApp/viewModel/coroutines/coroutineLastPrice", "REQ UPDATE") }
 
 
@@ -135,6 +135,7 @@ class MainViewModel(application: Application) : ViewModel() {
 
 
         _cryptocurrencyChartData.observeForever {
+            Log.d("myApp", "newChartDataAppeared/observer, objAddr=${it}")
             //TODO: distinct between cache and network data
             _isCurrencyChartDataLoadedFromCache.value = true
         }
@@ -147,191 +148,173 @@ class MainViewModel(application: Application) : ViewModel() {
             ) { //wait until conditions are fulfilled
 
             }
-            requestUpdateCryptocurrencyChartData()
-                .also { Log.d("myApp/viewModel/coroutines/coroutineChartData", "REQ UPDATE") }
-        }
-
-    }
-
-
-//observers
-
-private val _allCryptocurrenciesPricesObserver =
-    androidx.lifecycle.Observer<List<PriceEntity>> {
-        if (it.isNotEmpty()) {
-            requestUpdateSelectedCryptocurrencyPriceData()
+           requestUpdateCryptocurrencyChartData() //TODO: create auto-update
+               .also { Log.e("myApp/viewModel/coroutines/coroutineChartData", "REQ UPDATE_") }
         }
     }
 
-private val _cryptocurrenciesInfoWithinTimeRangeObserver =
-    androidx.lifecycle.Observer<List<InfoWithinTimeRangeEntity>> { //TODO: it should run now!!!
-        if (it.isNotEmpty()) {
-            requestUpdateCryptocurrencyChartData()
+    init {
+        loadCryptocurrenciesListCoroutine.start()
+    }
+
+    fun recalculateTimeRange() {
+        val calendar = Calendar.getInstance()
+        if (showArchivalData) { //TODO: check this
+            calendar.time = showArchivalDataRange
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+        }
+        val dateEnd = calendar.time
+
+        when (selectedDaysToSeeOnChart) {
+            1 -> calendar.add(Calendar.SECOND, -(60*60*24))
+            7 -> calendar.add(Calendar.SECOND, -(60*60*24*7))
+            31 -> calendar.add(Calendar.SECOND, -(60*60*24*31))
+            365 -> calendar.add(Calendar.SECOND, -(60*60*24*365))
+        }
+        val dateStart = calendar.time
+
+        selectedUnixTimeFrom = (dateStart.time / 1000)
+        selectedUnixTimeTo = (dateEnd.time / 1000)
+    }
+
+    private fun requestUpdateSelectedCryptocurrencyPriceData(
+    ) {
+        if (_isUpdateOfPriceDataInProgress.value == true) {
+            Log.e("myApp", "Update in progress or already done")
+            return
         }
 
-        _cryptocurrencyChartData =
-            repository.getCryptocurrencyChartData(
+        if (selectedCryptocurrencyId == null ||
+            (showArchivalData && showArchivalDataRange == null)
+        ) {
+            Log.e(
+                "myApp/requestUpdateSelectedCryptocurrencyPriceData",
+                "No specified cryptocurrency, or not specified data range for archival reading"
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            var dateRequest: Date
+
+            if (showArchivalData) {
+                dateRequest = showArchivalDataRange!!
+
+                repository.updatePriceData(
+                    currencySymbol = selectedCryptocurrencyId!!,
+                    vs_currency = vsCurrency!!,
+                    archival = true,
+                    archivalDate = dateRequest
+                )
+            } else {
+                repository.updatePriceData(
+                    currencySymbol = selectedCryptocurrencyId!!,
+                    vs_currency = vsCurrency!!
+                )
+            }
+        }
+        //TODO(): add api errors handling
+    }
+
+    fun requestUpdateCryptocurrenciesList() {
+        if (_isUpdateOfCurrenciesListInProgress.value == true) {
+            Log.e("myApp", "Update in progress or already done")
+            return
+        }
+
+        viewModelScope.launch {
+            repository.updateCryptocurrenciesList()
+        }
+    }
+
+    private fun loadCryptocurrenciesInfoInDateRangeFromCache() {
+        recalculateTimeRange()
+
+        if (selectedCryptocurrencyId == null || vsCurrency == null
+            || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
+            || selectedDaysToSeeOnChart == null
+        )
+        //check if parameters are valid
+        {
+            Log.e("myApp", "INVALID PARAMETERS!")
+            return
+        }
+
+        viewModelScope.launch {
+            Log.e("myApp", "REF from coroutine")
+            getCryptocurrenciesInfoWithinTimeRangeLiveData(
                 selectedCryptocurrencyId!!,
                 selectedDaysToSeeOnChart!!
             )
+        }
     }
 
-init {
-    loadCryptocurrenciesListCoroutine.start()
-}
-
-fun recalculateTimeRange() {
-    val calendar = Calendar.getInstance()
-    if (showArchivalData) { //TODO: check this
-        calendar.time = showArchivalDataRange
-        calendar.add(Calendar.DAY_OF_MONTH, 1)
-    }
-    val dateEnd = calendar.time
-
-    when (selectedDaysToSeeOnChart) {
-        1 -> calendar.add(Calendar.DAY_OF_MONTH, -1)
-        7 -> calendar.add(Calendar.DAY_OF_MONTH, -7)
-        31 -> calendar.add(Calendar.MONTH, -1)
-        365 -> calendar.add(Calendar.YEAR, -1)
-    }
-    val dateStart = calendar.time
-
-    selectedUnixTimeFrom = (dateStart.time / 1000)
-    selectedUnixTimeTo = (dateEnd.time / 1000)
-}
-
-private fun loadCachedData() {
-    requestUpdateSelectedCryptocurrencyPriceData()
-    requestUpdateCryptocurrencyChartData()
-    loadCryptocurrenciesInfoInDateRangeFromCache() //TODO: it is experimental
-}
-
-private fun requestUpdateSelectedCryptocurrencyPriceData(
-) {
-    if (_isUpdateOfPriceDataInProgress.value == true) {
-        Log.e("myApp", "Update in progress or already done")
-        return
-    }
-
-    if (selectedCryptocurrencyId == null ||
-        (showArchivalData && showArchivalDataRange == null)
+    private fun requestUpdateCryptocurrencyChartData(
     ) {
-        Log.e(
-            "myApp/requestUpdateSelectedCryptocurrencyPriceData",
-            "No specified cryptocurrency, or not specified data range for archival reading"
-        )
-        return
-    }
+        recalculateTimeRange()
 
-    viewModelScope.launch {
-        var dateRequest: Date
+        if (_isUpdateOfChartDataInProgress.value == true) {
+            Log.e("myApp", "update in progress or already done")
+            return
+        }
 
-        if (showArchivalData) {
-            dateRequest = showArchivalDataRange!!
 
-            repository.updatePriceData(
-                currencySymbol = selectedCryptocurrencyId!!,
-                vs_currency = vsCurrency!!,
-                archival = true,
-                archivalDate = dateRequest
+        if (selectedCryptocurrencyId == null || vsCurrency == null
+            || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
+            || selectedDaysToSeeOnChart == null || !hasInternetConnection
+        ) //check if parameters are valid
+        {
+            Log.e(
+                "myApp/requestUpdateCryptocurrencyChartData",
+                "One or more parameters are not set"
             )
-        } else {
-            repository.updatePriceData(
-                currencySymbol = selectedCryptocurrencyId!!,
-                vs_currency = vsCurrency!!
+            return
+        }
+
+        viewModelScope.launch {
+            Log.e("myApp", "REF from method")
+            getCryptocurrenciesInfoWithinTimeRangeLiveData(
+                selectedCryptocurrencyId!!,
+                selectedDaysToSeeOnChart!!
+            )
+
+            repository.updateCryptocurrenciesInfoWithinDateRange(
+                selectedCryptocurrencyId!!,
+                vsCurrency!!,
+                selectedUnixTimeFrom!!,
+                selectedUnixTimeTo!!
             )
         }
     }
-    //TODO(): add api errors handling
-}
 
-fun requestUpdateCryptocurrenciesList() {
-    if (_isUpdateOfCurrenciesListInProgress.value == true) {
-        Log.e("myApp", "Update in progress or already done")
-        return
-    }
 
-    viewModelScope.launch {
-        repository.updateCryptocurrenciesList()
-    }
-}
-
-private fun loadCryptocurrenciesInfoInDateRangeFromCache() {
-    recalculateTimeRange()
-
-    if (selectedCryptocurrencyId == null || vsCurrency == null
-        || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
-        || selectedDaysToSeeOnChart == null
-    )
-    //check if parameters are valid
-    {
-        Log.e("myApp", "INVALID PARAMETERS!")
-        return
-    }
-
-    viewModelScope.launch {
-        getCryptocurrenciesInfoWithinTimeRangeLiveData(
-            selectedCryptocurrencyId!!,
-            selectedDaysToSeeOnChart!!
+    private fun getCryptocurrenciesInfoWithinTimeRangeLiveData(
+        cryptocurrencyId: String,
+        daysCount: Int,
+    ) {
+        repository.getCryptocurrencyChartData(
+            cryptocurrencyId,
+            daysCount
         )
     }
-}
 
-private fun requestUpdateCryptocurrencyChartData(
-) {
-    recalculateTimeRange()
+    fun requestUpdateAllData() {
+        Log.e("myApp", "REQ UPDATE ALL DATA")
+        requestUpdateCryptocurrencyChartData()
+        requestUpdateSelectedCryptocurrencyPriceData()
 
-    if (_isUpdateOfChartDataInProgress.value == true) {
-        Log.e("myApp", "update in progress or already done")
-        return
+        invalidateChartDataData()
     }
 
-
-    if (selectedCryptocurrencyId == null || vsCurrency == null
-        || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
-        || selectedDaysToSeeOnChart == null || !hasInternetConnection
-    ) //check if parameters are valid
-    {
-        Log.e(
-            "myApp/requestUpdateCryptocurrencyChartData",
-            "One or more parameters are not set"
-        )
-        return
+    private fun invalidateChartDataData() {
+        _isCurrencyChartDataLoadedFromCache.value = false
     }
 
-    recalculateTimeRange()
-    viewModelScope.launch {
-        getCryptocurrenciesInfoWithinTimeRangeLiveData(
-            selectedCryptocurrencyId!!,
-            selectedDaysToSeeOnChart!!
-        )
-
-        repository.updateCryptocurrenciesInfoWithinDateRange( //TODO: it should be called!
-            selectedCryptocurrencyId!!,
-            vsCurrency!!,
-            selectedUnixTimeFrom!!,
-            selectedUnixTimeTo!!
-        )
+    fun setCurrentlyDisplayedDataUpdatedMinutesAgo(value: Long?) {
+        _currentlyDisplayedDataUpdatedMinutesAgo.postValue(value)
     }
-}
 
-
-private fun getCryptocurrenciesInfoWithinTimeRangeLiveData(
-    cryptocurrencyId: String,
-    daysCount: Int,
-) {
-    repository.getCryptocurrencyChartData(
-        cryptocurrencyId,
-        daysCount
-    )
-}
-
-fun setCurrentlyDisplayedDataUpdatedMinutesAgo(value: Long?) {
-    _currentlyDisplayedDataUpdatedMinutesAgo.postValue(value)
-}
-
-fun setDataCached(value: Boolean) {
-    _isDataCached.postValue(value)
-}
-
+    fun setDataCached(value: Boolean) {
+        _isDataCached.postValue(value)
+    }
 }

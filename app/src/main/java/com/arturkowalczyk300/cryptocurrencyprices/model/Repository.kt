@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.*
 import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.CryptocurrencyPricesWebService
 import kotlinx.coroutines.runBlocking
@@ -11,13 +12,17 @@ import java.util.*
 
 class Repository(application: Application) {
 
+    private var _chartDataObserved = false
     private val database: CryptocurrencyPricesDatabase? =
         CryptocurrencyPricesDatabase.getDatabase(application)
     private val webService: CryptocurrencyPricesWebService = CryptocurrencyPricesWebService()
 
-    private var _cryptocurrencyChartData = MutableLiveData<InfoWithinTimeRangeEntity>()
-    private val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity> =
+    private var _cryptocurrencyChartData = MutableLiveData<InfoWithinTimeRangeEntity?>()
+    private val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity?> =
         _cryptocurrencyChartData
+
+    private var _lastChartDataFromDaoRef: LiveData<List<InfoWithinTimeRangeEntity>>? = null
+    private var _lastChartDataFromDaoObserver: Observer<List<InfoWithinTimeRangeEntity>?>? = null
 
     private fun addCryptocurrency(entity: CryptocurrencyEntity) {
         runBlocking {
@@ -53,6 +58,7 @@ class Repository(application: Application) {
     }
 
     private suspend fun addCryptocurrencyInfoWithinTimeRange(entity: InfoWithinTimeRangeEntity) {
+        Log.e("myApp", "ADD")
         if (entity.daysCount > 0)
             database!!.userDao()!!.deleteAllCryptocurrenciesInfoInGivenDaysCount(
                 entity.cryptocurrencyId,
@@ -69,22 +75,49 @@ class Repository(application: Application) {
     fun getCryptocurrencyChartData(
         cryptocurrencyId: String? = null,
         daysCount: Int? = null,
-    ): LiveData<InfoWithinTimeRangeEntity> {
+    ): LiveData<InfoWithinTimeRangeEntity?> {
+        Log.e("myApp", "getCryptocurrencyChartData, id=$cryptocurrencyId, daysCount=$daysCount")
+
         if (cryptocurrencyId != null
             && daysCount != null
         ) { //update data, if parameters are given
-            database!!.userDao()!!
+            val observer: androidx.lifecycle.Observer<List<InfoWithinTimeRangeEntity>?> =
+                object : androidx.lifecycle.Observer<List<InfoWithinTimeRangeEntity>?> {
+                    override fun onChanged(currenciesChartData: List<InfoWithinTimeRangeEntity>?) {
+                        if (currenciesChartData != null) {
+                            Log.d(
+                                "myApp",
+                                "REPOSITORY, data change!, observerAddr=${this.hashCode()}"
+                            )
+                            _cryptocurrencyChartData.value = currenciesChartData
+                                .filter { it.cryptocurrencyId == cryptocurrencyId && it.daysCount == daysCount }
+                                .maxByOrNull { it.updateDate.time }
+                        }
+                    }
+                }
+
+            _lastChartDataFromDaoObserver?.let {
+                removeChartDataObserver(_lastChartDataFromDaoObserver!!)
+            }
+
+            _lastChartDataFromDaoRef = database!!.userDao()!!
                 .getInfoOfCryptocurrencyWithinTimeRange(
                     cryptocurrencyId,
                     daysCount
-                ).observeForever { currenciesChartData ->
-                    _cryptocurrencyChartData.value = currenciesChartData
-                        .filter { it.cryptocurrencyId == cryptocurrencyId && it.daysCount == daysCount }
-                        .maxByOrNull { it.updateDate.time }!!
+                ).also {
+                    Log.e("myApp", "liveData Addr= ${it}")
+                    it.observeForever(observer)
+                    _lastChartDataFromDaoObserver = observer
                 }
         }
 
         return cryptocurrencyChartData
+    }
+
+    private fun removeChartDataObserver(observer: Observer<List<InfoWithinTimeRangeEntity>?>) {
+        if (_lastChartDataFromDaoRef != null && _lastChartDataFromDaoRef!!.hasActiveObservers())
+            _lastChartDataFromDaoRef!!.removeObserver(observer)
+                .also { Log.e("myApp", "removing observer!") }
     }
 
     private suspend fun deleteAllCryptocurrenciesInfo() {
