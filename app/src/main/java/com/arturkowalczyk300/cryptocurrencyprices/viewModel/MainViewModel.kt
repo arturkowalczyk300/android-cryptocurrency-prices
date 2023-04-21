@@ -42,10 +42,6 @@ class MainViewModel(application: Application) : ViewModel() {
 
     //TODO: handle filling of flags below
 
-    private var _isDataCached: MutableLiveData<Boolean> =
-        MutableLiveData()
-    val isDataCached: LiveData<Boolean> = _isDataCached //TODO: delete?
-
     private var _isCurrenciesListLoadedFromCache = MutableLiveData<Boolean>(false)
     val isCurrenciesListLoadedFromCache: LiveData<Boolean> = _isCurrenciesListLoadedFromCache
 
@@ -89,7 +85,6 @@ class MainViewModel(application: Application) : ViewModel() {
 
     //coroutines
     private val loadCryptocurrenciesListCoroutine = viewModelScope.async {
-        Log.d("myApp/viewModel/coroutines/coroutineCryptocurrenciesList", "STARTED")
         _allCryptocurrencies.observeForever { currenciesList ->
             if (currenciesList.isNotEmpty())
                 _isCurrenciesListLoadedFromCache.value = true
@@ -101,16 +96,9 @@ class MainViewModel(application: Application) : ViewModel() {
                 loadLastPriceCoroutine.start()
         }
         requestUpdateCryptocurrenciesList()
-            .also {
-                Log.d(
-                    "myApp/viewModel/coroutines/coroutineCryptocurrenciesList",
-                    "REQ UPDATE"
-                )
-            }
     }
 
     private val loadLastPriceCoroutine = viewModelScope.async {
-        Log.d("myApp/viewModel/coroutines/coroutineLastPrice ", "STARTED")
         _allCryptocurrenciesPrices.observeForever {
             //TODO: distinct between cache and network data!
             if (!it.isNullOrEmpty())
@@ -124,16 +112,10 @@ class MainViewModel(application: Application) : ViewModel() {
             }
 
             requestUpdateSelectedCryptocurrencyPriceData() //TODO: create auto-update
-                .also { Log.d("myApp/viewModel/coroutines/coroutineLastPrice", "REQ UPDATE") }
-
-
         }
     }
 
     private val loadChartDataCoroutine = viewModelScope.async {
-        Log.d("myApp/viewModel/coroutines/coroutineChartData ", "STARTED")
-
-
         _cryptocurrencyChartData.observeForever {
             //TODO: distinct between cache and network data
             _isCurrencyChartDataLoadedFromCache.value = true
@@ -147,8 +129,7 @@ class MainViewModel(application: Application) : ViewModel() {
             ) { //wait until conditions are fulfilled
 
             }
-           requestUpdateCryptocurrencyChartData() //TODO: create auto-update
-               .also { Log.e("myApp/viewModel/coroutines/coroutineChartData", "REQ UPDATE_") }
+            requestUpdateCryptocurrencyChartData() //TODO: create auto-update
         }
     }
 
@@ -165,10 +146,10 @@ class MainViewModel(application: Application) : ViewModel() {
         val dateEnd = calendar.time
 
         when (selectedDaysToSeeOnChart) {
-            1 -> calendar.add(Calendar.SECOND, -(60*60*24))
-            7 -> calendar.add(Calendar.SECOND, -(60*60*24*7))
-            31 -> calendar.add(Calendar.SECOND, -(60*60*24*31))
-            365 -> calendar.add(Calendar.SECOND, -(60*60*24*365))
+            1 -> calendar.add(Calendar.SECOND, -(60 * 60 * 24))
+            7 -> calendar.add(Calendar.SECOND, -(60 * 60 * 24 * 7))
+            31 -> calendar.add(Calendar.SECOND, -(60 * 60 * 24 * 31))
+            365 -> calendar.add(Calendar.SECOND, -(60 * 60 * 24 * 365))
         }
         val dateStart = calendar.time
 
@@ -210,6 +191,8 @@ class MainViewModel(application: Application) : ViewModel() {
                     currencySymbol = selectedCryptocurrencyId!!,
                     vs_currency = vsCurrency!!
                 )
+
+                Log.e("myApp/viewmodel", "price update req, currency=${selectedCryptocurrencyId}")
             }
         }
         //TODO(): add api errors handling
@@ -223,27 +206,6 @@ class MainViewModel(application: Application) : ViewModel() {
 
         viewModelScope.launch {
             repository.updateCryptocurrenciesList()
-        }
-    }
-
-    private fun loadCryptocurrenciesInfoInDateRangeFromCache() {
-        recalculateTimeRange()
-
-        if (selectedCryptocurrencyId == null || vsCurrency == null
-            || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
-            || selectedDaysToSeeOnChart == null
-        )
-        //check if parameters are valid
-        {
-            Log.e("myApp", "INVALID PARAMETERS!")
-            return
-        }
-
-        viewModelScope.launch {
-            getCryptocurrenciesInfoWithinTimeRangeLiveData(
-                selectedCryptocurrencyId!!,
-                selectedDaysToSeeOnChart!!
-            )
         }
     }
 
@@ -281,6 +243,8 @@ class MainViewModel(application: Application) : ViewModel() {
                 selectedUnixTimeFrom!!,
                 selectedUnixTimeTo!!
             )
+
+            Log.e("myApp/viewmodel", "chart update req, currency=${selectedCryptocurrencyId}")
         }
     }
 
@@ -296,6 +260,8 @@ class MainViewModel(application: Application) : ViewModel() {
     }
 
     fun requestUpdateAllData() {
+        Log.d("myApp", "requestUpdateAllData")
+
         requestUpdateCryptocurrencyChartData()
         requestUpdateSelectedCryptocurrencyPriceData()
 
@@ -308,9 +274,5 @@ class MainViewModel(application: Application) : ViewModel() {
 
     fun setCurrentlyDisplayedDataUpdatedMinutesAgo(value: Long?) {
         _currentlyDisplayedDataUpdatedMinutesAgo.postValue(value)
-    }
-
-    fun setDataCached(value: Boolean) {
-        _isDataCached.postValue(value)
     }
 }
