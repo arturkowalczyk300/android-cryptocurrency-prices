@@ -254,7 +254,6 @@ class CryptocurrencyPricesWebService {
                 call: Call<PriceHistoryResponse>,
                 response: Response<PriceHistoryResponse>,
             ) {
-                Log.d("myApp", "code=$response.code()")
                 if (response.code() == 429)
                     mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
                 else if (response.body() != null && response.body()?.prices?.isNotEmpty() != null) {

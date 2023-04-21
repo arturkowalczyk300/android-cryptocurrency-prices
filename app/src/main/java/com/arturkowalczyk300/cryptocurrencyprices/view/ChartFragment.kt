@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.*
@@ -63,7 +64,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         observeDataUpdatedVariable()
 
         viewModel.isChartFragmentInitialized = true
-        //viewModel.updateData() TODO: delete after debugging
     }
 
     private fun observeDataUpdatedVariable() {
@@ -83,7 +83,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         viewModel.cryptocurrencyChartData?.observe(
             requireActivity(),
             object :
-                Observer<InfoWithinTimeRangeEntity> {
+                Observer<InfoWithinTimeRangeEntity?> {
                 override fun onChanged(info: InfoWithinTimeRangeEntity?) {
                     var isResponseHandled = false
                     if (info != null) {
@@ -172,7 +172,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
                 viewModel.selectedDaysToSeeOnChart = countOfDays
                 viewModel.recalculateTimeRange()
-                //viewModel.updateData() TODO: delete after debugging
+                viewModel.requestUpdateAllData()
             }
         }
 
@@ -340,6 +340,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     }
 
     private fun setUpdatingProgressBarVisibility(visible: Boolean) { //for data from remote
+        //Log.d("myApp", "switching chart data visibility, visible=$visible")
         if (visible) groupUpdating.visibility = View.VISIBLE
         else {
             groupUpdating.postDelayed(Runnable { //hide with delay

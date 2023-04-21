@@ -166,7 +166,7 @@ class MainActivity : AppCompatActivity() {
                     if (!viewModel.isChartFragmentInitialized) //wait until fragment is initialized
                         delay(1)
 
-                    //viewModel.updateData() TODO: delete after debugging
+                    viewModel.requestUpdateAllData()
                 }
             } catch (exc: Exception) {
                 Log.e("myApp", "addButtonsOnClickListeners, $exc")
@@ -230,7 +230,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         viewModel.isCurrencyPriceDataLoadedFromCache.observe(this) { loaded ->
-            Log.d("myApp/MainActivity/isCurrencyPriceDataLoaded", "loadedState=$loaded")
+            //Log.d("myApp/MainActivity/isCurrencyPriceDataLoaded", "loadedState=$loaded")
             switchVisibilityOfCurrentPriceSection(
                 visible = loaded
             )
