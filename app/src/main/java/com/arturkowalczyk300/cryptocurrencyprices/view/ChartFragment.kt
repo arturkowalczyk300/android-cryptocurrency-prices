@@ -340,7 +340,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     }
 
     private fun setUpdatingProgressBarVisibility(visible: Boolean) { //for data from remote
-        //Log.d("myApp", "switching chart data visibility, visible=$visible")
         if (visible) groupUpdating.visibility = View.VISIBLE
         else {
             groupUpdating.postDelayed(Runnable { //hide with delay
