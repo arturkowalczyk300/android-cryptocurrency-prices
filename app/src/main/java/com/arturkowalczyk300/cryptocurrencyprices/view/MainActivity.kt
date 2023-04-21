@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyDate: TextView
     private lateinit var tvCryptocurrencyPrice: TextView
     private lateinit var tvNoInternetConnection: TextView
+    private lateinit var tvErrorMessage: TextView
     private lateinit var rgDateActualArchivalSelection: RadioGroup
     private lateinit var progressBarPrice: ProgressBar
     private var chartFragment: ChartFragment? = null
@@ -111,6 +112,7 @@ class MainActivity : AppCompatActivity() {
         tvCryptocurrencyDate = findViewById(R.id.tvCryptocurrencyDate)
         tvCryptocurrencyPrice = findViewById(R.id.tvCryptocurrencyPrice)
         tvNoInternetConnection = findViewById(R.id.tvNoInternetConnection)
+        tvErrorMessage = findViewById(R.id.tvErrorMessage)
         progressBarPrice = findViewById(R.id.progressBarCryptocurrencyPrice)
 
         rgDateActualArchivalSelection = findViewById(R.id.radioGroupDate)
@@ -193,7 +195,7 @@ class MainActivity : AppCompatActivity() {
 
                     if (t!!.first) { //error occurred
                         val additionalInfo = t.second.additionalInfo ?: ""
-                        var toastText = when (t.second.errorCode) {
+                        var errorText = when (t.second.errorCode) {
                             REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE ->
                                 getString(
                                     R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE,
@@ -212,22 +214,17 @@ class MainActivity : AppCompatActivity() {
                                 getString(R.string.UNKNOWN_FAILURE)
                         }
 
-                        if (SHOW_DEBUG_TOASTS)
-                            Toast.makeText(
-                                applicationContext,
-                                toastText,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        tvErrorMessage.text = errorText
+                        tvErrorMessage.visibility = View.VISIBLE
+                        chartFragment?.setChartVisibility(false)
+                    }
+                    else //error gone
+                    {
+                        tvErrorMessage.visibility = View.GONE
+                        chartFragment?.setChartVisibility(true)
                     }
                 }
             })
-
-        viewModel.isDataCached.observe(this) { it ->
-            if (it) {
-                findViewById<TextView>(R.id.tvNoCachedData).visibility = View.GONE
-            } else
-                findViewById<TextView>(R.id.tvNoCachedData).visibility = View.VISIBLE
-        }
 
         viewModel.isCurrencyPriceDataLoadedFromCache.observe(this) { loaded ->
             //Log.d("myApp/MainActivity/isCurrencyPriceDataLoaded", "loadedState=$loaded")
@@ -241,6 +238,10 @@ class MainActivity : AppCompatActivity() {
         //}
 
         viewModel.allCryptocurrenciesPrices.observe(this, Observer { allPricesList ->
+            Log.d(
+                "myApp",
+                "mainActivity, allCryptocurrenciesPrices.observe, id= ${viewModel.selectedCryptocurrencyId}"
+            )
             val currentElement =
                 allPricesList.filter { it.cryptocurrencyId == viewModel.selectedCryptocurrencyId }
                     .maxByOrNull { it.date }
@@ -257,7 +258,6 @@ class MainActivity : AppCompatActivity() {
                             msBetweenDates / 1000 / 60
                         ) //ms to min
 
-                        viewModel.setDataCached(true)
                         updateTextViews(
                             currentElement.cryptocurrencyId,
                             currentElement.date.time / 1000,

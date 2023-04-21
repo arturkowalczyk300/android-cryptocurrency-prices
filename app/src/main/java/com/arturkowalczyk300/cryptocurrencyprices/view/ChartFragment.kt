@@ -85,6 +85,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             object :
                 Observer<InfoWithinTimeRangeEntity?> {
                 override fun onChanged(info: InfoWithinTimeRangeEntity?) {
+                    Log.d("myApp/chartFragment", "response: $info")
                     var isResponseHandled = false
                     if (info != null) {
                         var chartData = arrayListOf<Entry>()
@@ -108,8 +109,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                     }
                     if (isResponseHandled)
                         liveData!!.removeObserver(this) //only when valid data is handled
-                    else
+                    else {
                         showNoDataInfo(true)
+                    }
                 }
             })
     }
@@ -133,14 +135,12 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                     chart.notifyDataSetChanged()
                     setChartLoadingProgressBarVisibility(false)
                     viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo(null)
-                    viewModel.setDataCached(false)
 
                     setChartVisibility(false) //no valid data to display
                     setChartAxisLabelsVisibility(false)
                 }
             }
         } else {
-            viewModel.setDataCached(true)
             viewModel.noDataCachedVisibility = false
         }
     }
@@ -311,7 +311,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             requireActivity().findViewById(R.id.tvCryptocurrencyDate)
     }
 
-    private fun setChartVisibility(visible: Boolean) {
+    fun setChartVisibility(visible: Boolean) {
         if (visible) {
             chart.axisLeft.setDrawLabels(true)
             groupChartWithOptions.postDelayed(Runnable { //show with delay
@@ -319,6 +319,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                 groupChartMinMaxAvgPrices.visibility = View.VISIBLE
             }, 200)
         } else {
+            Log.e("myApp", "hide chart!")
             chartDataSet.isVisible = false
             groupChartWithOptions.visibility = View.GONE
             groupChartMinMaxAvgPrices.visibility = View.GONE
