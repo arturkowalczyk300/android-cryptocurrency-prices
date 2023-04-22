@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem) =
         when (item.itemId) {
             R.id.action_refresh -> {
-                updateDataIfConnectedToInternet()
+                requestUpdateAllData()
                 true
             }
             else ->
@@ -100,7 +100,12 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun requestUpdateDataFromNetwork() {
+    private fun requestUpdateAllData() {
+        if (viewModel.hasInternetConnection)
+            viewModel.requestUpdateAllData()
+    }
+
+    private fun requestUpdateCryptocurrenciesList() {
         if (viewModel.hasInternetConnection)
             viewModel.requestUpdateCryptocurrenciesList()
     }
@@ -216,12 +221,14 @@ class MainActivity : AppCompatActivity() {
 
                         tvErrorMessage.text = errorText
                         tvErrorMessage.visibility = View.VISIBLE
-                        chartFragment?.setChartVisibility(false)
-                    }
-                    else //error gone
+
+                        if (viewModel.isChartFragmentInitialized)
+                            chartFragment?.setChartVisibility(false)
+                    } else //error gone
                     {
                         tvErrorMessage.visibility = View.GONE
-                        chartFragment?.setChartVisibility(true)
+                        if (viewModel.isChartFragmentInitialized)
+                            chartFragment?.setChartVisibility(true)
                     }
                 }
             })
@@ -293,7 +300,7 @@ class MainActivity : AppCompatActivity() {
             if (!autoFetchDataAlreadyDone) {
                 autoFetchDataAlreadyDone = true
                 initChartFragment()
-                updateDataIfConnectedToInternet()
+                requestUpdateAllData()
             }
 
         })
@@ -306,8 +313,7 @@ class MainActivity : AppCompatActivity() {
                 tvSelectedCurrencyId.text = cryptocurrencyId
                 viewModel.selectedCryptocurrencyId = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
-                viewModel.recalculateTimeRange()
-                viewModel.requestUpdateAllData()
+                requestUpdateAllData()
             }
         }
     }
@@ -318,7 +324,8 @@ class MainActivity : AppCompatActivity() {
             viewModel.hasInternetConnection = hasInternetConnection
             changeNoInternetConnectionInfoVisibility(hasInternetConnection)
             if (viewModel.hasInternetConnection) { //TODO: DRY rule
-                requestUpdateDataFromNetwork()
+                requestUpdateCryptocurrenciesList()
+                requestUpdateAllData()
                 updateDataIfConnectedToInternet()
             } else { //connection lost, it will update info about using cached data
             }
