@@ -8,11 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arturkowalczyk300.cryptocurrencyprices.model.Repository
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.InfoWithinTimeRangeEntity
-import com.arturkowalczyk300.cryptocurrencyprices.model.room.PriceEntity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.github.mikephil.charting.utils.Utils.init
+import kotlinx.coroutines.*
 import java.util.*
 
 class MainViewModel(application: Application) : ViewModel() {
@@ -89,45 +86,59 @@ class MainViewModel(application: Application) : ViewModel() {
             if (currenciesList.isNotEmpty())
                 _isCurrenciesListLoadedFromCache.value = true
 
-            if (!loadLastPriceCoroutine.isActive)
-                loadLastPriceCoroutine.start()
+            if (!loadLastPriceCoroutine.isActive) {
+                viewModelScope.launch {
+                    loadLastPriceCoroutine.start()
+                }
+            }
 
-            if (!loadChartDataCoroutine.isActive)
-                loadLastPriceCoroutine.start()
+            if (!loadChartDataCoroutine.isActive) {
+                viewModelScope.launch {
+                    loadChartDataCoroutine.start()
+                }
+            }
         }
         requestUpdateCryptocurrenciesList()
     }
 
-    private val loadLastPriceCoroutine = viewModelScope.async {
+    private val loadLastPriceCoroutine = viewModelScope.async(start = CoroutineStart.LAZY) {
         _allCryptocurrenciesPrices.observeForever {
             //TODO: distinct between cache and network data!
             if (!it.isNullOrEmpty())
                 _isCurrencyPriceDataLoadedFromCache.value = true
         }
-
         withContext(Dispatchers.Default) { //update loop
-
             while (selectedCryptocurrencyId == null) { //wait until conditions are fulfilled
-
             }
 
             requestUpdateSelectedCryptocurrencyPriceData() //TODO: create auto-update
         }
     }
 
-    private val loadChartDataCoroutine = viewModelScope.async {
-        _cryptocurrencyChartData.observeForever {
-            //TODO: distinct between cache and network data
-            _isCurrencyChartDataLoadedFromCache.value = true
+    private val loadChartDataCoroutine = viewModelScope.async(start = CoroutineStart.LAZY) {
+        withContext(Dispatchers.Main) {
+            _cryptocurrencyChartData.observeForever {
+                //TODO: distinct between cache and network data
+                _isCurrencyChartDataLoadedFromCache.value = true
+            }
         }
-
         withContext(Dispatchers.Default) { //update loop
-            recalculateTimeRange()
-            while (selectedCryptocurrencyId == null || vsCurrency == null
-                || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
-                || selectedDaysToSeeOnChart == null || !hasInternetConnection
-            ) { //wait until conditions are fulfilled
+            while (selectedCryptocurrencyId == null || selectedDaysToSeeOnChart == null) //wait until conditions are fulfilled
+            {
 
+            }
+            recalculateTimeRange()
+            withContext(Dispatchers.Main) {
+                getChartLiveData(
+                    selectedCryptocurrencyId!!,
+                    selectedDaysToSeeOnChart!!
+                )
+            }
+
+            while (selectedCryptocurrencyId == null || selectedDaysToSeeOnChart == null
+                || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
+                || !hasInternetConnection || vsCurrency == null
+            ) { //wait until conditions are fulfilled
             }
             requestUpdateCryptocurrencyChartData() //TODO: create auto-update
         }
@@ -174,6 +185,11 @@ class MainViewModel(application: Application) : ViewModel() {
             return
         }
 
+        if (!hasInternetConnection) {
+            Log.d("myApp", "no internet connection!")
+            return
+        }
+
         viewModelScope.launch {
             var dateRequest: Date
 
@@ -192,8 +208,12 @@ class MainViewModel(application: Application) : ViewModel() {
                     vs_currency = vsCurrency!!
                 )
 
-                Log.e("myApp/viewmodel", "price update req, currency=${selectedCryptocurrencyId}")
+                Log.e(
+                    "myApp/viewmodel",
+                    "price update req, currency=${selectedCryptocurrencyId}"
+                )
             }
+
         }
         //TODO(): add api errors handling
     }
@@ -201,6 +221,11 @@ class MainViewModel(application: Application) : ViewModel() {
     fun requestUpdateCryptocurrenciesList() {
         if (_isUpdateOfCurrenciesListInProgress.value == true) {
             Log.e("myApp", "Update in progress or already done")
+            return
+        }
+
+        if (!hasInternetConnection) {
+            Log.d("myApp", "no internet connection!")
             return
         }
 
@@ -218,7 +243,6 @@ class MainViewModel(application: Application) : ViewModel() {
             return
         }
 
-
         if (selectedCryptocurrencyId == null || vsCurrency == null
             || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
             || selectedDaysToSeeOnChart == null || !hasInternetConnection
@@ -231,8 +255,10 @@ class MainViewModel(application: Application) : ViewModel() {
             return
         }
 
+
+
         viewModelScope.launch {
-            getCryptocurrenciesInfoWithinTimeRangeLiveData(
+            getChartLiveData(
                 selectedCryptocurrencyId!!,
                 selectedDaysToSeeOnChart!!
             )
@@ -249,7 +275,7 @@ class MainViewModel(application: Application) : ViewModel() {
     }
 
 
-    private fun getCryptocurrenciesInfoWithinTimeRangeLiveData(
+    private fun getChartLiveData(
         cryptocurrencyId: String,
         daysCount: Int,
     ) {
