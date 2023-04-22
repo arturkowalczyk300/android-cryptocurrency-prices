@@ -245,8 +245,8 @@ class MainViewModel(application: Application) : ViewModel() {
 
         if (selectedCryptocurrencyId == null || vsCurrency == null
             || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
-            || selectedDaysToSeeOnChart == null || !hasInternetConnection
-        ) //check if parameters are valid
+            || selectedDaysToSeeOnChart == null
+        ) //check if parameters are valid //TODO: add only getting data when there is no internet availabel
         {
             Log.e(
                 "myApp/requestUpdateCryptocurrencyChartData",
@@ -263,14 +263,20 @@ class MainViewModel(application: Application) : ViewModel() {
                 selectedDaysToSeeOnChart!!
             )
 
-            repository.updateCryptocurrenciesInfoWithinDateRange(
-                selectedCryptocurrencyId!!,
-                vsCurrency!!,
-                selectedUnixTimeFrom!!,
-                selectedUnixTimeTo!!
-            )
+            if(hasInternetConnection) {
+                repository.updateCryptocurrenciesInfoWithinDateRange(
+                    selectedCryptocurrencyId!!,
+                    vsCurrency!!,
+                    selectedUnixTimeFrom!!,
+                    selectedUnixTimeTo!!
+                )
 
-            Log.e("myApp/viewmodel", "chart update req, currency=${selectedCryptocurrencyId}")
+
+                Log.e("myApp/viewmodel", "chart update req, currency=${selectedCryptocurrencyId}")
+            }
+            else{
+                Log.d("myApp", "no internet connection, skip data update!")
+            }
         }
     }
 
