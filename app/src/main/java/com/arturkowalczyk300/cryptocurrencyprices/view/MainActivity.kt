@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem) =
         when (item.itemId) {
             R.id.action_refresh -> {
-                requestUpdateAllData()
+                viewModel.requestUpdateAllData()
                 true
             }
             else ->
@@ -98,11 +98,6 @@ class MainActivity : AppCompatActivity() {
                 replace(R.id.flChart, chartFragment!!)
                 commit()
             }
-    }
-
-    private fun requestUpdateAllData() {
-        if (viewModel.hasInternetConnection)
-            viewModel.requestUpdateAllData()
     }
 
     private fun requestUpdateCryptocurrenciesList() {
@@ -300,7 +295,7 @@ class MainActivity : AppCompatActivity() {
             if (!autoFetchDataAlreadyDone) {
                 autoFetchDataAlreadyDone = true
                 initChartFragment()
-                requestUpdateAllData()
+                viewModel.requestUpdateAllData()
             }
 
         })
@@ -313,7 +308,7 @@ class MainActivity : AppCompatActivity() {
                 tvSelectedCurrencyId.text = cryptocurrencyId
                 viewModel.selectedCryptocurrencyId = cryptocurrencyId
                 sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
-                requestUpdateAllData()
+                viewModel.requestUpdateAllData()
             }
         }
     }
@@ -325,7 +320,7 @@ class MainActivity : AppCompatActivity() {
             changeNoInternetConnectionInfoVisibility(hasInternetConnection)
             if (viewModel.hasInternetConnection) { //TODO: DRY rule
                 requestUpdateCryptocurrenciesList()
-                requestUpdateAllData()
+                viewModel.requestUpdateAllData()
                 updateDataIfConnectedToInternet()
             } else { //connection lost, it will update info about using cached data
             }
