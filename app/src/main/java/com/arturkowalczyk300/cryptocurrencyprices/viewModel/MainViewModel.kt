@@ -39,8 +39,6 @@ class MainViewModel(application: Application) : ViewModel() {
     val currentlyDisplayedDataUpdatedMinutesAgo: LiveData<Long?> =
         _currentlyDisplayedDataUpdatedMinutesAgo
 
-    //TODO: handle filling of flags below
-
     private var _isCurrenciesListLoadedFromCache = MutableLiveData<Boolean>(false)
     val isCurrenciesListLoadedFromCache: LiveData<Boolean> = _isCurrenciesListLoadedFromCache
 
@@ -49,15 +47,6 @@ class MainViewModel(application: Application) : ViewModel() {
 
     private var _isCurrencyChartDataLoadedFromCache = MutableLiveData<Boolean>(false)
     val isCurrencyChartDataLoadedFromCache: LiveData<Boolean> = _isCurrencyChartDataLoadedFromCache
-
-    private var _isCurrenciesListUpdated = MutableLiveData<Boolean>(false)
-    val isCurrenciesListUpdated: LiveData<Boolean> = _isCurrenciesListUpdated
-
-    private var _isCurrencyPriceDataUpdated = MutableLiveData<Boolean>(false)
-    val isCurrencyPriceDataUpdated: LiveData<Boolean> = _isCurrencyPriceDataUpdated
-
-    private var _isCurrencyChartDataUpdated = MutableLiveData<Boolean>(false)
-    val isCurrencyChartDataUpdated: LiveData<Boolean> = _isCurrencyChartDataUpdated
 
     private var _isUpdateOfCurrenciesListInProgress = MutableLiveData(false)
     val isUpdateOfCurrenciesListInProgress: LiveData<Boolean> = _isUpdateOfCurrenciesListInProgress
@@ -105,7 +94,6 @@ class MainViewModel(application: Application) : ViewModel() {
 
     private val loadLastPriceCoroutine = viewModelScope.async(start = CoroutineStart.LAZY) {
         _allCryptocurrenciesPrices.observeForever {
-            //TODO: distinct between cache and network data!
             if (!it.isNullOrEmpty())
                 _isCurrencyPriceDataLoadedFromCache.value = true
         }
@@ -120,7 +108,6 @@ class MainViewModel(application: Application) : ViewModel() {
     private val loadChartDataCoroutine = viewModelScope.async(start = CoroutineStart.LAZY) {
         withContext(Dispatchers.Main) {
             _cryptocurrencyChartData.observeForever {
-                //TODO: distinct between cache and network data
                 _isCurrencyChartDataLoadedFromCache.value = true
             }
         }
@@ -175,14 +162,14 @@ class MainViewModel(application: Application) : ViewModel() {
         refreshPriceData()
 
         if (_isUpdateOfPriceDataInProgress.value == true) {
-            Log.e("myApp", "Update in progress or already done")
+            Log.d("myApp", "Update in progress or already done")
             return
         }
 
         if (selectedCryptocurrencyId == null ||
             (showArchivalData && showArchivalDataRange == null)
         ) {
-            Log.e(
+            Log.d(
                 "myApp/requestUpdateSelectedCryptocurrencyPriceData",
                 "No specified cryptocurrency, or not specified data range for archival reading"
             )
@@ -219,12 +206,11 @@ class MainViewModel(application: Application) : ViewModel() {
             }
 
         }
-        //TODO(): add api errors handling
     }
 
     fun requestUpdateCryptocurrenciesList() {
         if (_isUpdateOfCurrenciesListInProgress.value == true) {
-            Log.e("myApp", "Update in progress or already done")
+            Log.d("myApp", "Update in progress or already done")
             return
         }
 
@@ -243,14 +229,14 @@ class MainViewModel(application: Application) : ViewModel() {
         recalculateTimeRange()
 
         if (_isUpdateOfChartDataInProgress.value == true) {
-            Log.e("myApp", "update in progress or already done")
+            Log.d("myApp", "update in progress or already done")
             return
         }
 
         if (selectedCryptocurrencyId == null || vsCurrency == null
             || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
             || selectedDaysToSeeOnChart == null
-        ) //check if parameters are valid //TODO: add only getting data when there is no internet availabel
+        )
         {
             Log.e(
                 "myApp/requestUpdateCryptocurrencyChartData",
@@ -274,9 +260,6 @@ class MainViewModel(application: Application) : ViewModel() {
                     selectedUnixTimeFrom!!,
                     selectedUnixTimeTo!!
                 )
-
-
-                Log.e("myApp/viewmodel", "chart update req, currency=${selectedCryptocurrencyId}")
             } else {
                 Log.d("myApp", "no internet connection, skip data update!")
             }
@@ -295,8 +278,6 @@ class MainViewModel(application: Application) : ViewModel() {
     }
 
     fun requestUpdateAllData() {
-        Log.d("myApp", "requestUpdateAllData")
-
         requestUpdateCryptocurrencyChartData()
         requestUpdateSelectedCryptocurrencyPriceData()
 

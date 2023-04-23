@@ -124,13 +124,11 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         )[MainViewModel::class.java]
     }
 
-    private fun showNoDataInfo(show: Boolean) { //todo: move it into viewmodel as property
-        Log.e("myApp", "showNoDataInfo, val=$show")
+    private fun showNoDataInfo(show: Boolean) {
         if (show) {
             viewModel.noDataCachedVisibility = true
             CoroutineScope(Dispatchers.Default).async {
                 delay(1000)
-                Log.e("myApp", "log010, viewModel.noDataCachedVisibility=${viewModel.noDataCachedVisibility}")
                 if (viewModel.noDataCachedVisibility) //check again, maybe new record has been added meanwhile
                 {
                     setChartVisibility(true)
@@ -322,13 +320,11 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                 groupChartWithOptions.visibility = View.VISIBLE
                 groupChartMinMaxAvgPrices.visibility = View.VISIBLE
             }, 200)
-            Log.e("myApp", "show chart, chart visibility=${chart.visibility.toString()}!")
         } else {
             chartDataSet.isVisible = false
             groupChartWithOptions.visibility = View.GONE
             groupChartMinMaxAvgPrices.visibility = View.GONE
             chart.invalidate()
-            Log.e("myApp", "hide chart, chart visibility=${chart.visibility.toString()}!")
         }
     }
 

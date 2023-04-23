@@ -135,8 +135,6 @@ class MainActivity : AppCompatActivity() {
             etDate.setText(dateString)
             viewModel.showArchivalDataRange =
                 DateFormatterUtil.parseDateOnly(etDate.text.toString())
-
-            //viewModel.updateData() TODO: delete after debugging
         }
 
         viewModel.showArchivalDataRange = DateFormatterUtil.parseDateOnly(etDate.text.toString())
@@ -158,7 +156,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateDataIfConnectedToInternet() { //TODO: remove
+    private fun updateDataIfConnectedToInternet() {
         if (isCurrenciesListInitialized && viewModel.hasInternetConnection) {
             autoFetchDataAlreadyDone = true
             autoFetchDataPending = false
@@ -235,15 +233,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        //viewModel.currenciesListLoadingState.observe(this) {
-        //TODO: implement
-        //}
-
         viewModel.allCryptocurrenciesPrices.observe(this, Observer { allPricesList ->
-            Log.d(
-                "myApp",
-                "mainActivity, allCryptocurrenciesPrices.observe, id= ${viewModel.selectedCryptocurrencyId}"
-            )
             var found = false
 
             val currentElement =
@@ -261,7 +251,7 @@ class MainActivity : AppCompatActivity() {
                         switchVisibilityOfCurrentPriceSection(true)
                         val msBetweenDates = Date().time - currentElement.date.time / 1000
 
-                        viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo( //TODO: move this into viewmodel
+                        viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo(
                             msBetweenDates / 1000 / 60
                         ) //ms to min
 
@@ -274,7 +264,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             if (!found) {
-                Log.e("myApp", "data not found!")
                 switchVisibilityOfCurrentPriceSection(false)
             }
         }
@@ -327,7 +316,7 @@ class MainActivity : AppCompatActivity() {
         networkAccessLiveData.observe(this) { hasInternetConnection ->
             viewModel.hasInternetConnection = hasInternetConnection
             changeNoInternetConnectionInfoVisibility(hasInternetConnection)
-            if (viewModel.hasInternetConnection) { //TODO: DRY rule
+            if (viewModel.hasInternetConnection) {
                 requestUpdateCryptocurrenciesList()
                 viewModel.requestUpdateAllData()
                 updateDataIfConnectedToInternet()
@@ -364,7 +353,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateTextViews(currencySymbol: String, dateUnixTime: Long, price: Float) {
-        Log.v("myApp", "updateTextViews")
         tvCryptocurrencySymbol.text = currencySymbol
         tvCryptocurrencyDate.text = DateFormatterUtil.formatDateWithTime(Timestamp(dateUnixTime))
         tvCryptocurrencyPrice.text =
