@@ -11,7 +11,11 @@ import com.github.mikephil.charting.utils.Utils.init
 import kotlinx.coroutines.*
 import java.util.*
 
+private const val REFRESH_PRICE_INTERVAL_MILLIS = 30000L
+private const val REFRESH_CHART_INTERVAL_MILLIS = 60000L
+
 class MainViewModel(application: Application) : ViewModel() {
+
     private var repository: Repository =
         Repository(application)
     val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
@@ -21,10 +25,11 @@ class MainViewModel(application: Application) : ViewModel() {
     val allCryptocurrencies = _allCryptocurrencies
 
     private var _allCryptocurrenciesPrices = MutableLiveData<List<PriceEntity>>()
-    val allCryptocurrenciesPrices = Transformations.switchMap(repository.getAllCryptocurrenciesPrices()){
-        _allCryptocurrenciesPrices.value = it
-        _allCryptocurrenciesPrices
-    }
+    val allCryptocurrenciesPrices =
+        Transformations.switchMap(repository.getAllCryptocurrenciesPrices()) {
+            _allCryptocurrenciesPrices.value = it
+            _allCryptocurrenciesPrices
+        }
 
     private var _cryptocurrencyChartData = repository.getCryptocurrencyChartData()
     val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity?>? =
@@ -94,14 +99,21 @@ class MainViewModel(application: Application) : ViewModel() {
 
     private val loadLastPriceCoroutine = viewModelScope.async(start = CoroutineStart.LAZY) {
         _allCryptocurrenciesPrices.observeForever {
+
+
             if (!it.isNullOrEmpty())
                 _isCurrencyPriceDataLoadedFromCache.value = true
         }
-        withContext(Dispatchers.Default) { //update loop
-            while (selectedCryptocurrencyId == null) { //wait until conditions are fulfilled
-            }
 
-            requestUpdateSelectedCryptocurrencyPriceData() //TODO: create auto-update
+        withContext(Dispatchers.Default) { //update loop
+            while (true) {
+                while (selectedCryptocurrencyId == null) { //wait until conditions are fulfilled
+                }
+                withContext(Dispatchers.Main) {
+                    requestUpdateSelectedCryptocurrencyPriceData() //TODO: create auto-update
+                }
+                delay(REFRESH_PRICE_INTERVAL_MILLIS)
+            }
         }
     }
 
@@ -112,26 +124,28 @@ class MainViewModel(application: Application) : ViewModel() {
             }
         }
         withContext(Dispatchers.Default) { //update loop
-            while (selectedCryptocurrencyId == null || selectedDaysToSeeOnChart == null) //wait until conditions are fulfilled
-            {
+            while (true) {
+                while (selectedCryptocurrencyId == null || selectedDaysToSeeOnChart == null) { //wait until conditions are fulfilled
+                }
+                recalculateTimeRange()
+                withContext(Dispatchers.Main) {
+                    getChartLiveData(
+                        selectedCryptocurrencyId!!,
+                        selectedDaysToSeeOnChart!!
+                    )
+                }
 
+                while (selectedCryptocurrencyId == null || selectedDaysToSeeOnChart == null
+                    || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
+                    || !hasInternetConnection || vsCurrency == null
+                ) { //wait until conditions are fulfilled
+                }
+                requestUpdateCryptocurrencyChartData() //TODO: create auto-update
+                delay(REFRESH_CHART_INTERVAL_MILLIS)
             }
-            recalculateTimeRange()
-            withContext(Dispatchers.Main) {
-                getChartLiveData(
-                    selectedCryptocurrencyId!!,
-                    selectedDaysToSeeOnChart!!
-                )
-            }
-
-            while (selectedCryptocurrencyId == null || selectedDaysToSeeOnChart == null
-                || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
-                || !hasInternetConnection || vsCurrency == null
-            ) { //wait until conditions are fulfilled
-            }
-            requestUpdateCryptocurrencyChartData() //TODO: create auto-update
         }
     }
+
 
     init {
         loadCryptocurrenciesListCoroutine.start()
@@ -198,11 +212,6 @@ class MainViewModel(application: Application) : ViewModel() {
                     currencySymbol = selectedCryptocurrencyId!!,
                     vs_currency = vsCurrency!!
                 )
-
-                Log.e(
-                    "myApp/viewmodel",
-                    "price update req, currency=${selectedCryptocurrencyId}"
-                )
             }
 
         }
@@ -236,8 +245,7 @@ class MainViewModel(application: Application) : ViewModel() {
         if (selectedCryptocurrencyId == null || vsCurrency == null
             || selectedUnixTimeFrom == null || selectedUnixTimeTo == null
             || selectedDaysToSeeOnChart == null
-        )
-        {
+        ) {
             Log.e(
                 "myApp/requestUpdateCryptocurrencyChartData",
                 "One or more parameters are not set"

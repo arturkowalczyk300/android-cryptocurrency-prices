@@ -227,7 +227,6 @@ class MainActivity : AppCompatActivity() {
             })
 
         viewModel.isCurrencyPriceDataLoadedFromCache.observe(this) { loaded ->
-            //Log.d("myApp/MainActivity/isCurrencyPriceDataLoaded", "loadedState=$loaded")
             switchVisibilityOfCurrentPriceSection(
                 visible = loaded
             )
