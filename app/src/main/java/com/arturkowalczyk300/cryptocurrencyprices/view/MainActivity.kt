@@ -364,6 +364,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateTextViews(currencySymbol: String, dateUnixTime: Long, price: Float) {
+        Log.v("myApp", "updateTextViews")
         tvCryptocurrencySymbol.text = currencySymbol
         tvCryptocurrencyDate.text = DateFormatterUtil.formatDateWithTime(Timestamp(dateUnixTime))
         tvCryptocurrencyPrice.text =
