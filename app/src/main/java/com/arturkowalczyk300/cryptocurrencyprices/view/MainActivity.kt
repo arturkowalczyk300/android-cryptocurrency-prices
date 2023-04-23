@@ -135,6 +135,8 @@ class MainActivity : AppCompatActivity() {
             etDate.setText(dateString)
             viewModel.showArchivalDataRange =
                 DateFormatterUtil.parseDateOnly(etDate.text.toString())
+
+            viewModel.requestUpdateAllData()
         }
 
         viewModel.showArchivalDataRange = DateFormatterUtil.parseDateOnly(etDate.text.toString())
@@ -153,6 +155,7 @@ class MainActivity : AppCompatActivity() {
                     viewModel.showArchivalData = true
                 }
             }
+            viewModel.requestUpdateAllData()
         }
     }
 

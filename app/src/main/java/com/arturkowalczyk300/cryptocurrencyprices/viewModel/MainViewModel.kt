@@ -110,7 +110,7 @@ class MainViewModel(application: Application) : ViewModel() {
                 while (selectedCryptocurrencyId == null) { //wait until conditions are fulfilled
                 }
                 withContext(Dispatchers.Main) {
-                    requestUpdateSelectedCryptocurrencyPriceData() //TODO: create auto-update
+                    requestUpdateSelectedCryptocurrencyPriceData()
                 }
                 delay(REFRESH_PRICE_INTERVAL_MILLIS)
             }
@@ -140,7 +140,7 @@ class MainViewModel(application: Application) : ViewModel() {
                     || !hasInternetConnection || vsCurrency == null
                 ) { //wait until conditions are fulfilled
                 }
-                requestUpdateCryptocurrencyChartData() //TODO: create auto-update
+                requestUpdateCryptocurrencyChartData()
                 delay(REFRESH_CHART_INTERVAL_MILLIS)
             }
         }
