@@ -2,12 +2,11 @@ package com.arturkowalczyk300.cryptocurrencyprices.viewModel
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.arturkowalczyk300.cryptocurrencyprices.model.Repository
+import com.arturkowalczyk300.cryptocurrencyprices.model.room.CryptocurrencyEntity
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.InfoWithinTimeRangeEntity
+import com.arturkowalczyk300.cryptocurrencyprices.model.room.PriceEntity
 import com.github.mikephil.charting.utils.Utils.init
 import kotlinx.coroutines.*
 import java.util.*
@@ -21,8 +20,11 @@ class MainViewModel(application: Application) : ViewModel() {
     private var _allCryptocurrencies = repository.getAllCryptocurrencies()
     val allCryptocurrencies = _allCryptocurrencies
 
-    private var _allCryptocurrenciesPrices = repository.getAllCryptocurrenciesPrices()
-    val allCryptocurrenciesPrices = _allCryptocurrenciesPrices
+    private var _allCryptocurrenciesPrices = MutableLiveData<List<PriceEntity>>()
+    val allCryptocurrenciesPrices = Transformations.switchMap(repository.getAllCryptocurrenciesPrices()){
+        _allCryptocurrenciesPrices.value = it
+        _allCryptocurrenciesPrices
+    }
 
     private var _cryptocurrencyChartData = repository.getCryptocurrencyChartData()
     val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity?>? =
@@ -170,6 +172,8 @@ class MainViewModel(application: Application) : ViewModel() {
 
     private fun requestUpdateSelectedCryptocurrencyPriceData(
     ) {
+        refreshPriceData()
+
         if (_isUpdateOfPriceDataInProgress.value == true) {
             Log.e("myApp", "Update in progress or already done")
             return
@@ -263,7 +267,7 @@ class MainViewModel(application: Application) : ViewModel() {
                 selectedDaysToSeeOnChart!!
             )
 
-            if(hasInternetConnection) {
+            if (hasInternetConnection) {
                 repository.updateCryptocurrenciesInfoWithinDateRange(
                     selectedCryptocurrencyId!!,
                     vsCurrency!!,
@@ -273,8 +277,7 @@ class MainViewModel(application: Application) : ViewModel() {
 
 
                 Log.e("myApp/viewmodel", "chart update req, currency=${selectedCryptocurrencyId}")
-            }
-            else{
+            } else {
                 Log.d("myApp", "no internet connection, skip data update!")
             }
         }
@@ -306,5 +309,9 @@ class MainViewModel(application: Application) : ViewModel() {
 
     fun setCurrentlyDisplayedDataUpdatedMinutesAgo(value: Long?) {
         _currentlyDisplayedDataUpdatedMinutesAgo.postValue(value)
+    }
+
+    private fun refreshPriceData() {
+        _allCryptocurrenciesPrices.value = _allCryptocurrenciesPrices.value
     }
 }
