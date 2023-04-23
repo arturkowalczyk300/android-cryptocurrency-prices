@@ -3,7 +3,7 @@ package com.arturkowalczyk300.cryptocurrencyprices.other
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class DateFormatterUtil { //TODO: refactor
+class DateFormatterUtil {
 
     companion object {
         private const val DEFAULT_DATE_ONLY_FORMAT = "dd.MM.yyyy" //use in case when custom is not provided
