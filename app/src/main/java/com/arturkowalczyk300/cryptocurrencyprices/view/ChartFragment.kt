@@ -86,7 +86,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             object :
                 Observer<InfoWithinTimeRangeEntity?> {
                 override fun onChanged(info: InfoWithinTimeRangeEntity?) {
-                    Log.d("myApp/chartFragment", "response: $info")
                     var isResponseHandled = false
                     if (info != null) {
                         var chartData = arrayListOf<Entry>()
