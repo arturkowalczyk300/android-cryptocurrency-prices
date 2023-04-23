@@ -244,6 +244,8 @@ class MainActivity : AppCompatActivity() {
                 "myApp",
                 "mainActivity, allCryptocurrenciesPrices.observe, id= ${viewModel.selectedCryptocurrencyId}"
             )
+            var found = false
+
             val currentElement =
                 allPricesList.filter { it.cryptocurrencyId == viewModel.selectedCryptocurrencyId }
                     .maxByOrNull { it.date }
@@ -253,7 +255,10 @@ class MainActivity : AppCompatActivity() {
                     val actualPrice =
                         currentElement.price
 
+
                     if (currentElement.cryptocurrencyId == viewModel.selectedCryptocurrencyId) {
+                        found = true
+                        switchVisibilityOfCurrentPriceSection(true)
                         val msBetweenDates = Date().time - currentElement.date.time / 1000
 
                         viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo( //TODO: move this into viewmodel
@@ -267,6 +272,10 @@ class MainActivity : AppCompatActivity() {
                         )
                     }
                 }
+            }
+            if (!found) {
+                Log.e("myApp", "data not found!")
+                switchVisibilityOfCurrentPriceSection(false)
             }
         }
         )
@@ -347,7 +356,7 @@ class MainActivity : AppCompatActivity() {
     private fun switchVisibilityOfCurrentPriceSection(visible: Boolean) {
         val groupRecords: androidx.constraintlayout.widget.Group = findViewById(R.id.groupRecords)
         groupRecords.visibility = if (visible) View.VISIBLE else View.INVISIBLE
-        progressBarPrice.visibility = if (visible) View.INVISIBLE else View.VISIBLE
+        progressBarPrice.visibility = if (visible || !viewModel.hasInternetConnection) View.INVISIBLE else View.VISIBLE
     }
 
     private fun openDatePicker() {
