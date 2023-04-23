@@ -158,10 +158,16 @@ class CryptocurrencyPricesWebService {
                     mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
                 else if (response.body() != null) {
                     if (waitingForResponse) {
-                        mldArchivalRequestWithResponse?.value?.entity = response.body()
+                        val price: Float =
+                            response?.body()?.market_data?.current_price?.usd?.toFloat() ?: 0.00f
+
+                        Log.e("myApp", "price=$price")
+
+                        mldArchivalRequestWithResponse?.value?.actualPrice = price
                         mldArchivalRequestWithResponse?.value?.flagDataSet = true
                         mldArchivalRequestWithResponse.value =
                             mldArchivalRequestWithResponse.value //notify data changed
+
                     }
                 } else {
                     mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_PRICE_DATA_FAILURE))
