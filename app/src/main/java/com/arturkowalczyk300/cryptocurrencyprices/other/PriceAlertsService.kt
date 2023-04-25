@@ -12,9 +12,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.model.Repository
+import com.arturkowalczyk300.cryptocurrencyprices.model.room.AlertType
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.PriceAlertEntity
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.PriceEntity
-import com.github.mikephil.charting.utils.Utils.init
 import java.lang.Thread.sleep
 
 private const val NOTIFICATION_CHANNEL_ID = "my_notification_channel"
@@ -23,30 +23,53 @@ private const val NOTIFICATION_ID = 10
 private const val INTERVAL = 30000L
 
 class PriceAlertsService : Service() {
-    private var data: List<PriceAlertEntity>? = null
+    private var priceAlerts: List<PriceAlertEntity>? = null
     private var thread: Thread? = null
     private var running = false
     private lateinit var repository: Repository
 
-    init {
-        Log.d("myApp/service", "init")
-    }
-
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("myApp/service", "start!")
         running = true
-        Toast.makeText(this, "Service started", Toast.LENGTH_LONG).show()
-
         repository = Repository(application)
-        subscribeLiveDataOfPrice()
+        observeLiveData()
 
         try {
             thread = Thread {
                 while (running) {
                     sleep(INTERVAL)
-                    Log.d("myApp/service", "tick, collection size=${data?.size}")
+
+                    Log.d("myApp", "price alerts, size=${priceAlerts?.size}")
+                    priceAlerts?.forEachIndexed { index, it ->
+                        val price = repository.getActualPriceOfCryptocurrencySynchronously(
+                            it.cryptocurrencySymbol,
+                            "USD"
+                        )
+
+                        Log.d(
+                            "myApp",
+                            "alert number ${index}, current price=$price, alert:$it"
+                        )
+
+                        var alertOccured= false
+                        if(it.alertType == AlertType.ALERT_WHEN_CURRENT_VALUE_IS_SMALLER){
+                            if(price < it.valueThreshold) {
+                               alertOccured = true
+                                Log.e("myApp", "price is smaller than threshold!")
+                            }
+                        }
+                        else{
+                            if(price > it.valueThreshold) {
+                                alertOccured = true
+                                Log.e("myApp", "price is bigger than threshold!")
+                            }
+                        }
+                    }
+
+
+
+
                     displayNotification()
                 }
 
@@ -55,24 +78,20 @@ class PriceAlertsService : Service() {
             Log.e("myApp", "place1, exc=$e")
         }
 
-        Log.d("myApp/service", "end of start() method!")
         return START_STICKY
     }
 
-    private fun subscribeLiveDataOfPrice() {
-        repository.getPricesAlerts().observeForever(){
-            data = it
+    private fun observeLiveData() {
+        repository.getPricesAlerts().observeForever {
+            priceAlerts = it
         }
     }
 
     override fun onDestroy() {
         running = false
-        Toast.makeText(this, "Service stopped", Toast.LENGTH_LONG).show()
-        Log.d("myApp/service", "service is being killed!")
         super.onDestroy()
     }
 
-    //notifications section
     override fun onCreate() {
         super.onCreate()
 
@@ -92,7 +111,7 @@ class PriceAlertsService : Service() {
         .setContentTitle("Price alert!")
         .setContentText("Price of currency X has changed!").build()
 
-    private fun displayNotification(){
+    private fun displayNotification() {
         NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildNotification())
     }
 }

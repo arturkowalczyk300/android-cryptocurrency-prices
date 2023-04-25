@@ -262,4 +262,8 @@ class Repository(application: Application) {
     fun getPricesAlerts(): LiveData<List<PriceAlertEntity>> {
         return database!!.userDao().getPricesAlerts()
     }
+
+    fun getActualPriceOfCryptocurrencySynchronously(cryptocurrencySymbol: String, vs_currency: String): Float{
+        return webService.getActualPriceOfCryptocurrencySynchronously(cryptocurrencySymbol, vs_currency)
+    }
 }

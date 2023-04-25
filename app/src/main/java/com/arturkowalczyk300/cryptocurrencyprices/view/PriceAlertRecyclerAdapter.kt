@@ -46,7 +46,7 @@ class PriceAlertRecyclerAdapter(
             cryptocurrencySymbol.text = alert.cryptocurrencySymbol
 
             val arr = context.resources.getStringArray(R.array.alertTypes)
-            alertType.text = arr[alert.alertType.ordinal]
+            alertType.text = arr[alert.alertType.ordinal] + " than ${alert.valueThreshold}"
         }
     }
 }
