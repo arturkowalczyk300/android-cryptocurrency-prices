@@ -70,7 +70,7 @@ class PricesAlertsActivity : AppCompatActivity() {
     private fun observeData() {
         viewModel.pricesAlerts.observe(this) {
             rvPricesAlerts.adapter = PriceAlertRecyclerAdapter(this, it)
-            { viewModel.deletePriceAlert(it) }
+            { viewModel.deletePriceAlert(it) }  
         }
     }
 
