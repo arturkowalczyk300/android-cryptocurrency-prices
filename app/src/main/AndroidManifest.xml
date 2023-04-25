@@ -30,6 +30,7 @@
             android:exported="false" />
 
         <service android:name=".other.PriceAlertsService" />
+        <receiver android:name=".other.AlarmReceiver" android:enabled="true"/>
     </application>
 
 </manifest>

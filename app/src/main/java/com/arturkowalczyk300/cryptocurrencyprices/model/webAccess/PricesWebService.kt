@@ -161,8 +161,6 @@ class CryptocurrencyPricesWebService {
                         val price: Float =
                             response?.body()?.market_data?.current_price?.usd?.toFloat() ?: 0.00f
 
-                        Log.e("myApp", "price=$price")
-
                         mldArchivalRequestWithResponse?.value?.actualPrice = price
                         mldArchivalRequestWithResponse?.value?.flagDataSet = true
                         mldArchivalRequestWithResponse.value =

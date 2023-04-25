@@ -27,6 +27,7 @@ class PriceAlertsService : Service() {
     private var startNotificationId=10
 
     override fun onCreate() {
+        Log.d("myApp", "onCreate")
         super.onCreate()
         createNotificationChannel()
     }
@@ -34,26 +35,30 @@ class PriceAlertsService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("myApp", "onStartCommand")
         running = true
-        repository = Repository(application)
+        if(!(this::repository.isInitialized))
+            repository= Repository(application)
         observeLiveData()
 
         try {
             thread = Thread {
                 while (running) {
-                    sleep(INTERVAL)
                     handleAlerts()
+                    running = false
                 }
 
             }.also { it.start() }
         } catch (e: Exception) {
-            Log.e("myApp", "place1, exc=$e")
+            Log.e("myApp", "exc=$e")
         }
 
+        Log.d("myApp", "onStartCommand - END")
         return START_STICKY
     }
 
     override fun onDestroy() {
+        Log.d("myApp", "onDestroy")
         running = false
         super.onDestroy()
     }

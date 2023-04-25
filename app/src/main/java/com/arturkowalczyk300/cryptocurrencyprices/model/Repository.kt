@@ -242,7 +242,6 @@ class Repository(application: Application) {
     fun addPriceAlert(entity: PriceAlertEntity) {
         runBlocking {
             database!!.userDao().addPriceAlert(entity).also {
-                Log.e("myApp", "addPriceAlert, entity=$entity")
             }
         }
     }

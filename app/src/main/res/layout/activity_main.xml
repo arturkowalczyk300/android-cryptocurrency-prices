@@ -218,28 +218,4 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
-    <Button
-        android:id="@+id/btnStart"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="21dp"
-        android:text="START"
-        app:layout_constraintEnd_toStartOf="@+id/btnStop"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/flChart" />
-
-    <Button
-        android:id="@+id/btnStop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="50dp"
-        android:text="STOP"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/btnStart"
-        app:layout_constraintTop_toTopOf="@+id/btnStart" />
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

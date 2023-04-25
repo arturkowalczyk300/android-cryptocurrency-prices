@@ -153,7 +153,7 @@ class MainViewModel(application: Application) : ViewModel() {
 
     fun recalculateTimeRange() {
         val calendar = Calendar.getInstance()
-        if (showArchivalData) { //TODO: check this
+        if (showArchivalData) {
             calendar.time = showArchivalDataRange
             calendar.add(Calendar.DAY_OF_MONTH, 1)
         }
