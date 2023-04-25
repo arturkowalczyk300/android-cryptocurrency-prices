@@ -238,4 +238,28 @@ class Repository(application: Application) {
     }
 
     fun getApiErrorCodeLiveData() = webService.mldErrorCode
+
+    fun addPriceAlert(entity: PriceAlertEntity) {
+        runBlocking {
+            database!!.userDao().addPriceAlert(entity).also {
+                Log.e("myApp", "addPriceAlert, entity=$entity")
+            }
+        }
+    }
+
+    fun deletePriceAlert(entity:PriceAlertEntity){
+        runBlocking {
+            database!!.userDao().deletePriceAlert(entity)
+        }
+    }
+
+    fun deleteAllPriceAlerts(){
+        runBlocking {
+            database!!.userDao().deleteAllPricesAlerts()
+        }
+    }
+
+    fun getPricesAlerts(): LiveData<List<PriceAlertEntity>> {
+        return database!!.userDao().getPricesAlerts()
+    }
 }

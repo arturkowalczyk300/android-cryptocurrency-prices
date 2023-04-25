@@ -303,4 +303,9 @@ class MainViewModel(application: Application) : ViewModel() {
     private fun refreshPriceData() {
         _allCryptocurrenciesPrices.value = _allCryptocurrenciesPrices.value
     }
+
+    override fun onCleared() {
+        Log.d("myApp", "viewmodel/onCleared")
+        super.onCleared()
+    }
 }

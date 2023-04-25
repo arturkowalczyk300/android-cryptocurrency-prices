@@ -2,9 +2,11 @@ package com.arturkowalczyk300.cryptocurrencyprices.model.room
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy.REPLACE
 import androidx.room.Query
+import retrofit2.http.GET
 
 @Dao
 interface Dao {
@@ -76,4 +78,17 @@ interface Dao {
         cryptocurrencyId: String,
         daysCount: Int,
     )
+
+    //TODO: write tests for methods below
+    @Query("SELECT * FROM prices_alerts")
+    fun getPricesAlerts(): LiveData<List<PriceAlertEntity>>
+
+    @Insert(onConflict = REPLACE)
+    suspend fun addPriceAlert(alertEntity: PriceAlertEntity)
+
+    @Delete
+    suspend fun deletePriceAlert(entity: PriceAlertEntity)
+
+    @Query("DELETE FROM prices_alerts")
+    suspend fun deleteAllPricesAlerts()
 }

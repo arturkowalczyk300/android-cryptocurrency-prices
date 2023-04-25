@@ -1,5 +1,6 @@
 package com.arturkowalczyk300.cryptocurrencyprices.view
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -16,6 +17,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
+import com.arturkowalczyk300.cryptocurrencyprices.other.PriceAlertsService
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModelFactory
 import kotlinx.coroutines.*
@@ -64,6 +66,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) =
         when (item.itemId) {
+            R.id.action_alerts->{
+                val intent = Intent(this, PricesAlertsActivity::class.java)
+                startActivity(intent)
+             true
+            }
             R.id.action_refresh -> {
                 viewModel.requestUpdateAllData()
                 true
@@ -89,6 +96,20 @@ class MainActivity : AppCompatActivity() {
         observeLiveData()
 
         sharedPrefsInstance = SharedPreferencesHelper(applicationContext)
+
+        handleService() //TODO: delete it later
+    }
+
+    private fun handleService() {
+        findViewById<Button>(R.id.btnStart).setOnClickListener {
+            val intent = Intent(this, PriceAlertsService::class.java)
+            startService(intent)
+        }
+
+        findViewById<Button>(R.id.btnStop).setOnClickListener {
+            val intent = Intent(this, PriceAlertsService::class.java)
+            stopService(intent)
+        }
     }
 
     private fun initChartFragment() {
@@ -362,6 +383,11 @@ class MainActivity : AppCompatActivity() {
                 price,
                 getString(R.string.defaultVsCurrency)
             )
+    }
+
+    override fun onDestroy() {
+        Log.d("myApp", "mainActivity/onDestroy")
+        super.onDestroy()
     }
 }
 
