@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Switch
 import android.widget.Toast
 import android.widget.Toast.makeText
 import androidx.activity.result.ActivityResultLauncher
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.AlertType
+import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.PricesAlertsViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.PricesAlertsViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -22,6 +24,8 @@ class PricesAlertsActivity : AppCompatActivity() {
     private lateinit var fab: FloatingActionButton
     private lateinit var viewModel: PricesAlertsViewModel
     private lateinit var resultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var swEnableAlerts: Switch
+    private lateinit var sharedPrefsInstance: SharedPreferencesHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +33,14 @@ class PricesAlertsActivity : AppCompatActivity() {
         setTitle(R.string.activityPricesAlerts)
         rvPricesAlerts = findViewById(R.id.rvPricesAlerts)
         fab = findViewById(R.id.fab)
+        swEnableAlerts = findViewById(R.id.swEnableAlerts)
+
+        sharedPrefsInstance = SharedPreferencesHelper(this)
+
+        swEnableAlerts.setOnCheckedChangeListener { buttonView, isChecked ->
+            sharedPrefsInstance.setPricesAlertsEnabled(isChecked)
+        }
+        swEnableAlerts.isChecked = sharedPrefsInstance.getPricesAlertsEnabled() ?: false
 
         rvPricesAlerts.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)

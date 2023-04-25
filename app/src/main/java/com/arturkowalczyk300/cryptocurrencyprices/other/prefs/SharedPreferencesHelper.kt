@@ -8,6 +8,8 @@ class SharedPreferencesHelper(val context: Context) {
     private val PREF_FILE_NAME = "com.arturkowalczyk300.cryptocurrencyprices.PREF_FILE"
     private val PREF_LAST_CHOSEN_CRYPTOCURRENCY =
         "com.arturkowalczyk300.cryptocurrencyprices.PREF_FILE.PREF_LAST_CHOSEN_CRYPTOCURRENCY"
+    private val PREF_PRICES_ALERTS_ENABLED =
+        "com.arturkowalczyk300.cryptocurrencyprices.PREF_PRICES_ALERTS_ENABLED"
 
     var sharedPrefsInstance: SharedPreferences
 
@@ -27,6 +29,21 @@ class SharedPreferencesHelper(val context: Context) {
             .getString(
                 PREF_LAST_CHOSEN_CRYPTOCURRENCY,
                 context.getString(R.string.defaultCryptocurrency)
+            )
+    }
+
+    fun setPricesAlertsEnabled(value: Boolean) {
+        sharedPrefsInstance
+            .edit()
+            .putBoolean(PREF_PRICES_ALERTS_ENABLED, value)
+            .apply()
+    }
+
+    fun getPricesAlertsEnabled(): Boolean? {
+        return sharedPrefsInstance
+            .getBoolean(
+                PREF_PRICES_ALERTS_ENABLED,
+                false
             )
     }
 }
