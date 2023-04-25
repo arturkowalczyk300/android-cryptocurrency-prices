@@ -18,7 +18,7 @@ private const val FOREGROUND_SERVICE_CHANNEL_ID = "foreground_service_channel"
 private const val NOTIFICATION_CHANNEL_ID = "notification_channel"
 private const val FOREGROUND_SERVICE_ID = 105
 
-private const val INTERVAL = 30000L
+private const val INTERVAL = 20*60*1000L //check alerts every 20 minutes
 
 class PriceAlertsService : Service() {
     private var priceAlerts: List<PriceAlertEntity>? = null

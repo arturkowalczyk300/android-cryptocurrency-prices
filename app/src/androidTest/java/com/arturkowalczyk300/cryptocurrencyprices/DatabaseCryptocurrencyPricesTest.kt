@@ -1,5 +1,6 @@
 package com.arturkowalczyk300.cryptocurrencyprices
 
+import android.util.Log
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
@@ -417,6 +418,43 @@ class DatabaseCryptocurrencyPricesTest {
         }
 
         val records = dao.getAllCryptocurrenciesInfoWithinTimeRange().getOrAwaitValue()
+
+        assertThat(records.size).isEqualTo(0)
+    }
+
+    @Test
+    fun test_addPriceAlert(){
+        val entity1 = PriceAlertEntity(0, true, "bitcoin", AlertType.ALERT_WHEN_CURRENT_VALUE_IS_SMALLER, 30000.0f)
+        runBlockingTest {
+            dao.addPriceAlert(entity1)
+        }
+        val records = dao.getPricesAlerts().getOrAwaitValue()
+        assertThat(records.size).isEqualTo(1)
+    }
+
+    @Test
+    fun test_deletePriceAlert(){
+        val entity1 = PriceAlertEntity(65, true, "bitcoin", AlertType.ALERT_WHEN_CURRENT_VALUE_IS_SMALLER, 30000.0f)
+        runBlockingTest {
+            dao.addPriceAlert(entity1)
+            dao.deletePriceAlert(entity1)
+        }
+        val records = dao.getPricesAlerts().getOrAwaitValue()
+        assertThat(records.size).isEqualTo(0)
+    }
+
+    @Test
+    fun test_deleteAllPriceAlerts(){
+        val entity1 = PriceAlertEntity(0, true, "bitcoin", AlertType.ALERT_WHEN_CURRENT_VALUE_IS_SMALLER, 30000.0f)
+        val entity2 = PriceAlertEntity(0, true, "dogecoin", AlertType.ALERT_WHEN_CURRENT_VALUE_IS_BIGGER, 1.0f)
+
+        runBlockingTest {
+            dao.addPriceAlert(entity1)
+            dao.addPriceAlert(entity2)
+            dao.deleteAllPricesAlerts()
+        }
+
+        val records = dao.getPricesAlerts().getOrAwaitValue()
 
         assertThat(records.size).isEqualTo(0)
     }

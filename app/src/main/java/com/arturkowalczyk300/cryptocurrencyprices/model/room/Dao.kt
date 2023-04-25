@@ -78,8 +78,7 @@ interface Dao {
         cryptocurrencyId: String,
         daysCount: Int,
     )
-
-    //TODO: write tests for methods below
+    
     @Query("SELECT * FROM prices_alerts")
     fun getPricesAlerts(): LiveData<List<PriceAlertEntity>>
 
