@@ -13,9 +13,10 @@ import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.model.Repository
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.AlertType
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.PriceAlertEntity
-import java.lang.Thread.sleep
 
-private const val NOTIFICATION_CHANNEL_ID = "my_notification_channel"
+private const val FOREGROUND_SERVICE_CHANNEL_ID = "foreground_service_channel"
+private const val NOTIFICATION_CHANNEL_ID = "notification_channel"
+private const val FOREGROUND_SERVICE_ID = 105
 
 private const val INTERVAL = 30000L
 
@@ -27,15 +28,15 @@ class PriceAlertsService : Service() {
     private var startNotificationId=10
 
     override fun onCreate() {
-        Log.d("myApp", "onCreate")
         super.onCreate()
+        createForegroundServiceNotificationChannel()
+        startForeground(FOREGROUND_SERVICE_ID, buildForegroundServiceNotification())
         createNotificationChannel()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("myApp", "onStartCommand")
         running = true
         if(!(this::repository.isInitialized))
             repository= Repository(application)
@@ -53,22 +54,32 @@ class PriceAlertsService : Service() {
             Log.e("myApp", "exc=$e")
         }
 
-        Log.d("myApp", "onStartCommand - END")
         return START_STICKY
     }
 
     override fun onDestroy() {
-        Log.d("myApp", "onDestroy")
         running = false
         super.onDestroy()
+    }
+
+    private fun createForegroundServiceNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                FOREGROUND_SERVICE_CHANNEL_ID,
+                "Foreground service channel",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "my_notification_channel",
+                NOTIFICATION_CHANNEL_ID,
                 "My notification channel",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             )
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
@@ -108,12 +119,16 @@ class PriceAlertsService : Service() {
         }
     }
 
-    private fun buildNotification(description: String) = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+    private fun buildForegroundServiceNotification() = NotificationCompat.Builder(this, FOREGROUND_SERVICE_CHANNEL_ID)
+        .setSmallIcon(R.drawable.ic_notification)
+        .setContentTitle("Price alerts service").build()
+
+    private fun buildAlertNotification(description: String) = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_notification)
         .setContentTitle("Price alert!")
         .setContentText(description).build()
 
     private fun displayNotification(description: String, id: Int) {
-        NotificationManagerCompat.from(this).notify(id, buildNotification(description))
+        NotificationManagerCompat.from(this).notify(id, buildAlertNotification(description))
     }
 }
