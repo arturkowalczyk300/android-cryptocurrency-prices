@@ -305,7 +305,6 @@ class MainViewModel(application: Application) : ViewModel() {
     }
 
     override fun onCleared() {
-        Log.d("myApp", "viewmodel/onCleared")
         super.onCleared()
     }
 }

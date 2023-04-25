@@ -384,10 +384,5 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.defaultVsCurrency)
             )
     }
-
-    override fun onDestroy() {
-        Log.d("myApp", "mainActivity/onDestroy")
-        super.onDestroy()
-    }
 }
 
