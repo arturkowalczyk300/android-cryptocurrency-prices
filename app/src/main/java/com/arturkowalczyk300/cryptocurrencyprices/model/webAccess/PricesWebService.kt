@@ -161,8 +161,6 @@ class CryptocurrencyPricesWebService {
                         val price: Float =
                             response?.body()?.market_data?.current_price?.usd?.toFloat() ?: 0.00f
 
-                        Log.e("myApp", "price=$price")
-
                         mldArchivalRequestWithResponse?.value?.actualPrice = price
                         mldArchivalRequestWithResponse?.value?.flagDataSet = true
                         mldArchivalRequestWithResponse.value =
@@ -301,4 +299,23 @@ class CryptocurrencyPricesWebService {
         return mldPriceHistory!!
     }
 
+    fun getActualPriceOfCryptocurrencySynchronously(
+        cryptocurrencySymbol: String,
+        vs_currency: String,
+    ): Float {
+        val response = PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()!!
+            .getActualPrice(cryptocurrencySymbol, vs_currency).execute()
+
+        var price: Float? = null
+        if (response.code() != 429 && response.body() != null) {
+            val bodyStr: ResponseBody = response.body()!!
+            val src = bodyStr.source().toString()
+            val regex = Regex("(\\d+.\\d+[\\de-]*)")
+            val priceStr: String? = regex.find(src)?.groupValues?.get(0)
+            if (priceStr != null)
+                price = priceStr.toFloat()
+        }
+
+        return price ?: -1.0f
+    }
 }

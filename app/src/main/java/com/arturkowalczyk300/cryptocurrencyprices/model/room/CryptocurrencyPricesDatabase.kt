@@ -9,8 +9,9 @@ import com.arturkowalczyk300.cryptocurrencyprices.other.Constants
 @Database(
     entities = [CryptocurrencyEntity::class,
         InfoWithinTimeRangeEntity::class,
-        PriceEntity::class],
-    version = 9
+        PriceEntity::class,
+        PriceAlertEntity::class],
+    version = 10
 )
 abstract class CryptocurrencyPricesDatabase() : RoomDatabase() {
     abstract fun userDao(): Dao

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".view.AddPriceAlertActivity">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:hint="@string/textInputCryptocurrencySymbol">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvCryptocurrencyId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="bitcoin"
+            android:drawableEnd="@drawable/ic_baseline_arrow_drop_down_24"
+            android:hint="Select"
+            android:textSize="20sp"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:hint="@string/textInputAlertType">
+
+        <Spinner
+            android:id="@+id/spinnerAlertsTypes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/alertTypes"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:hint="@string/textInputValueThreshold">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etAlertThreshold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+</LinearLayout>

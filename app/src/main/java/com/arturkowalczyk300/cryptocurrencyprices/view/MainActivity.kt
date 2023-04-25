@@ -1,5 +1,9 @@
 package com.arturkowalczyk300.cryptocurrencyprices.view
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -13,9 +17,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.model.*
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
-import com.arturkowalczyk300.cryptocurrencyprices.other.DateFormatterUtil
 import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.R
+import com.arturkowalczyk300.cryptocurrencyprices.other.*
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModelFactory
 import kotlinx.coroutines.*
@@ -64,6 +68,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) =
         when (item.itemId) {
+            R.id.action_alerts -> {
+                val intent = Intent(this, PricesAlertsActivity::class.java)
+                startActivity(intent)
+                true
+            }
             R.id.action_refresh -> {
                 viewModel.requestUpdateAllData()
                 true
@@ -89,6 +98,8 @@ class MainActivity : AppCompatActivity() {
         observeLiveData()
 
         sharedPrefsInstance = SharedPreferencesHelper(applicationContext)
+
+        configureAlarmManager()
     }
 
     private fun initChartFragment() {
@@ -347,7 +358,8 @@ class MainActivity : AppCompatActivity() {
     private fun switchVisibilityOfCurrentPriceSection(visible: Boolean) {
         val groupRecords: androidx.constraintlayout.widget.Group = findViewById(R.id.groupRecords)
         groupRecords.visibility = if (visible) View.VISIBLE else View.INVISIBLE
-        progressBarPrice.visibility = if (visible || !viewModel.hasInternetConnection) View.INVISIBLE else View.VISIBLE
+        progressBarPrice.visibility =
+            if (visible || !viewModel.hasInternetConnection) View.INVISIBLE else View.VISIBLE
     }
 
     private fun openDatePicker() {
@@ -362,6 +374,14 @@ class MainActivity : AppCompatActivity() {
                 price,
                 getString(R.string.defaultVsCurrency)
             )
+    }
+
+    private fun configureAlarmManager() {
+        val intent = Intent(this, AlarmReceiver::class.java)
+        intent.action = PRICE_ALERT_INTENT_ACTION
+        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val alarmManager = this.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), PRICE_ALERTS_CHECK_INTERVAL_MILLIS, pendingIntent)
     }
 }
 

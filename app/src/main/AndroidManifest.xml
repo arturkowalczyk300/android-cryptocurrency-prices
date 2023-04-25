@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -12,6 +13,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CryptocurrencyPrices">
+        <activity
+            android:name=".view.AddPriceAlertActivity"
+            android:exported="false" />
         <activity
             android:name=".view.MainActivity"
             android:exported="true"
@@ -22,6 +26,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".view.PricesAlertsActivity"
+            android:exported="false" />
+
+        <service android:name=".other.PriceAlertsService" />
+        <receiver android:name=".other.AlarmReceiver" android:enabled="true"/>
     </application>
 
 </manifest>

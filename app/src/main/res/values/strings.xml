@@ -32,4 +32,20 @@
     <string name="noCachedData">No cached data!\nGet access to the Internet or try again later!</string>
     <string name="updating">Updating</string>
     <string name="action_refresh">Refresh</string>
+    <string name="activityPricesAlerts">Prices alerts</string>
+    <string name="add">Add</string>
+    <string name="addPriceAlert">Add price alert</string>
+    <string name="textInputValueThreshold">Threshold</string>
+    <string name="textInputAlertType">Alert type</string>
+    <string name="action_save">Save</string>
+    <string name="textInputCryptocurrencySymbol">Cryptocurrency symbol</string>
+    <string name="enableAlerts">Enable alerts</string>
+    <string-array name="alertTypes">
+        <item>Alert when current value is bigger</item>
+        <item>Alert when current value is smaller</item>
+    </string-array>
+    <string-array name="alertTypesWithValue">
+        <item>Alert when current value is bigger than [%1$s]</item>
+        <item>Alert when current value is smaller than [%1$s]</item>
+    </string-array>
 </resources>
