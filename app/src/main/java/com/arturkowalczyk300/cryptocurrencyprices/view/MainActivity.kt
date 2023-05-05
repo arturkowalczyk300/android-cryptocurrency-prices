@@ -4,7 +4,6 @@ import android.app.AlarmManager
 import android.app.AlertDialog
 import android.app.PendingIntent
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -49,8 +48,6 @@ class MainActivity : AppCompatActivity() {
     private var isCurrenciesListInitialized: Boolean = false
 
     private var datePicker = CustomDatePickerHandler()
-
-    private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
         if (viewModel.isChartFragmentInitialized && ev != null && ev.action == ACTION_UP) {
@@ -204,48 +201,47 @@ class MainActivity : AppCompatActivity() {
         })
 
         viewModel.apiErrorCode
-            .observe(this, object : Observer<Pair<Boolean, ErrorMessage>> {
-                override fun onChanged(t: Pair<Boolean, ErrorMessage>?) {
+            .observe(
+                this
+            ) { t ->
+                if (t!!.first) { //error occurred
+                    val additionalInfo = t.second.additionalInfo ?: ""
 
-                    if (t!!.first) { //error occurred
-                        val additionalInfo = t.second.additionalInfo ?: ""
-
-                        var errorText = when (t.second.errorCode) {
-                            REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE ->
-                                getString(
-                                    R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE,
-                                    additionalInfo
-                                )
-                            REQUEST_CRYPTOCURRENCIES_LIST_FAILURE ->
-                                getString(
-                                    R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE,
-                                    additionalInfo
-                                )
-                            REQUEST_PRICE_DATA_FAILURE ->
-                                getString(R.string.REQUEST_PRICE_DATA_FAILURE, additionalInfo)
-                            REQUEST_EXCEEDED_API_RATE_LIMIT ->
-                                getString(R.string.REQUEST_EXCEEDED_API_RATE_LIMIT)
-                            else ->
-                                getString(R.string.UNKNOWN_FAILURE)
-                        }
-
-                        if (additionalInfo == "") { //no additional image, filling textview will be enough
-
-                            tvErrorMessage.text = errorText
-                            tvErrorMessage.visibility = View.VISIBLE
-
-                            if (viewModel.isChartFragmentInitialized)
-                                chartFragment?.setChartVisibility(false)
-                        } else //there is additional message which can be long, better display dialog with error message
-                            displayErrorDialog(errorText, additionalInfo)
-                    } else //error gone
-                    {
-                        tvErrorMessage.visibility = View.GONE
-                        if (viewModel.isChartFragmentInitialized)
-                            chartFragment?.setChartVisibility(true)
+                    var errorText = when (t.second.errorCode) {
+                        REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE ->
+                            getString(
+                                R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE,
+                                additionalInfo
+                            )
+                        REQUEST_CRYPTOCURRENCIES_LIST_FAILURE ->
+                            getString(
+                                R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE,
+                                additionalInfo
+                            )
+                        REQUEST_PRICE_DATA_FAILURE ->
+                            getString(R.string.REQUEST_PRICE_DATA_FAILURE, additionalInfo)
+                        REQUEST_EXCEEDED_API_RATE_LIMIT ->
+                            getString(R.string.REQUEST_EXCEEDED_API_RATE_LIMIT)
+                        else ->
+                            getString(R.string.UNKNOWN_FAILURE)
                     }
+
+                    if (additionalInfo == "") { //no additional image, filling textview will be enough
+
+                        tvErrorMessage.text = errorText
+                        tvErrorMessage.visibility = View.VISIBLE
+
+                        if (viewModel.isChartFragmentInitialized)
+                            chartFragment?.setChartVisibility(false)
+                    } else //there is additional message which can be long, better display dialog with error message
+                        displayErrorDialog(errorText, additionalInfo)
+                } else //error gone
+                {
+                    tvErrorMessage.visibility = View.GONE
+                    if (viewModel.isChartFragmentInitialized)
+                        chartFragment?.setChartVisibility(true)
                 }
-            })
+            }
 
         viewModel.isCurrencyPriceDataLoadedFromCache.observe(this) { loaded ->
             switchVisibilityOfCurrentPriceSection(
@@ -304,12 +300,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleCryptocurrencyChoice() {
         viewModel.allCryptocurrencies.observe(this, Observer { it ->
-            listOfCryptocurrenciesNames.clear()
-
-            it.forEach { nextIt ->
-                listOfCryptocurrenciesNames.add(nextIt.cryptocurrencyId)
-            }
-
             isCurrenciesListInitialized = true
 
             if (sharedPrefsInstance.getLastChosenCryptocurrency() != null) {
@@ -317,7 +307,7 @@ class MainActivity : AppCompatActivity() {
                 tvSelectedCurrencyId.text = curr
                 viewModel.selectedCryptocurrencyId = curr
             } else {
-                val curr = listOfCryptocurrenciesNames.first()
+                val curr = it.first().cryptocurrencyId
                 tvSelectedCurrencyId.text = curr
                 viewModel.selectedCryptocurrencyId = curr
             }
@@ -327,18 +317,21 @@ class MainActivity : AppCompatActivity() {
                 initChartFragment()
                 viewModel.requestUpdateAllData()
             }
-
         })
 
         tvSelectedCurrencyId.setOnClickListener {
-            val dialog = DialogListWithSearchTool()
-            dialog.showDialog(this, listOfCryptocurrenciesNames)
+            viewModel.allCryptocurrencies.value?.let { list ->
+                val dialog = DialogListWithSearchTool()
 
-            dialog.setListenerOnClickItem { cryptocurrencyId ->
-                tvSelectedCurrencyId.text = cryptocurrencyId
-                viewModel.selectedCryptocurrencyId = cryptocurrencyId
-                sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
-                viewModel.requestUpdateAllData()
+                if (!dialog.isListenerSet)
+                    dialog.setOnItemClickListener { cryptocurrencyId ->
+                        tvSelectedCurrencyId.text = cryptocurrencyId
+                        viewModel.selectedCryptocurrencyId = cryptocurrencyId
+                        sharedPrefsInstance.setLastChosenCryptocurrency(cryptocurrencyId)
+                        viewModel.requestUpdateAllData()
+                    }
+
+                dialog.open(this, list.map { it.cryptocurrencyId })
             }
         }
     }

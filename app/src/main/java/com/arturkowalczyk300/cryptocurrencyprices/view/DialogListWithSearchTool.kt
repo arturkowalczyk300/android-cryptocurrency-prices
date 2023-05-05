@@ -10,38 +10,47 @@ import android.widget.ListView
 import com.arturkowalczyk300.cryptocurrencyprices.R
 
 class DialogListWithSearchTool {
-    private var dialog: Dialog? = null
+    private lateinit var dialog: Dialog
+    private lateinit var onItemClickListener: (itemText: String) -> Unit
+    var isListenerSet = false
 
-    private lateinit var listenerOnClickItem: (itemText: String) -> Unit
+    fun open(context: Context, data: List<String>) {
+        val listView = showDialog(context)
+        setListAdapter(context, data, listView)
+        handleSearchFilter(listView)
+    }
 
-    fun showDialog(context: Context, data: ArrayList<String>) {
-
-
-        //display dialog
+    private fun showDialog(context: Context): ListView {
         dialog = Dialog(context)
+        dialog.setContentView(R.layout.dialog_searchable_list)
+        dialog.show()
+        val listView = dialog.findViewById(R.id.dialogListView) as ListView
+        return listView
+    }
 
-        dialog!!.setContentView(R.layout.dialog_searchable_list)
-        dialog!!.show()
-        val listView = dialog!!.findViewById(R.id.dialogListView) as ListView
-
-        //set adapter to list with cryptocurrencies
+    private fun setListAdapter(
+        context: Context,
+        data: List<String>,
+        listView: ListView,
+    ) {
         val adapter = ArrayAdapter(context, R.layout.my_spinner_item, data)
         adapter.setDropDownViewResource(R.layout.my_spinner_item)
         listView.adapter = adapter
-        listView.setOnItemClickListener { parent, view, position, id ->
+        listView.setOnItemClickListener { _, _, position, _ ->
             val itemText = listView.adapter.getItem(position).toString()
-            listenerOnClickItem.invoke(itemText)
-            dialog!!.dismiss()
+            onItemClickListener.invoke(itemText)
+            dialog.dismiss()
         }
+    }
 
-        //handle search filter
-        val editTextFilter = dialog!!.findViewById(R.id.dialogEtFilter) as EditText
+    private fun handleSearchFilter(listView: ListView) {
+        val editTextFilter = dialog.findViewById(R.id.dialogEtFilter) as EditText
         editTextFilter.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(
                 s: CharSequence?,
                 start: Int,
                 count: Int,
-                after: Int
+                after: Int,
             ) {
             }
 
@@ -55,7 +64,8 @@ class DialogListWithSearchTool {
         })
     }
 
-    fun setListenerOnClickItem(listener: (itemText: String) -> Unit) {
-        listenerOnClickItem = listener
+    fun setOnItemClickListener(listener: (itemText: String) -> Unit) {
+        onItemClickListener = listener
+        isListenerSet = true
     }
 }

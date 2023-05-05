@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
@@ -24,7 +23,6 @@ class AddPriceAlertActivity : AppCompatActivity() {
 
     private var isCurrenciesListInitialized: Boolean = false
     private lateinit var viewModel: AddEditPriceAlertViewModel
-    private var listOfCryptocurrenciesNames: ArrayList<String> = ArrayList()
     private lateinit var sharedPrefsInstance: SharedPreferencesHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,12 +76,6 @@ class AddPriceAlertActivity : AppCompatActivity() {
 
     private fun handleCryptocurrencyChoice() {
         viewModel.allCryptocurrencies.observe(this, Observer { it ->
-            listOfCryptocurrenciesNames.clear()
-
-            it.forEach { nextIt ->
-                listOfCryptocurrenciesNames.add(nextIt.cryptocurrencyId)
-            }
-
             isCurrenciesListInitialized = true
 
             if (sharedPrefsInstance.getLastChosenCryptocurrency() != null) {
@@ -91,7 +83,7 @@ class AddPriceAlertActivity : AppCompatActivity() {
                 tvCryptocurrencyId.text = curr
                 viewModel.selectedCryptocurrencyId = curr
             } else {
-                val curr = listOfCryptocurrenciesNames.first()
+                val curr = it.first().cryptocurrencyId
                 tvCryptocurrencyId.text = curr
                 viewModel.selectedCryptocurrencyId = curr
             }
@@ -99,12 +91,16 @@ class AddPriceAlertActivity : AppCompatActivity() {
         })
 
         tvCryptocurrencyId.setOnClickListener {
-            val dialog = DialogListWithSearchTool()
-            dialog.showDialog(this, listOfCryptocurrenciesNames)
+            viewModel.allCryptocurrencies.value?.let { list ->
+                val dialog = DialogListWithSearchTool()
 
-            dialog.setListenerOnClickItem { cryptocurrencyId ->
-                tvCryptocurrencyId.text = cryptocurrencyId
-                viewModel.selectedCryptocurrencyId = cryptocurrencyId
+                if (!dialog.isListenerSet)
+                    dialog.setOnItemClickListener { cryptocurrencyId ->
+                        tvCryptocurrencyId.text = cryptocurrencyId
+                        viewModel.selectedCryptocurrencyId = cryptocurrencyId
+                    }
+
+                dialog.open(this, list.map { it.cryptocurrencyId })
             }
         }
     }
