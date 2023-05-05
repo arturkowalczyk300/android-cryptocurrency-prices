@@ -1,8 +1,10 @@
 package com.arturkowalczyk300.cryptocurrencyprices.view
 
 import android.app.AlarmManager
+import android.app.AlertDialog
 import android.app.PendingIntent
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -207,6 +209,7 @@ class MainActivity : AppCompatActivity() {
 
                     if (t!!.first) { //error occurred
                         val additionalInfo = t.second.additionalInfo ?: ""
+
                         var errorText = when (t.second.errorCode) {
                             REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE ->
                                 getString(
@@ -226,11 +229,15 @@ class MainActivity : AppCompatActivity() {
                                 getString(R.string.UNKNOWN_FAILURE)
                         }
 
-                        tvErrorMessage.text = errorText
-                        tvErrorMessage.visibility = View.VISIBLE
+                        if (additionalInfo == "") { //no additional image, filling textview will be enough
 
-                        if (viewModel.isChartFragmentInitialized)
-                            chartFragment?.setChartVisibility(false)
+                            tvErrorMessage.text = errorText
+                            tvErrorMessage.visibility = View.VISIBLE
+
+                            if (viewModel.isChartFragmentInitialized)
+                                chartFragment?.setChartVisibility(false)
+                        } else //there is additional message which can be long, better display dialog with error message
+                            displayErrorDialog(errorText, additionalInfo)
                     } else //error gone
                     {
                         tvErrorMessage.visibility = View.GONE
@@ -281,6 +288,18 @@ class MainActivity : AppCompatActivity() {
             }
         }
         )
+    }
+
+    private fun displayErrorDialog(message: String, additionalInfo: String? = null) {
+        val message =
+            message + if (additionalInfo != null && additionalInfo != "") ", $additionalInfo" else ""
+
+        val builder = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.error_occured))
+            .setMessage(message)
+            .setIcon(R.drawable.ic_error)
+            .setNeutralButton(R.string.OK) { _, _ -> }
+        builder.create().show()
     }
 
     private fun handleCryptocurrencyChoice() {
@@ -379,9 +398,15 @@ class MainActivity : AppCompatActivity() {
     private fun configureAlarmManager() {
         val intent = Intent(this, AlarmReceiver::class.java)
         intent.action = PRICE_ALERT_INTENT_ACTION
-        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent =
+            PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         val alarmManager = this.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), PRICE_ALERTS_CHECK_INTERVAL_MILLIS, pendingIntent)
+        alarmManager.setInexactRepeating(
+            AlarmManager.RTC_WAKEUP,
+            System.currentTimeMillis(),
+            PRICE_ALERTS_CHECK_INTERVAL_MILLIS,
+            pendingIntent
+        )
     }
 }
 
