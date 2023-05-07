@@ -167,7 +167,8 @@ class Repository(application: Application) {
                         CryptocurrencyEntity(
                             market_cap_rank = row.market_cap_rank,
                             cryptocurrencyId = row.id,
-                            name = row.name,
+                            name = row.id,
+                            symbol = row.symbol,
                             marketCap = row.market_cap,
                             currentPrice = row.current_price,
                             updateDate = Date()

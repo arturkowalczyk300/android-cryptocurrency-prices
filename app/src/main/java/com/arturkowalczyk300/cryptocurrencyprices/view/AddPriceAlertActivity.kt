@@ -100,7 +100,7 @@ class AddPriceAlertActivity : AppCompatActivity() {
                         viewModel.selectedCryptocurrencyId = cryptocurrencyId
                     }
 
-                dialog.open(this, list.map { it.cryptocurrencyId })
+                dialog.open(this, list.map { it.cryptocurrencyId to it.symbol })
             }
         }
     }

@@ -11,6 +11,7 @@ data class CryptocurrencyEntity(
     @PrimaryKey val market_cap_rank: Int,
     val cryptocurrencyId: String,
     val name: String,
+    val symbol: String,
     val marketCap: Long,
     val currentPrice: Double,
     val updateDate: Date,

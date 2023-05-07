@@ -14,7 +14,7 @@ class DialogListWithSearchTool {
     private lateinit var onItemClickListener: (itemText: String) -> Unit
     var isListenerSet = false
 
-    fun open(context: Context, data: List<String>) {
+    fun open(context: Context, data: List<Pair<String, String>>) {
         val listView = showDialog(context)
         setListAdapter(context, data, listView)
         handleSearchFilter(listView)
@@ -30,15 +30,15 @@ class DialogListWithSearchTool {
 
     private fun setListAdapter(
         context: Context,
-        data: List<String>,
+        data: List<Pair<String,String>>,
         listView: ListView,
     ) {
-        val adapter = ArrayAdapter(context, R.layout.my_spinner_item, data)
+        val adapter = DialogListDataAdapter(context, R.layout.my_spinner_item, data)
         adapter.setDropDownViewResource(R.layout.my_spinner_item)
         listView.adapter = adapter
         listView.setOnItemClickListener { _, _, position, _ ->
-            val itemText = listView.adapter.getItem(position).toString()
-            onItemClickListener.invoke(itemText)
+            val itemText = listView.adapter.getItem(position) as Pair<String, String>
+            onItemClickListener.invoke(itemText.first)
             dialog.dismiss()
         }
     }
