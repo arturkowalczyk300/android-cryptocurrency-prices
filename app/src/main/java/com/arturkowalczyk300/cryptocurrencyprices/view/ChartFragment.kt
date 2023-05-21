@@ -24,6 +24,7 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import java.lang.Runnable
 import java.text.DecimalFormat
@@ -31,7 +32,7 @@ import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
 class ChartFragment : Fragment(R.layout.fragment_chart) {
-    private lateinit var appContext: Context //TODO: DI
+    @ApplicationContext lateinit var appContext: Context
     private val viewModel: MainViewModel by activityViewModels()
 
     private lateinit var chart: LineChart

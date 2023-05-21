@@ -14,12 +14,9 @@ import javax.inject.Inject
 class Repository @Inject constructor(
     private val application: Application,
     private val webService: CryptocurrencyPricesWebService,
+    private val database: CryptocurrencyPricesDatabase,
 ) {
-
     private var _chartDataObserved = false
-    private val database: CryptocurrencyPricesDatabase? =
-        CryptocurrencyPricesDatabase.getDatabase(application) //TODO: DI
-
     private var _cryptocurrencyChartData = MutableLiveData<InfoWithinTimeRangeEntity?>()
     private val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity?> =
         _cryptocurrencyChartData

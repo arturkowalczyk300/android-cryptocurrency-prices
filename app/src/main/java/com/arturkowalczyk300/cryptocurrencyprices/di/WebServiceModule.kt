@@ -1,7 +1,5 @@
 package com.arturkowalczyk300.cryptocurrencyprices.di
 
-import android.app.Application
-import com.arturkowalczyk300.cryptocurrencyprices.model.Repository
 import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.CryptocurrencyPricesWebService
 import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.PricesApiHandle
 import com.arturkowalczyk300.cryptocurrencyprices.other.Constants
@@ -17,7 +15,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
+object WebServiceModule {
     @Provides
     @Singleton
     fun providePricesApiHandle(): PricesApiHandle {
@@ -40,15 +38,9 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideWebService(): CryptocurrencyPricesWebService {
-        return CryptocurrencyPricesWebService(providePricesApiHandle()) //TODO: avoid nesting dependencies?
-    }
-
-    @Provides
-    fun provideRepository(
-        app: Application,
-        webService: CryptocurrencyPricesWebService
-    ): Repository {
-        return Repository(app, webService)
+    fun provideWebService(
+        api: PricesApiHandle,
+    ): CryptocurrencyPricesWebService {
+        return CryptocurrencyPricesWebService(api)
     }
 }
