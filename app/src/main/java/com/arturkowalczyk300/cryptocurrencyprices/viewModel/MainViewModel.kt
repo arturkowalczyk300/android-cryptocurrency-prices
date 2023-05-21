@@ -17,7 +17,7 @@ private const val REFRESH_CHART_INTERVAL_MILLIS = 60000L
 class MainViewModel(application: Application) : ViewModel() {
 
     private var repository: Repository =
-        Repository(application)
+        Repository(application) //TODO: DI
     val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
 
     //livedata properties

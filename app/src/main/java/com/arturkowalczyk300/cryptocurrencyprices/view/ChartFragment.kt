@@ -28,8 +28,8 @@ import java.text.DecimalFormat
 import kotlin.collections.ArrayList
 
 class ChartFragment : Fragment(R.layout.fragment_chart) {
-    private lateinit var appContext: Context
-    private lateinit var viewModel: MainViewModel
+    private lateinit var appContext: Context //TODO: DI
+    private lateinit var viewModel: MainViewModel //TODO: DI
 
     private lateinit var chart: LineChart
     private lateinit var chartValues: ArrayList<Entry>

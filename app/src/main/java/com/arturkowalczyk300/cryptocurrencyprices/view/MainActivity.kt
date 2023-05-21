@@ -29,7 +29,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: MainViewModel //TODO: DI
     private lateinit var tvSelectedCurrencyId: TextView
     private lateinit var etDate: EditText
     private lateinit var tvCryptocurrencySymbol: TextView
@@ -39,15 +39,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvErrorMessage: TextView
     private lateinit var rgDateActualArchivalSelection: RadioGroup
     private lateinit var progressBarPrice: ProgressBar
-    private var chartFragment: ChartFragment? = null
-    private lateinit var sharedPrefsInstance: SharedPreferencesHelper
+    private var chartFragment: ChartFragment? = null //TODO: DI
+    private lateinit var sharedPrefsInstance: SharedPreferencesHelper //TODO: DI
     private var savedInstanceStateBundle: Bundle? = null
     private var autoFetchDataAlreadyDone = false
     private var autoFetchDataPending = false
 
     private var isCurrenciesListInitialized: Boolean = false
 
-    private var datePicker = CustomDatePickerHandler()
+    private var datePicker = CustomDatePickerHandler() //TODO: DI
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
         if (viewModel.isChartFragmentInitialized && ev != null && ev.action == ACTION_UP) {

@@ -8,7 +8,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.model.room.AlertType
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.PriceAlertEntity
 
 class PricesAlertsViewModel(application: Application) : ViewModel() {
-    private val repository = Repository(application)
+    private val repository = Repository(application) //TODO: DI
 
     private var _pricesAlerts = repository.getPricesAlerts()
     val pricesAlerts:LiveData<List<PriceAlertEntity>> = _pricesAlerts

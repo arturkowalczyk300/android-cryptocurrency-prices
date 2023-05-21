@@ -24,7 +24,7 @@ class PriceAlertsService : Service() {
     private var priceAlerts: List<PriceAlertEntity>? = null
     private var thread: Thread? = null
     private var running = false
-    private lateinit var repository: Repository
+    private lateinit var repository: Repository //TODO: DI
     private var startNotificationId=10
 
     override fun onCreate() {

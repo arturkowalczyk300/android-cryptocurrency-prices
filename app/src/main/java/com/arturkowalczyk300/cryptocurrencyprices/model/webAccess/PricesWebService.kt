@@ -44,7 +44,7 @@ class RequestWithResponseArchival(
 }
 
 
-class CryptocurrencyPricesWebService {
+class CryptocurrencyPricesWebService { //TODO: DI
     var waitingForResponse: Boolean = false
 
     var mldErrorCode: MutableLiveData<Pair<Boolean, ErrorMessage>> = MutableLiveData()

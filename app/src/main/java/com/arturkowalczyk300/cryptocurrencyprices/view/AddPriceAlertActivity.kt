@@ -23,7 +23,7 @@ class AddPriceAlertActivity : AppCompatActivity() {
 
     private var isCurrenciesListInitialized: Boolean = false
     private lateinit var viewModel: AddEditPriceAlertViewModel
-    private lateinit var sharedPrefsInstance: SharedPreferencesHelper
+    private lateinit var sharedPrefsInstance: SharedPreferencesHelper //TODO: DI
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

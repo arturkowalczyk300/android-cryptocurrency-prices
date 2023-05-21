@@ -14,8 +14,8 @@ class Repository(application: Application) {
 
     private var _chartDataObserved = false
     private val database: CryptocurrencyPricesDatabase? =
-        CryptocurrencyPricesDatabase.getDatabase(application)
-    private val webService: CryptocurrencyPricesWebService = CryptocurrencyPricesWebService()
+        CryptocurrencyPricesDatabase.getDatabase(application) //TODO: DI
+    private val webService: CryptocurrencyPricesWebService = CryptocurrencyPricesWebService() //TODO: DI
 
     private var _cryptocurrencyChartData = MutableLiveData<InfoWithinTimeRangeEntity?>()
     private val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity?> =
