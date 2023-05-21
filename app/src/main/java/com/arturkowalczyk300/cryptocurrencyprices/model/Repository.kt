@@ -9,13 +9,16 @@ import com.arturkowalczyk300.cryptocurrencyprices.model.room.*
 import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.CryptocurrencyPricesWebService
 import kotlinx.coroutines.runBlocking
 import java.util.*
+import javax.inject.Inject
 
-class Repository(application: Application) {
+class Repository @Inject constructor(
+    private val application: Application,
+    private val webService: CryptocurrencyPricesWebService,
+) {
 
     private var _chartDataObserved = false
     private val database: CryptocurrencyPricesDatabase? =
         CryptocurrencyPricesDatabase.getDatabase(application) //TODO: DI
-    private val webService: CryptocurrencyPricesWebService = CryptocurrencyPricesWebService() //TODO: DI
 
     private var _cryptocurrencyChartData = MutableLiveData<InfoWithinTimeRangeEntity?>()
     private val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity?> =
@@ -247,13 +250,13 @@ class Repository(application: Application) {
         }
     }
 
-    fun deletePriceAlert(entity:PriceAlertEntity){
+    fun deletePriceAlert(entity: PriceAlertEntity) {
         runBlocking {
             database!!.userDao().deletePriceAlert(entity)
         }
     }
 
-    fun deleteAllPriceAlerts(){
+    fun deleteAllPriceAlerts() {
         runBlocking {
             database!!.userDao().deleteAllPricesAlerts()
         }
@@ -263,7 +266,13 @@ class Repository(application: Application) {
         return database!!.userDao().getPricesAlerts()
     }
 
-    fun getActualPriceOfCryptocurrencySynchronously(cryptocurrencySymbol: String, vs_currency: String): Float{
-        return webService.getActualPriceOfCryptocurrencySynchronously(cryptocurrencySymbol, vs_currency)
+    fun getActualPriceOfCryptocurrencySynchronously(
+        cryptocurrencySymbol: String,
+        vs_currency: String,
+    ): Float {
+        return webService.getActualPriceOfCryptocurrencySynchronously(
+            cryptocurrencySymbol,
+            vs_currency
+        )
     }
 }

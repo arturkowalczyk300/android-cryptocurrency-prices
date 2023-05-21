@@ -8,16 +8,16 @@ import com.arturkowalczyk300.cryptocurrencyprices.model.room.CryptocurrencyEntit
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.InfoWithinTimeRangeEntity
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.PriceEntity
 import com.github.mikephil.charting.utils.Utils.init
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import java.util.*
+import javax.inject.Inject
 
 private const val REFRESH_PRICE_INTERVAL_MILLIS = 30000L
 private const val REFRESH_CHART_INTERVAL_MILLIS = 60000L
 
-class MainViewModel(application: Application) : ViewModel() {
-
-    private var repository: Repository =
-        Repository(application) //TODO: DI
+@HiltViewModel
+class MainViewModel  @Inject constructor(private var repository: Repository) : ViewModel() {
     val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
 
     //livedata properties

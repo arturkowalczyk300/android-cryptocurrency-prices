@@ -9,6 +9,7 @@ import android.widget.Toast
 import android.widget.Toast.makeText
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.activity.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,13 +17,12 @@ import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.AlertType
 import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.PricesAlertsViewModel
-import com.arturkowalczyk300.cryptocurrencyprices.viewModel.PricesAlertsViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class PricesAlertsActivity : AppCompatActivity() {
     private lateinit var rvPricesAlerts: RecyclerView
     private lateinit var fab: FloatingActionButton
-    private lateinit var viewModel: PricesAlertsViewModel
+    private val viewModel: PricesAlertsViewModel by viewModels()
     private lateinit var resultLauncher: ActivityResultLauncher<Intent>
     private lateinit var swEnableAlerts: Switch
     private lateinit var sharedPrefsInstance: SharedPreferencesHelper
@@ -44,9 +44,6 @@ class PricesAlertsActivity : AppCompatActivity() {
 
         rvPricesAlerts.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-
-        val factory = PricesAlertsViewModelFactory(application)
-        viewModel = ViewModelProvider(this, factory).get(PricesAlertsViewModel::class.java)
 
         observeData()
 

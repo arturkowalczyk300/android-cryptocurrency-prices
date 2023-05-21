@@ -14,7 +14,7 @@ class RetrofitTest {
 
     @Before
     fun setup(){
-         retrofitInstance = PricesRetrofitClient.getRetrofitInstance()
+         retrofitInstance = PricesRetrofitClient.getRetrofitInstance() //TODO: use hilt??
          apiHandle =
             PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
     }

@@ -5,6 +5,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.model.*
 import com.arturkowalczyk300.cryptocurrencyprices.other.Constants
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.components.SingletonComponent
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -13,6 +17,8 @@ import java.lang.StringBuilder
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.collections.ArrayList
 
 open class RequestWithResponse(
@@ -43,8 +49,11 @@ class RequestWithResponseArchival(
 ) {
 }
 
+class CryptocurrencyPricesWebService @Inject constructor(
+    private val apiHandle: PricesApiHandle
+){
 
-class CryptocurrencyPricesWebService { //TODO: DI
+
     var waitingForResponse: Boolean = false
 
     var mldErrorCode: MutableLiveData<Pair<Boolean, ErrorMessage>> = MutableLiveData()
@@ -62,14 +71,6 @@ class CryptocurrencyPricesWebService { //TODO: DI
     var cryptocurrenciesListSorted: MutableLiveData<ArrayList<PriceResponseSimplified>> =
         MutableLiveData()
 
-    init {
-        when (PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()) {
-            null -> Log.e("myApp", "ApiHandleInstance is null")
-            else -> {
-            }
-        }
-    }
-
     fun requestActualPriceData(
         currencySymbol: String,
         vs_currency: String,
@@ -80,8 +81,7 @@ class CryptocurrencyPricesWebService { //TODO: DI
         waitingForResponse = true
 
         val response: Call<ResponseBody>? =
-            PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
-                ?.getActualPrice(currencySymbol, vs_currency)
+            apiHandle.getActualPrice(currencySymbol, vs_currency)
 
 
         response?.enqueue(object : Callback<ResponseBody> {
@@ -145,8 +145,7 @@ class CryptocurrencyPricesWebService { //TODO: DI
         val formattedDate = sdf.format(date)
 
         val response: Call<PricesResponse>? =
-            PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
-                ?.getArchivalPrice(currencySymbol, formattedDate)
+            apiHandle.getArchivalPrice(currencySymbol, formattedDate)
 
 
         response?.enqueue(object : Callback<PricesResponse> {
@@ -193,8 +192,7 @@ class CryptocurrencyPricesWebService { //TODO: DI
 
     fun requestCryptocurrenciesList(): MutableLiveData<ArrayList<PriceResponseSimplified>> {
         val listResponse: Call<List<PriceResponseSimplified>>? =
-            PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
-                ?.getCryptocurrenciesList("USD", "market_cap_desc", 100, 1, false)
+            apiHandle.getCryptocurrenciesList("USD", "market_cap_desc", 100, 1, false)
 
         listResponse?.enqueue(object : Callback<List<PriceResponseSimplified>> {
             override fun onResponse(
@@ -244,13 +242,12 @@ class CryptocurrencyPricesWebService { //TODO: DI
         )
 
         val response: Call<PriceHistoryResponse>? =
-            PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
-                ?.getHistoryOfPriceForDateRange(
-                    currencySymbol,
-                    vs_currency,
-                    unixtimeFrom,
-                    unixTimeTo
-                )
+            apiHandle.getHistoryOfPriceForDateRange(
+                currencySymbol,
+                vs_currency,
+                unixtimeFrom,
+                unixTimeTo
+            )
 
 
         response?.enqueue(object : Callback<PriceHistoryResponse> {
@@ -303,8 +300,7 @@ class CryptocurrencyPricesWebService { //TODO: DI
         cryptocurrencySymbol: String,
         vs_currency: String,
     ): Float {
-        val response = PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()!!
-            .getActualPrice(cryptocurrencySymbol, vs_currency).execute()
+        val response = apiHandle.getActualPrice(cryptocurrencySymbol, vs_currency).execute()
 
         var price: Float? = null
         if (response.code() != 429 && response.body() != null) {
