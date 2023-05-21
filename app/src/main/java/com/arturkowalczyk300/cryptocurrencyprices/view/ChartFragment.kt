@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.*
 import androidx.constraintlayout.widget.Group
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -31,7 +32,7 @@ import kotlin.collections.ArrayList
 @AndroidEntryPoint
 class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var appContext: Context //TODO: DI
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: MainViewModel by activityViewModels()
 
     private lateinit var chart: LineChart
     private lateinit var chartValues: ArrayList<Entry>

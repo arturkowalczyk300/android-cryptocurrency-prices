@@ -45,7 +45,6 @@ object AppModule {
     }
 
     @Provides
-    @Singleton
     fun provideRepository(
         app: Application,
         webService: CryptocurrencyPricesWebService

@@ -1,18 +1,22 @@
 package com.arturkowalczyk300.cryptocurrencyprices.other
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.model.Repository
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.AlertType
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.PriceAlertEntity
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 private const val FOREGROUND_SERVICE_CHANNEL_ID = "foreground_service_channel"
@@ -21,6 +25,7 @@ private const val FOREGROUND_SERVICE_ID = 105
 
 private const val INTERVAL = 20 * 60 * 1000L //check alerts every 20 minutes
 
+@AndroidEntryPoint
 class PriceAlertsService : Service() {
     private var priceAlerts: List<PriceAlertEntity>? = null
     private var thread: Thread? = null
@@ -133,6 +138,12 @@ class PriceAlertsService : Service() {
             .setContentText(description).build()
 
     private fun displayNotification(description: String, id: Int) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        )
+            return
         NotificationManagerCompat.from(this).notify(id, buildAlertNotification(description))
     }
 }

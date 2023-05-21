@@ -26,7 +26,7 @@ class MainViewModel  @Inject constructor(private var repository: Repository) : V
 
     private var _allCryptocurrenciesPrices = MutableLiveData<List<PriceEntity>>()
     val allCryptocurrenciesPrices =
-        Transformations.switchMap(repository.getAllCryptocurrenciesPrices()) {
+        repository.getAllCryptocurrenciesPrices().switchMap {
             _allCryptocurrenciesPrices.value = it
             _allCryptocurrenciesPrices
         }
