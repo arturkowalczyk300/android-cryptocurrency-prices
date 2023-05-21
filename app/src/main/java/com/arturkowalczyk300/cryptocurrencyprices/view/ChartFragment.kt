@@ -10,26 +10,30 @@ import android.view.View
 import android.widget.*
 import androidx.constraintlayout.widget.Group
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.InfoWithinTimeRangeEntity
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
-import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModelFactory
 import com.github.mikephil.charting.charts.Chart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import java.lang.Runnable
 import java.text.DecimalFormat
 import kotlin.collections.ArrayList
 
+@AndroidEntryPoint
 class ChartFragment : Fragment(R.layout.fragment_chart) {
-    private lateinit var appContext: Context
-    private lateinit var viewModel: MainViewModel
+    @ApplicationContext lateinit var appContext: Context
+    private val viewModel: MainViewModel by activityViewModels()
 
     private lateinit var chart: LineChart
     private lateinit var chartValues: ArrayList<Entry>
@@ -56,7 +60,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         super.onViewCreated(view, savedInstanceState)
 
         appContext = requireActivity().applicationContext
-        initViewModel()
 
         assignViewsVariablesChart()
         handleChartRadioGroupTimeRangeActions()
@@ -114,13 +117,6 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                     }
                 }
             })
-    }
-
-    private fun initViewModel() {
-        val factory = MainViewModelFactory(requireActivity().application)
-        viewModel = ViewModelProvider(
-            requireActivity(), factory
-        )[MainViewModel::class.java]
     }
 
     private fun showNoDataInfo(show: Boolean) {

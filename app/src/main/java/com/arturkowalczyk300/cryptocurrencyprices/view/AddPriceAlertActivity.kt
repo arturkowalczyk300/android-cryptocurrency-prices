@@ -9,20 +9,22 @@ import android.view.MenuItem
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.AddEditPriceAlertViewModel
-import com.arturkowalczyk300.cryptocurrencyprices.viewModel.AddEditPriceAlertViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AddPriceAlertActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyId: TextView
     private lateinit var etAlertThreshold: EditText
     private lateinit var spinnerAlertTypes: Spinner
 
     private var isCurrenciesListInitialized: Boolean = false
-    private lateinit var viewModel: AddEditPriceAlertViewModel
+    private val viewModel: AddEditPriceAlertViewModel by viewModels()
     private lateinit var sharedPrefsInstance: SharedPreferencesHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,9 +36,6 @@ class AddPriceAlertActivity : AppCompatActivity() {
         tvCryptocurrencyId = findViewById(R.id.tvCryptocurrencyId)
         etAlertThreshold = findViewById(R.id.etAlertThreshold)
         spinnerAlertTypes = findViewById(R.id.spinnerAlertsTypes)
-
-        val factory = AddEditPriceAlertViewModelFactory(application)
-        viewModel = ViewModelProvider(this, factory).get(AddEditPriceAlertViewModel::class.java)
 
         sharedPrefsInstance = SharedPreferencesHelper(applicationContext)
 

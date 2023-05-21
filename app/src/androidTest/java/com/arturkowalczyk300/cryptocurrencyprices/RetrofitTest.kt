@@ -1,34 +1,42 @@
 package com.arturkowalczyk300.cryptocurrencyprices
 
 import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.PricesApiHandle
-import com.arturkowalczyk300.cryptocurrencyprices.model.webAccess.PricesRetrofitClient
 import com.arturkowalczyk300.cryptocurrencyprices.other.Constants
 import com.google.common.truth.Truth.assertThat
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import retrofit2.Retrofit
+import javax.inject.Inject
 
+@HiltAndroidTest
 class RetrofitTest {
-    private var retrofitInstance: Retrofit? = null
-    private var apiHandle: PricesApiHandle? = null
+    @Inject
+    lateinit var retrofitInstance: Retrofit
+    @Inject
+    lateinit var apiHandle: PricesApiHandle
+
+    @get:Rule
+    var hiltRule = HiltAndroidRule(this)
 
     @Before
     fun setup(){
-         retrofitInstance = PricesRetrofitClient.getRetrofitInstance()
-         apiHandle =
-            PricesRetrofitClient.getCryptocurrencyPricesApiHandleInstance()
+        hiltRule.inject()
     }
 
     @Test
     fun testRetrofitInstance() {
-        val currentUrl = retrofitInstance!!.baseUrl().url().toString()
+        val currentUrl = retrofitInstance.baseUrl().url().toString()
         val baseUrl = Constants.BASE_URL
         assertThat(currentUrl).isEqualTo(baseUrl)
     }
 
     @Test
     fun testApiCallGetPrices() {
-        val response = apiHandle!!.getArchivalPrice(
+        val response = apiHandle.getArchivalPrice(
             "bitcoin",
             "02-06-2022"
         ).execute()

@@ -13,7 +13,9 @@ import android.view.MotionEvent
 import android.view.MotionEvent.ACTION_UP
 import android.view.View
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.model.*
@@ -22,14 +24,15 @@ import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesH
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.other.*
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
-import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import java.sql.Timestamp
 import java.util.*
 import kotlin.collections.ArrayList
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-    private lateinit var viewModel: MainViewModel
+    private val viewModel: MainViewModel by viewModels()
     private lateinit var tvSelectedCurrencyId: TextView
     private lateinit var etDate: EditText
     private lateinit var tvCryptocurrencySymbol: TextView
@@ -88,7 +91,6 @@ class MainActivity : AppCompatActivity() {
 
         savedInstanceStateBundle = savedInstanceState
         assignViewsVariables()
-        initViewModel()
         handleNoNetworkInfo()
 
         handleCryptocurrencyChoice()
@@ -97,6 +99,7 @@ class MainActivity : AppCompatActivity() {
         observeLiveData()
 
         sharedPrefsInstance = SharedPreferencesHelper(applicationContext)
+        viewModel.vsCurrency = getString(R.string.defaultVsCurrency)
 
         configureAlarmManager()
     }
@@ -128,12 +131,6 @@ class MainActivity : AppCompatActivity() {
         rgDateActualArchivalSelection = findViewById(R.id.radioGroupDate)
     }
 
-    private fun initViewModel() {
-        val factory = MainViewModelFactory(application)
-        viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
-
-        viewModel.vsCurrency = getString(R.string.defaultVsCurrency)
-    }
 
     private fun initializeDatePicker() {
         etDate.setText(DateFormatterUtil.formatDateOnly(Date()))
