@@ -15,7 +15,7 @@ android {
         versionCode 902
         versionName "0.9.2"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "com.arturkowalczyk300.cryptocurrencyprices.CustomTestRunner"
     }
 
     buildTypes {
@@ -76,6 +76,13 @@ dependencies {
     //Hilt
     implementation 'com.google.dagger:hilt-android:2.46'
     kapt "com.google.dagger:hilt-compiler:2.44"
+
+    //Hilt UI tests
+    testImplementation 'com.google.dagger:hilt-android-testing:2.44'
+    kaptTest 'com.google.dagger:hilt-android-compiler:2.44'
+    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.44'
+    kaptAndroidTest 'com.google.dagger:hilt-android-compiler:2.44'
+
 }
 
 kapt{

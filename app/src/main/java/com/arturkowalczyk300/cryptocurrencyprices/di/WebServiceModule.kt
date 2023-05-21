@@ -18,18 +18,26 @@ import javax.inject.Singleton
 object WebServiceModule {
     @Provides
     @Singleton
-    fun providePricesApiHandle(): PricesApiHandle {
+    fun provideRetrofitInstance():Retrofit{
         val okHttpClientInstance = OkHttpClient.Builder()
             .connectTimeout(2, TimeUnit.SECONDS)
             .readTimeout(2, TimeUnit.SECONDS)
             .writeTimeout(2, TimeUnit.SECONDS)
             .build()
 
-        val retrofitInstance = Retrofit.Builder()
+        return Retrofit.Builder()
             .baseUrl(Constants.BASE_URL)
             .client(okHttpClientInstance)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+    }
+
+    @Provides
+    @Singleton
+    fun providePricesApiHandle(
+        retrofitInstance: Retrofit
+    ): PricesApiHandle {
+
 
         return retrofitInstance.create(
             PricesApiHandle::class.java

@@ -15,7 +15,9 @@ import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.AddEditPriceAlertViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AddPriceAlertActivity : AppCompatActivity() {
     private lateinit var tvCryptocurrencyId: TextView
     private lateinit var etAlertThreshold: EditText
@@ -23,7 +25,7 @@ class AddPriceAlertActivity : AppCompatActivity() {
 
     private var isCurrenciesListInitialized: Boolean = false
     private val viewModel: AddEditPriceAlertViewModel by viewModels()
-    private lateinit var sharedPrefsInstance: SharedPreferencesHelper //TODO: DI
+    private lateinit var sharedPrefsInstance: SharedPreferencesHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

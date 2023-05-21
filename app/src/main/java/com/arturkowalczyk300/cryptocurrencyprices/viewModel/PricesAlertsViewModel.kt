@@ -11,8 +11,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PricesAlertsViewModel @Inject constructor(private var repository: Repository) : ViewModel() {
-
-
     private var _pricesAlerts = repository.getPricesAlerts()
     val pricesAlerts: LiveData<List<PriceAlertEntity>> = _pricesAlerts
 

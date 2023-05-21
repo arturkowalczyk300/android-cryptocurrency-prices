@@ -24,9 +24,8 @@ class CustomDatePicker(context: Context) : DatePickerDialog(context) {
 
 
 class CustomDatePickerHandler {
-    private lateinit var datePickerDialog: CustomDatePicker //TODO: DI
-
-    private val currentDate: Calendar = Calendar.getInstance() //TODO: DI
+    private lateinit var datePickerDialog: CustomDatePicker
+    private val currentDate: Calendar = Calendar.getInstance()
     private val currentSelectedDate: Calendar = Calendar.getInstance()
     private lateinit var listenerOnDateChanged: (dateString: String) -> Unit
 

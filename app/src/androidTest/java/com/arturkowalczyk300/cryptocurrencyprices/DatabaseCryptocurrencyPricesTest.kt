@@ -47,6 +47,7 @@ class DatabaseCryptocurrencyPricesTest {
             1,
             "bitcoin",
             "Bitcoin",
+            "btc",
             481475235622,
             24883.0,
             Date(1676576168375)
@@ -67,6 +68,7 @@ class DatabaseCryptocurrencyPricesTest {
             1,
             "bitcoin",
             "Bitcoin",
+            "btc",
             481475235622,
             24883.0,
             Date(1676576168375)
@@ -76,6 +78,7 @@ class DatabaseCryptocurrencyPricesTest {
             2,
             "ethereum",
             "Ethereum",
+            "eth",
             206708478234,
             1711.4,
             Date(1676576168376)

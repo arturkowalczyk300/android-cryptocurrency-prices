@@ -18,7 +18,9 @@ import com.arturkowalczyk300.cryptocurrencyprices.model.room.AlertType
 import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.PricesAlertsViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class PricesAlertsActivity : AppCompatActivity() {
     private lateinit var rvPricesAlerts: RecyclerView
     private lateinit var fab: FloatingActionButton
