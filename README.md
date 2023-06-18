@@ -22,5 +22,7 @@ I'm planning constant development of this project. In closest future I want to a
 - [ ] Phone's main screen widget with price of favorite currency
 - [ ] Support more FIAT currencies (now it's only USD)
 
-# Demo
+# Demo    
+**Attached GIF file has big size, it may take a longer while to be loaded.**<br/></br>
+
 <img src="res/demo.gif" alt="Dark theme" width="40%" height="40%"> 
