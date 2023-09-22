@@ -42,6 +42,8 @@
     <string name="enableAlerts">Enable alerts</string>
     <string name="error_occured">Error has occured!</string>
     <string name="OK">OK</string>
+    <string name="radioButtonModeVolume">Volume</string>
+    <string name="radioButtonModeNormal">Normal</string>
     <string-array name="alertTypes">
         <item>Alert when current value is bigger</item>
         <item>Alert when current value is smaller</item>

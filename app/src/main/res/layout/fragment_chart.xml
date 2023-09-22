@@ -107,18 +107,17 @@
         android:id="@+id/chartRadioGroupTimeRange"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="5dp"
         android:gravity="center_horizontal"
         android:orientation="horizontal"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/chartRadioGroupMode"
         app:layout_constraintStart_toStartOf="parent">
 
         <RadioButton
             android:id="@+id/chartRadioButtonTimeRangeOneYear"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
             android:layout_weight="1"
             android:text="@string/radioButtonOneYear" />
 
@@ -144,6 +143,34 @@
             android:checked="true"
             android:text="@string/radioButtonOneDay" />
 
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/chartRadioGroupMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <RadioButton
+            android:id="@+id/chartRadioButtonModeNormal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="@string/radioButtonModeNormal" />
+
+        <RadioButton
+            android:id="@+id/chartRadioButtonModeVolume"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/radioButtonModeVolume" />
     </RadioGroup>
 
     <androidx.constraintlayout.widget.Group

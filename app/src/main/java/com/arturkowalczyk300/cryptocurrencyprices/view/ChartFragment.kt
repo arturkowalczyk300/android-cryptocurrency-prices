@@ -4,16 +4,13 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.*
 import androidx.constraintlayout.widget.Group
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.InfoWithinTimeRangeEntity
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
@@ -32,7 +29,8 @@ import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
 class ChartFragment : Fragment(R.layout.fragment_chart) {
-    @ApplicationContext lateinit var appContext: Context
+    @ApplicationContext
+    lateinit var appContext: Context
     private val viewModel: MainViewModel by activityViewModels()
 
     private lateinit var chart: LineChart
@@ -42,6 +40,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var progressBarChartLoading: ProgressBar
     private lateinit var groupUpdating: Group
     private lateinit var chartRadioGroupTimeRange: RadioGroup
+    private lateinit var chartRadioGroupMode: RadioGroup
     private lateinit var valueFormatter: ValueFormatter
     private lateinit var tvChartMinPrice: TextView
     private lateinit var tvChartAvgPrice: TextView
@@ -52,8 +51,10 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var ivTrending: ImageView
     private lateinit var tvTimePeriod: TextView
 
-    private var chartDataSet = LineDataSet(listOf(), "")
+    private var chartPriceDataSet = LineDataSet(listOf(), "")
+    private var chartVolumeDataSet = LineDataSet(listOf(), "")
 
+    private var isVolumeMode = false
     override fun onViewCreated(
         view: View, savedInstanceState: Bundle?,
     ) {
@@ -63,10 +64,10 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
         assignViewsVariablesChart()
         handleChartRadioGroupTimeRangeActions()
+        handleChartRadioGroupMode()
         initializeChart()
         observeDataUpdatedVariable()
 
-        //setChartVisibility(true)
         viewModel.isChartFragmentInitialized = true
     }
 
@@ -91,27 +92,15 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                 override fun onChanged(info: InfoWithinTimeRangeEntity?) {
                     var isResponseHandled = false
                     if (info != null) {
-                        var chartData = arrayListOf<Entry>()
-                        info.prices.list.forEachIndexed { index, currentRow ->
-                            chartData.add(
-                                Entry(
-                                    currentRow.unixTime.toFloat(),
-                                    currentRow.value.toFloat()
-                                )
-                            )
-                        }
-
-                        setChartData(chartData)
-                        setMinAvgMaxPricesValues(chartData)
+                        setChartData(info)
                         updateTimePeriod()
                         updatePriceTrends()
                         setChartAxisLabelsVisibility(true)
                         showNoDataInfo(false) //hide
                         isResponseHandled = true
-
                     }
                     if (isResponseHandled)
-                        liveData!!.removeObserver(this) //only when valid data is handled
+                        liveData.removeObserver(this) //only when valid data is handled
                     else {
                         showNoDataInfo(true)
                     }
@@ -157,7 +146,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private fun handleChartRadioGroupTimeRangeActions() {
         chartRadioGroupTimeRange.setOnCheckedChangeListener { _, checkedId ->
 
-            if (checkedId != -1) { //if anything selected
+            if (checkedId != -1) { //if anything is selected
                 var countOfDays: Int = 0
 
                 when (chartRadioGroupTimeRange.checkedRadioButtonId) {
@@ -174,6 +163,25 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         }
 
         viewModel.selectedDaysToSeeOnChart = 1 //default value
+    }
+
+    private fun handleChartRadioGroupMode() {
+        chartRadioGroupMode.setOnCheckedChangeListener { _, checkedId ->
+
+            if (checkedId != -1) { //if anything is selected
+                when (chartRadioGroupMode.checkedRadioButtonId) {
+                    R.id.chartRadioButtonModeNormal -> {
+                        isVolumeMode = false
+                    }
+
+                    R.id.chartRadioButtonModeVolume -> {
+                        isVolumeMode = true
+                    }
+                }
+                if (viewModel.cryptocurrencyChartData?.value != null)
+                    setChartData(viewModel.cryptocurrencyChartData!!.value!!)
+            }
+        }
     }
 
     private fun initializeChart() {
@@ -232,24 +240,79 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         setChartLoadingProgressBarVisibility(false)
     }
 
-    private fun setChartData(values: ArrayList<Entry>) {
-        chartDataSet = LineDataSet(values, "")
+    private fun setChartData(chartData: InfoWithinTimeRangeEntity) {
+        var pricesData = arrayListOf<Entry>()
+        chartData.prices.list.forEachIndexed { _, currentRow ->
+            pricesData.add(
+                Entry(
+                    currentRow.unixTime.toFloat(),
+                    currentRow.value.toFloat()
+                )
+            )
+        }
+        setMinAvgMaxPricesValues(pricesData)
+
+        if (isVolumeMode) {
+            setChartVolumeData(chartData)
+        } else {
+            setChartPriceData(pricesData)
+        }
+    }
+
+    private fun setChartPriceData(values: ArrayList<Entry>) {
+        chartPriceDataSet = LineDataSet(values, "")
         chartValues = values
 
-        chartDataSet.color = Color.BLUE
-        chartDataSet.setDrawCircles(false)
-        chartDataSet.setDrawHorizontalHighlightIndicator(false)
-        chartDataSet.setDrawVerticalHighlightIndicator(true)
-        chartDataSet.lineWidth = 3f
-        chartDataSet.setDrawValues(false)
+        chartPriceDataSet.color = Color.BLUE
+        chartPriceDataSet.setDrawCircles(false)
+        chartPriceDataSet.setDrawHorizontalHighlightIndicator(false)
+        chartPriceDataSet.setDrawVerticalHighlightIndicator(true)
+        chartPriceDataSet.lineWidth = 3f
+        chartPriceDataSet.setDrawValues(false)
 
         if (chart.data == null) {
-            val data = LineData(chartDataSet)
+            val data = LineData(chartPriceDataSet)
             chart.data = data
         } else {
             chart.clearValues()
             chart.data.clearValues()
-            chart.data.addDataSet(chartDataSet)
+            chart.data.addDataSet(chartPriceDataSet)
+        }
+        chart.notifyDataSetChanged()
+        chart.invalidate()
+
+        setChartVisibility(true)
+        setChartLoadingProgressBarVisibility(false)
+    }
+
+    private fun setChartVolumeData(data: InfoWithinTimeRangeEntity) {
+        var values = arrayListOf<Entry>()
+        data.total_volumes?.list?.forEachIndexed { _, currentRow ->
+            values.add(
+                Entry(
+                    currentRow.unixTime.toFloat(),
+                    currentRow.value.toFloat()
+                )
+            )
+        }
+
+        chartPriceDataSet = LineDataSet(values, "")
+        chartValues = values
+
+        chartPriceDataSet.color = Color.RED
+        chartPriceDataSet.setDrawCircles(false)
+        chartPriceDataSet.setDrawHorizontalHighlightIndicator(false)
+        chartPriceDataSet.setDrawVerticalHighlightIndicator(true)
+        chartPriceDataSet.lineWidth = 3f
+        chartPriceDataSet.setDrawValues(false)
+
+        if (chart.data == null) {
+            val data = LineData(chartPriceDataSet)
+            chart.data = data
+        } else {
+            chart.clearValues()
+            chart.data.clearValues()
+            chart.data.addDataSet(chartPriceDataSet)
         }
         chart.notifyDataSetChanged()
         chart.invalidate()
@@ -278,9 +341,11 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             trend < 0.0f -> {
                 R.drawable.ic_trending_down
             }
+
             trend == 0.0f -> {
                 R.drawable.ic_trending_flat
             }
+
             else -> {
                 R.drawable.ic_trending_up
             }
@@ -295,6 +360,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         groupChartMinMaxAvgPrices = currentView.findViewById(R.id.groupChartMinMaxAvgPrices)
         progressBarChartLoading = currentView.findViewById(R.id.progressBarChartLoading)
         chartRadioGroupTimeRange = currentView.findViewById(R.id.chartRadioGroupTimeRange)
+        chartRadioGroupMode = currentView.findViewById(R.id.chartRadioGroupMode)
         groupUpdating = currentView.findViewById(R.id.groupUpdating)
         tvChartMinPrice = currentView.findViewById(R.id.tvMinPrice)
         tvChartAvgPrice = currentView.findViewById(R.id.tvAvgPrice)
@@ -316,7 +382,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                 groupChartMinMaxAvgPrices.visibility = View.VISIBLE
             }, 200)
         } else {
-            chartDataSet.isVisible = false
+            chartPriceDataSet.isVisible = false
             groupChartWithOptions.visibility = View.GONE
             groupChartMinMaxAvgPrices.visibility = View.GONE
             chart.invalidate()
