@@ -1,7 +1,6 @@
 package com.arturkowalczyk300.cryptocurrencyprices.model
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -179,14 +178,15 @@ class Repository @Inject constructor(
     }
 
     suspend fun updateCryptocurrenciesInfoWithinDateRange(
-        currencySymbol: String, vs_currency: String, unixtimeFrom: Long,
-        unixTimeTo: Long,
+        currencySymbol: String, vs_currency: String, unixTimeFrom: Long,
+        unixTimeTo: Long, candlestickMode: Boolean
     ) {
         val liveData = webService.requestPriceHistoryForDateRange(
             currencySymbol,
             vs_currency,
-            unixtimeFrom,
-            unixTimeTo
+            unixTimeFrom,
+            unixTimeTo,
+            candlestickMode
         )
         if (!liveData.hasActiveObservers())
             liveData.observeForever { response ->
@@ -224,13 +224,14 @@ class Repository @Inject constructor(
                             InfoWithinTimeRangeEntity(
                                 index = 0, //auto-increment, no need to specify manually
                                 cryptocurrencyId = response.currencySymbol,
-                                timeRangeFrom = response.unixtimeFrom,
+                                timeRangeFrom = response.unixTimeFrom,
                                 timeRangeTo = response.unixTimeTo,
-                                daysCount = (((response.unixTimeTo - response.unixtimeFrom) / 3600 / 24).toInt()),
+                                daysCount = (((response.unixTimeTo - response.unixTimeFrom) / 3600 / 24).toInt()),
                                 prices = prices,
                                 market_caps = marketCaps,
                                 total_volumes = totalVolume,
-                                updateDate = Date()
+                                updateDate = Date(),
+                                candlestickData = null
                             )
                         )
                     }

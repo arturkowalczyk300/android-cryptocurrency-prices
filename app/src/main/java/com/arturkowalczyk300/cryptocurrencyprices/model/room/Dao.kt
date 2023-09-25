@@ -48,7 +48,8 @@ interface Dao {
     @Query(
         "SELECT * FROM cryptocurrencies_info_in_time_range " +
                 "WHERE cryptocurrencyId=:cryptocurrencyId " +
-                "AND daysCount=:daysCount"
+                "AND daysCount=:daysCount " +
+                "AND candlestickData IS NULL"
     )
     fun getInfoOfCryptocurrencyWithinTimeRange(
         cryptocurrencyId: String,

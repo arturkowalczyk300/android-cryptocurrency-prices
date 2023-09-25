@@ -11,7 +11,7 @@ import com.arturkowalczyk300.cryptocurrencyprices.other.Constants
         InfoWithinTimeRangeEntity::class,
         PriceEntity::class,
         PriceAlertEntity::class],
-    version = 11
+    version = 12
 )
 abstract class CryptocurrencyPricesDatabase() : RoomDatabase() {
     abstract fun userDao(): Dao

@@ -1,24 +1,16 @@
 package com.arturkowalczyk300.cryptocurrencyprices.model.webAccess
 
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.model.*
 import com.arturkowalczyk300.cryptocurrencyprices.other.Constants
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.components.SingletonComponent
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.lang.StringBuilder
-import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
-import javax.inject.Singleton
 import kotlin.collections.ArrayList
 
 open class RequestWithResponse(
@@ -35,7 +27,7 @@ class RequestWithResponseArchival(
     currencySymbol: String = "",
     date: Date = Date(0),
     val vs_currency: String,
-    val unixtimeFrom: Long,
+    val unixTimeFrom: Long,
     val unixTimeTo: Long,
     var archivalPrices: List<List<Double>>? = null,
     var totalVolumes: List<List<Double>>? = null,
@@ -230,14 +222,15 @@ class CryptocurrencyPricesWebService @Inject constructor(
     fun requestPriceHistoryForDateRange(
         currencySymbol: String,
         vs_currency: String,
-        unixtimeFrom: Long,
+        unixTimeFrom: Long,
         unixTimeTo: Long,
+        candlestickMode: Boolean
     ): MutableLiveData<RequestWithResponseArchival?> {
         mldPriceHistory!!.value = RequestWithResponseArchival(
             currencySymbol,
             Date(),
             vs_currency,
-            unixtimeFrom,
+            unixTimeFrom,
             unixTimeTo
         )
 
@@ -245,7 +238,7 @@ class CryptocurrencyPricesWebService @Inject constructor(
             apiHandle.getHistoryOfPriceForDateRange(
                 currencySymbol,
                 vs_currency,
-                unixtimeFrom,
+                unixTimeFrom,
                 unixTimeTo
             )
 

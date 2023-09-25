@@ -76,6 +76,13 @@ class MainViewModel  @Inject constructor(private var repository: Repository) : V
     var hasInternetConnection: Boolean = false
     var noDataCachedVisibility: Boolean = false
 
+    enum class HistoricalDataMode{
+        NORMAL,
+        CANDLESTICK
+    }
+
+    var historicalDataMode = HistoricalDataMode.NORMAL
+
     //coroutines
     private val loadCryptocurrenciesListCoroutine = viewModelScope.async {
         _allCryptocurrencies.observeForever { currenciesList ->
@@ -266,7 +273,8 @@ class MainViewModel  @Inject constructor(private var repository: Repository) : V
                     selectedCryptocurrencyId!!,
                     vsCurrency!!,
                     selectedUnixTimeFrom!!,
-                    selectedUnixTimeTo!!
+                    selectedUnixTimeTo!!,
+                    historicalDataMode == HistoricalDataMode.CANDLESTICK
                 )
             } else {
                 Log.d("myApp", "no internet connection, skip data update!")
