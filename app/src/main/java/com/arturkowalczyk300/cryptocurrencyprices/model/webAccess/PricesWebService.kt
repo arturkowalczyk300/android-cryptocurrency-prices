@@ -32,6 +32,7 @@ class RequestWithResponseArchival(
     var archivalPrices: List<List<Double>>? = null,
     var totalVolumes: List<List<Double>>? = null,
     var marketCaps: List<List<Double>>? = null,
+    var ohlcData: List<OhlcDataResponseEntity>? = null,
 ) : RequestWithResponse(
     currencySymbol,
     date,
@@ -42,8 +43,8 @@ class RequestWithResponseArchival(
 }
 
 class CryptocurrencyPricesWebService @Inject constructor(
-    private val apiHandle: PricesApiHandle
-){
+    private val apiHandle: PricesApiHandle,
+) {
 
 
     var waitingForResponse: Boolean = false
@@ -219,19 +220,44 @@ class CryptocurrencyPricesWebService @Inject constructor(
         return cryptocurrenciesListSorted
     }
 
-    fun requestPriceHistoryForDateRange(
+    fun requestPriceHistory(
         currencySymbol: String,
         vs_currency: String,
         unixTimeFrom: Long,
         unixTimeTo: Long,
-        candlestickMode: Boolean
+        ohlcChartMode: Boolean,
+        ohlcChartModeDays: Int = 0,
+    ): MutableLiveData<RequestWithResponseArchival?> {
+        return if (ohlcChartMode)
+            requestPriceHistoryOhlcChartMode(
+                currencySymbol,
+                vs_currency,
+                unixTimeFrom,
+                unixTimeTo,
+                ohlcChartModeDays
+            )
+        else
+            requestPriceHistoryNormalMode(
+                currencySymbol,
+                vs_currency,
+                unixTimeFrom,
+                unixTimeTo
+            )
+    }
+
+    private fun requestPriceHistoryNormalMode(
+        currencySymbol: String,
+        vs_currency: String,
+        unixTimeFrom: Long,
+        unixTimeTo: Long,
     ): MutableLiveData<RequestWithResponseArchival?> {
         mldPriceHistory!!.value = RequestWithResponseArchival(
             currencySymbol,
             Date(),
             vs_currency,
             unixTimeFrom,
-            unixTimeTo
+            unixTimeTo,
+            ohlcData = null
         )
 
         val response: Call<PriceHistoryResponse>? =
@@ -288,6 +314,85 @@ class CryptocurrencyPricesWebService @Inject constructor(
 
         return mldPriceHistory!!
     }
+
+    private fun requestPriceHistoryOhlcChartMode(
+        currencySymbol: String,
+        vs_currency: String,
+        unixTimeFrom: Long,
+        unixTimeTo: Long,
+        days: Int,
+    ): MutableLiveData<RequestWithResponseArchival?> {
+        mldPriceHistory!!.value = RequestWithResponseArchival(
+            currencySymbol,
+            Date(),
+            vs_currency,
+            unixTimeFrom,
+            unixTimeTo
+        )
+
+        val response: Call<Array<Array<Long>>>? =
+            apiHandle.getOhlcData(
+                currencySymbol,
+                vs_currency,
+                days
+            )
+
+
+        response?.enqueue(object : Callback<Array<Array<Long>>> {
+            override fun onResponse(
+                call: Call<Array<Array<Long>>>,
+                response: Response<Array<Array<Long>>>,
+            ) {
+                if (response.code() == 429)
+                    mldErrorCode.value = Pair(true, ErrorMessage(REQUEST_EXCEEDED_API_RATE_LIMIT))
+                else if (response.body() != null && response.body()?.isNotEmpty() != null) {
+
+                    mldPriceHistory!!.value!!.ohlcData = response.body()!!.map {
+                        OhlcDataResponseEntity(
+                            it[0],
+                            it[1].toInt(),
+                            it[2].toInt(),
+                            it[3].toInt(),
+                            it[4].toInt()
+                        )
+                    }
+
+
+                    mldPriceHistory!!.postValue(mldPriceHistory!!.value) //notify data changed
+                    mldErrorCode.value = Pair(false, ErrorMessage(0)) //reset error flag
+                } else {
+                    mldPriceHistory!!.value = null
+                    mldErrorCode.value =
+                        Pair(true, ErrorMessage(REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE))
+                    Log.e(
+                        "myApp",
+                        "onResponse, invalid response, respCode=${response.code()} errorCode=${
+                            response.errorBody()?.string()
+                        } }"
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<Array<Array<Long>>>, t: Throwable) {
+                mldPriceHistory!!.value = null
+                mldErrorCode.value =
+                    Pair(
+                        true, ErrorMessage(
+                            REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE,
+                            "${t.stackTraceToString()}"
+                        )
+                    )
+
+                Log.e(
+                    "myApp", "onFailure, url:${call.request().url().toString()}" +
+                            "\n exc: ${t.stackTraceToString()}"
+                )
+            }
+        })
+
+        return mldPriceHistory!!
+    }
+
 
     fun getActualPriceOfCryptocurrencySynchronously(
         cryptocurrencySymbol: String,

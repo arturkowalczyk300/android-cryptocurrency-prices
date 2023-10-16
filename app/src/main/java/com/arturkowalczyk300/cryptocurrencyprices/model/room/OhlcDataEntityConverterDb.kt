@@ -5,9 +5,9 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 
-class CandlestickEntityConverterDb {
+class OhlcDataEntityConverterDb {
     @TypeConverter
-    fun fromListOfCandlestickEntities(list: List<CandlestickEntity>?): String? {
+    fun fromListOfOhlcChartDataEntities(list: List<OhlcDataEntity>?): String? {
         if (list == null) return null
 
         val gson = Gson()
@@ -15,10 +15,10 @@ class CandlestickEntityConverterDb {
     }
 
     @TypeConverter
-    fun toListOfCandlestickEntities(stringList: String?): List<CandlestickEntity>? {
+    fun toListOfOhlcChartDataEntities(stringList: String?): List<OhlcDataEntity>? {
         if (stringList == null) return null
 
-        val listType = object: TypeToken<ArrayList<CandlestickEntity>>(){}.type
+        val listType = object: TypeToken<ArrayList<OhlcDataEntity>>(){}.type
 
         val gson = Gson()
         return gson.fromJson(stringList, listType)

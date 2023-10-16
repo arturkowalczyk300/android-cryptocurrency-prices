@@ -15,9 +15,7 @@ import android.view.View
 import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.arturkowalczyk300.cryptocurrencyprices.model.*
 import com.arturkowalczyk300.cryptocurrencyprices.NetworkAccessLiveData
 import com.arturkowalczyk300.cryptocurrencyprices.other.prefs.SharedPreferencesHelper
@@ -28,7 +26,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import java.sql.Timestamp
 import java.util.*
-import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -229,14 +226,14 @@ class MainActivity : AppCompatActivity() {
                         tvErrorMessage.visibility = View.VISIBLE
 
                         if (viewModel.isChartFragmentInitialized)
-                            chartFragment?.setChartVisibility(false)
+                            chartFragment?.setLinearChartVisibility(false)
                     } else //there is additional message which can be long, better display dialog with error message
                         displayErrorDialog(errorText, additionalInfo)
                 } else //error gone
                 {
                     tvErrorMessage.visibility = View.GONE
                     if (viewModel.isChartFragmentInitialized)
-                        chartFragment?.setChartVisibility(true)
+                        chartFragment?.setLinearChartVisibility(true)
                 }
             }
 

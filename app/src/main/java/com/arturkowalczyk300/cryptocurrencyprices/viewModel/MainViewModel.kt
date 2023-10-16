@@ -1,13 +1,11 @@
 package com.arturkowalczyk300.cryptocurrencyprices.viewModel
 
-import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
 import com.arturkowalczyk300.cryptocurrencyprices.model.Repository
-import com.arturkowalczyk300.cryptocurrencyprices.model.room.CryptocurrencyEntity
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.InfoWithinTimeRangeEntity
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.PriceEntity
-import com.github.mikephil.charting.utils.Utils.init
+import com.arturkowalczyk300.cryptocurrencyprices.view.ChartMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import java.util.*
@@ -17,7 +15,7 @@ private const val REFRESH_PRICE_INTERVAL_MILLIS = 30000L
 private const val REFRESH_CHART_INTERVAL_MILLIS = 60000L
 
 @HiltViewModel
-class MainViewModel  @Inject constructor(private var repository: Repository) : ViewModel() {
+class MainViewModel @Inject constructor(private var repository: Repository) : ViewModel() {
     val apiUnwrappingPriceDataErrorLiveData: MutableLiveData<Boolean> = MutableLiveData<Boolean>()
 
     //livedata properties
@@ -34,6 +32,10 @@ class MainViewModel  @Inject constructor(private var repository: Repository) : V
     private var _cryptocurrencyChartData = repository.getCryptocurrencyChartData()
     val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity?>? =
         _cryptocurrencyChartData
+
+    private var _cryptocurrencyOhlcData = repository.getCryptocurrencyOhlcData()
+    val cryptocurrencyOhlcData: LiveData<InfoWithinTimeRangeEntity?>? =
+        _cryptocurrencyOhlcData
 
     //statuses of operations
     private var _apiErrorCode = repository.getApiErrorCodeLiveData()
@@ -76,9 +78,9 @@ class MainViewModel  @Inject constructor(private var repository: Repository) : V
     var hasInternetConnection: Boolean = false
     var noDataCachedVisibility: Boolean = false
 
-    enum class HistoricalDataMode{
+    enum class HistoricalDataMode {
         NORMAL,
-        CANDLESTICK
+        OHLC //candlestick chart
     }
 
     var historicalDataMode = HistoricalDataMode.NORMAL
@@ -136,10 +138,17 @@ class MainViewModel  @Inject constructor(private var repository: Repository) : V
                 }
                 recalculateTimeRange()
                 withContext(Dispatchers.Main) {
-                    getChartLiveData(
-                        selectedCryptocurrencyId!!,
-                        selectedDaysToSeeOnChart!!
-                    )
+                    if (historicalDataMode == HistoricalDataMode.NORMAL) {
+                        getChartLiveData(
+                            selectedCryptocurrencyId!!,
+                            selectedDaysToSeeOnChart!!
+                        )
+                    } else {
+                        getOhlcLiveData(
+                            selectedCryptocurrencyId!!,
+                            selectedDaysToSeeOnChart!!
+                        )
+                    }
                 }
 
                 while (selectedCryptocurrencyId == null || selectedDaysToSeeOnChart == null
@@ -263,10 +272,17 @@ class MainViewModel  @Inject constructor(private var repository: Repository) : V
 
 
         viewModelScope.launch {
-            getChartLiveData(
-                selectedCryptocurrencyId!!,
-                selectedDaysToSeeOnChart!!
-            )
+            if (historicalDataMode == HistoricalDataMode.NORMAL) {
+                getChartLiveData(
+                    selectedCryptocurrencyId!!,
+                    selectedDaysToSeeOnChart!!
+                )
+            } else {
+                getOhlcLiveData(
+                    selectedCryptocurrencyId!!,
+                    selectedDaysToSeeOnChart!!
+                )
+            }
 
             if (hasInternetConnection) {
                 repository.updateCryptocurrenciesInfoWithinDateRange(
@@ -274,7 +290,8 @@ class MainViewModel  @Inject constructor(private var repository: Repository) : V
                     vsCurrency!!,
                     selectedUnixTimeFrom!!,
                     selectedUnixTimeTo!!,
-                    historicalDataMode == HistoricalDataMode.CANDLESTICK
+                    historicalDataMode == HistoricalDataMode.OHLC,
+                    selectedDaysToSeeOnChart ?: 0
                 )
             } else {
                 Log.d("myApp", "no internet connection, skip data update!")
@@ -288,6 +305,17 @@ class MainViewModel  @Inject constructor(private var repository: Repository) : V
         daysCount: Int,
     ) {
         repository.getCryptocurrencyChartData(
+            cryptocurrencyId,
+            daysCount
+        )
+    }
+
+    private fun getOhlcLiveData(
+        //TODO: use it
+        cryptocurrencyId: String,
+        daysCount: Int,
+    ) {
+        repository.getCryptocurrencyOhlcData(
             cryptocurrencyId,
             daysCount
         )

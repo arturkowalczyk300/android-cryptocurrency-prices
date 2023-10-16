@@ -9,7 +9,7 @@
 
 
     <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/chart"
+        android:id="@+id/linearChart"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="5dp"
@@ -20,10 +20,25 @@
         app:layout_constraintTop_toBottomOf="@id/tvUpdating"
         app:layout_constraintVertical_bias="0.0"
         tools:layout_conversion_absoluteHeight="593dp"
-        tools:layout_conversion_absoluteWidth="461dp">
+        tools:layout_conversion_absoluteWidth="461dp"/>
+
+    <com.github.mikephil.charting.charts.CandleStickChart
+        android:id="@+id/candlestickChart"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="40dp"
+        android:background="@color/purple_700"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/lblAvg"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvUpdating"
+        app:layout_constraintVertical_bias="0.0"
+        tools:layout_conversion_absoluteHeight="593dp"
+        tools:layout_conversion_absoluteWidth="461dp"/>
 
 
-    </com.github.mikephil.charting.charts.LineChart>
+
 
     <ProgressBar
         android:id="@+id/progressBarChartLoading"
@@ -171,6 +186,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/radioButtonModeVolume" />
+        <RadioButton
+            android:id="@+id/chartRadioButtonModeCandlestick"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/radioButtonModeCandlestick" />
     </RadioGroup>
 
     <androidx.constraintlayout.widget.Group
@@ -215,7 +236,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:constraint_referenced_ids="lblMin,tvMinPrice,lblAvg,tvAvgPrice,lblMax,tvMaxPrice,
-        chart,tvTrending,imageViewTrending,tvTimePeriod" />
+        linearChart,tvTrending,imageViewTrending,tvTimePeriod" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/groupChartMinMaxAvgPrices"
@@ -252,7 +273,7 @@
         android:scaleX="1.2"
         android:scaleY="1.2"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/chart"
+        app:layout_constraintTop_toBottomOf="@+id/linearChart"
         tools:src="@drawable/ic_trending_up" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

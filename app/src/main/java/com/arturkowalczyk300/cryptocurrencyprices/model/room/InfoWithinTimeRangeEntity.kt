@@ -6,7 +6,7 @@ import androidx.room.TypeConverters
 import java.util.*
 
 @Entity(tableName = "cryptocurrencies_info_in_time_range")
-@TypeConverters(ParametersAtTimeConverterDb::class, DateConverterDb::class, CandlestickEntityConverterDb::class)
+@TypeConverters(ParametersAtTimeConverterDb::class, DateConverterDb::class, OhlcDataEntityConverterDb::class)
 data class InfoWithinTimeRangeEntity(
     @PrimaryKey(autoGenerate = true) val index: Int,
     val cryptocurrencyId: String,
@@ -14,8 +14,8 @@ data class InfoWithinTimeRangeEntity(
     val timeRangeTo: Long,
     val daysCount: Int = 0,
     val market_caps: ParametersAtTime? = null,
-    val prices: ParametersAtTime,
+    val prices: ParametersAtTime? = null,
     val total_volumes: ParametersAtTime? = null,
     val updateDate: Date,
-    var candlestickData: List<CandlestickEntity>?
+    var ohlcData: List<OhlcDataEntity>? = null
 )

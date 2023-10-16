@@ -49,9 +49,20 @@ interface Dao {
         "SELECT * FROM cryptocurrencies_info_in_time_range " +
                 "WHERE cryptocurrencyId=:cryptocurrencyId " +
                 "AND daysCount=:daysCount " +
-                "AND candlestickData IS NULL"
+                "AND ohlcData IS NULL"
     )
     fun getInfoOfCryptocurrencyWithinTimeRange(
+        cryptocurrencyId: String,
+        daysCount: Int,
+    ): LiveData<List<InfoWithinTimeRangeEntity>>
+
+    @Query(
+        "SELECT * FROM cryptocurrencies_info_in_time_range " +
+                "WHERE cryptocurrencyId=:cryptocurrencyId " +
+                "AND daysCount=:daysCount " +
+                "AND ohlcData IS NOT NULL"
+    )
+    fun getInfoOfCryptocurrencyOhlc(
         cryptocurrencyId: String,
         daysCount: Int,
     ): LiveData<List<InfoWithinTimeRangeEntity>>
@@ -73,9 +84,21 @@ interface Dao {
     @Query(
         "DELETE FROM cryptocurrencies_info_in_time_range " +
                 "WHERE cryptocurrencyId=:cryptocurrencyId " +
-                "AND daysCount=:daysCount"
+                "AND daysCount=:daysCount " +
+                "AND ohlcData IS NULL"
     )
     suspend fun deleteAllCryptocurrenciesInfoInGivenDaysCount(
+        cryptocurrencyId: String,
+        daysCount: Int,
+    )
+
+    @Query(
+        "DELETE FROM cryptocurrencies_info_in_time_range " +
+                "WHERE cryptocurrencyId=:cryptocurrencyId " +
+                "AND daysCount=:daysCount " +
+                "AND ohlcData IS NOT NULL"
+    )
+    suspend fun deleteAllOhlcDataInGivenDaysCount(
         cryptocurrencyId: String,
         daysCount: Int,
     )

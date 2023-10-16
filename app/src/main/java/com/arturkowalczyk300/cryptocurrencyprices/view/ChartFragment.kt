@@ -2,6 +2,7 @@ package com.arturkowalczyk300.cryptocurrencyprices.view
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Rect
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -14,8 +15,12 @@ import androidx.lifecycle.Observer
 import com.arturkowalczyk300.cryptocurrencyprices.model.room.InfoWithinTimeRangeEntity
 import com.arturkowalczyk300.cryptocurrencyprices.R
 import com.arturkowalczyk300.cryptocurrencyprices.viewModel.MainViewModel
+import com.github.mikephil.charting.charts.CandleStickChart
 import com.github.mikephil.charting.charts.Chart
 import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.data.CandleData
+import com.github.mikephil.charting.data.CandleDataSet
+import com.github.mikephil.charting.data.CandleEntry
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -27,13 +32,21 @@ import java.lang.Runnable
 import java.text.DecimalFormat
 import kotlin.collections.ArrayList
 
+enum class ChartMode {
+    NORMAL,
+    VOLUME,
+    CANDLESTICK
+}
+
+
 @AndroidEntryPoint
 class ChartFragment : Fragment(R.layout.fragment_chart) {
     @ApplicationContext
     lateinit var appContext: Context
     private val viewModel: MainViewModel by activityViewModels()
 
-    private lateinit var chart: LineChart
+    private lateinit var linearChart: LineChart
+    private lateinit var candlestickChart: CandleStickChart
     private lateinit var chartValues: ArrayList<Entry>
     private lateinit var groupChartWithOptions: Group
     private lateinit var groupChartMinMaxAvgPrices: Group
@@ -52,9 +65,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     private lateinit var tvTimePeriod: TextView
 
     private var chartPriceDataSet = LineDataSet(listOf(), "")
-    private var chartVolumeDataSet = LineDataSet(listOf(), "")
 
-    private var isVolumeMode = false
+    private var chartMode: ChartMode = ChartMode.NORMAL
     override fun onViewCreated(
         view: View, savedInstanceState: Bundle?,
     ) {
@@ -65,7 +77,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         assignViewsVariablesChart()
         handleChartRadioGroupTimeRangeActions()
         handleChartRadioGroupMode()
-        initializeChart()
+        initializeLinearChart()
+        initializeCandlestickChart()
         observeDataUpdatedVariable()
 
         viewModel.isChartFragmentInitialized = true
@@ -75,8 +88,10 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         viewModel.isCurrencyChartDataLoadedFromCache.observe(
             requireActivity()
         ) { loaded ->
-            if (loaded)
+            if (loaded){
                 observeChartData()
+                observeOhlcChartData()
+                }
 
             setUpdatingProgressBarVisibility(!loaded)
         }
@@ -102,7 +117,33 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                     if (isResponseHandled)
                         liveData.removeObserver(this) //only when valid data is handled
                     else {
-                        showNoDataInfo(true)
+                        //showNoDataInfo(true) //TODO: restore this
+                    }
+                }
+            })
+    }
+
+    private fun observeOhlcChartData() {
+        val liveData = viewModel.cryptocurrencyOhlcData!!
+
+        viewModel.cryptocurrencyOhlcData?.observe(
+            requireActivity(),
+            object :
+                Observer<InfoWithinTimeRangeEntity?> {
+                override fun onChanged(info: InfoWithinTimeRangeEntity?) {
+                    var isResponseHandled = false
+                    if (info != null) {
+                        setChartData(info)
+                        updateTimePeriod()
+                        updatePriceTrends()
+                        setChartAxisLabelsVisibility(true)
+                        //showNoDataInfo(false) //hide
+                        isResponseHandled = true
+                    }
+                    if (isResponseHandled)
+                        liveData.removeObserver(this) //only when valid data is handled
+                    else {
+                        //showNoDataInfo(true)
                     }
                 }
             })
@@ -115,10 +156,10 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
                 delay(1000)
                 if (viewModel.noDataCachedVisibility) //check again, maybe new record has been added meanwhile
                 {
-                    setChartVisibility(true)
-                    chart.data = null
-                    chart.invalidate()
-                    chart.notifyDataSetChanged()
+                    setLinearChartVisibility(true)
+                    linearChart.data = null
+                    linearChart.invalidate()
+                    linearChart.notifyDataSetChanged()
                     setChartLoadingProgressBarVisibility(false)
                     viewModel.setCurrentlyDisplayedDataUpdatedMinutesAgo(null)
 
@@ -171,45 +212,58 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             if (checkedId != -1) { //if anything is selected
                 when (chartRadioGroupMode.checkedRadioButtonId) {
                     R.id.chartRadioButtonModeNormal -> {
-                        isVolumeMode = false
+                        chartMode = ChartMode.NORMAL
                     }
 
                     R.id.chartRadioButtonModeVolume -> {
-                        isVolumeMode = true
+                        chartMode = ChartMode.VOLUME
+                    }
+
+                    R.id.chartRadioButtonModeCandlestick -> {
+                        chartMode = ChartMode.CANDLESTICK
                     }
                 }
+
+                viewModel.historicalDataMode =
+                    if (chartMode == ChartMode.CANDLESTICK) MainViewModel.HistoricalDataMode.OHLC
+                    else MainViewModel.HistoricalDataMode.NORMAL
+
                 if (viewModel.cryptocurrencyChartData?.value != null)
                     setChartData(viewModel.cryptocurrencyChartData!!.value!!)
+
+                viewModel.recalculateTimeRange()
+                viewModel.requestUpdateAllData()
             }
         }
     }
 
-    private fun initializeChart() {
-        chart.setBackgroundColor(Color.TRANSPARENT)
-        chart.setTouchEnabled(true)
-        chart.setDrawBorders(false)
+    private fun initializeLinearChart() {
+        linearChart.setBackgroundColor(Color.TRANSPARENT)
+        linearChart.setTouchEnabled(true)
+        linearChart.setDrawBorders(false)
 
         updateTimePeriod()
-        chart.description.isEnabled = false
-        chart.legend.isEnabled = false
+        linearChart.description.isEnabled = false
+        linearChart.legend.isEnabled = false
 
-        chart.setNoDataText(getString(R.string.chart_no_cached_data))
-        chart.getPaint(Chart.PAINT_INFO).textSize = 35f
+        linearChart.setNoDataText(getString(R.string.chart_no_cached_data))
+        linearChart.getPaint(Chart.PAINT_INFO).textSize = 35f
 
-        chart.xAxis.setDrawGridLines(false)
-        chart.xAxis.setDrawLabels(false)
-        chart.xAxis.setDrawAxisLine(false)
+        linearChart.xAxis.setDrawGridLines(false)
+        linearChart.xAxis.setDrawLabels(false)
+        linearChart.xAxis.setDrawAxisLine(false)
 
-        chart.axisLeft.setDrawAxisLine(false)
-        chart.axisLeft.textSize = 15f //increase default text size
-        chart.axisLeft.setDrawGridLines(false)
-        chart.axisLeft.textColor = ContextCompat.getColor(appContext, R.color.chart_font_color)
-        chart.axisLeft.setLabelCount(6, true)
+        linearChart.axisLeft.setDrawAxisLine(false)
+        linearChart.axisLeft.textSize = 15f //increase default text size
+        linearChart.axisLeft.setDrawGridLines(false)
+        linearChart.axisLeft.textColor =
+            ContextCompat.getColor(appContext, R.color.chart_font_color)
+        linearChart.axisLeft.setLabelCount(6, true)
 
-        chart.axisRight.setDrawAxisLine(false)
-        chart.axisRight.isEnabled = false
+        linearChart.axisRight.setDrawAxisLine(false)
+        linearChart.axisRight.isEnabled = false
 
-        chart.marker = ChartMarkerView(appContext, R.layout.chart_marker_view)
+        linearChart.marker = ChartMarkerView(appContext, R.layout.chart_marker_view)
 
         valueFormatter = object : ValueFormatter() {
             override fun getFormattedValue(value: Float): String {
@@ -234,15 +288,40 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             }
         }
 
-        chart.axisLeft.valueFormatter = valueFormatter
+        linearChart.axisLeft.valueFormatter = valueFormatter
 
-        setChartVisibility(false)
+        setLinearChartVisibility(false)
         setChartLoadingProgressBarVisibility(false)
+    }
+
+    private fun initializeCandlestickChart() {
+        candlestickChart.isHighlightPerDragEnabled = true
+        candlestickChart.setDrawBorders(true)
+//        candlestickChart.setBorderColor(resources.getColor(R.color.lightGray))
+
+        val yAxis = candlestickChart.axisLeft
+        val rightAxis = candlestickChart.axisRight
+        yAxis.setDrawGridLines(false)
+        rightAxis.setDrawGridLines(false)
+        candlestickChart.requestDisallowInterceptTouchEvent(true)
+
+        val xAxis = candlestickChart.xAxis
+
+        xAxis.setDrawGridLines(false)
+        xAxis.setDrawLabels(false)
+        rightAxis.textColor = Color.WHITE
+        yAxis.setDrawLabels(false)
+        xAxis.granularity = 1f
+        xAxis.isGranularityEnabled = true
+        xAxis.setAvoidFirstLastClipping(true)
+
+        val l = candlestickChart.legend
+        l.isEnabled = false
     }
 
     private fun setChartData(chartData: InfoWithinTimeRangeEntity) {
         var pricesData = arrayListOf<Entry>()
-        chartData.prices.list.forEachIndexed { _, currentRow ->
+        chartData.prices?.list?.forEachIndexed { _, currentRow ->
             pricesData.add(
                 Entry(
                     currentRow.unixTime.toFloat(),
@@ -252,14 +331,58 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         }
         setMinAvgMaxPricesValues(pricesData)
 
-        if (isVolumeMode) {
-            setChartVolumeData(chartData)
-        } else {
-            setChartPriceData(pricesData)
+        when (chartMode) {
+            ChartMode.NORMAL ->
+                setChartPriceData(pricesData)
+
+            ChartMode.VOLUME ->
+                setChartVolumeData(chartData)
+
+            ChartMode.CANDLESTICK -> {
+                setCandlestickChartData(chartData)
+            }
         }
     }
 
+    private fun setCandlestickChartData(chartData: InfoWithinTimeRangeEntity) {
+        setLinearChartVisibility(false)
+        setCandlestickChartVisibility(true)
+
+        if (chartData.ohlcData == null)
+            return
+
+        val yValuesCandleStick = chartData.ohlcData!!.mapIndexed {idx, it->
+            CandleEntry(
+                //it.timestamp.toFloat(), TODO: make chart handle this value
+                idx.toFloat(), //TODO: delete after fix above
+                it.high.toFloat(),
+                it.low.toFloat(),
+                it.open.toFloat(),
+                it.close.toFloat()
+            )
+        }
+
+        //set data
+        val set1 = CandleDataSet(yValuesCandleStick, "DataSet1")
+        set1.color = Color.rgb(80, 80, 80)
+        set1.shadowColor = resources.getColor(R.color.colorLightGray2)
+        set1.shadowWidth = 5.0f
+        set1.decreasingColor = resources.getColor(R.color.colorRed)
+        set1.decreasingPaintStyle = Paint.Style.FILL
+        set1.increasingColor = resources.getColor(R.color.colorAccent)
+        set1.increasingPaintStyle = Paint.Style.FILL
+        set1.neutralColor = Color.LTGRAY
+        set1.setDrawValues(false)
+
+        val data = CandleData(set1)
+        candlestickChart.data = data
+        candlestickChart.invalidate()
+    }
+
     private fun setChartPriceData(values: ArrayList<Entry>) {
+        setLinearChartVisibility(true)
+        setCandlestickChartVisibility(false)
+
         chartPriceDataSet = LineDataSet(values, "")
         chartValues = values
 
@@ -270,22 +393,25 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chartPriceDataSet.lineWidth = 3f
         chartPriceDataSet.setDrawValues(false)
 
-        if (chart.data == null) {
+        if (linearChart.data == null) {
             val data = LineData(chartPriceDataSet)
-            chart.data = data
+            linearChart.data = data
         } else {
-            chart.clearValues()
-            chart.data.clearValues()
-            chart.data.addDataSet(chartPriceDataSet)
+            linearChart.clearValues()
+            linearChart.data.clearValues()
+            linearChart.data.addDataSet(chartPriceDataSet)
         }
-        chart.notifyDataSetChanged()
-        chart.invalidate()
+        linearChart.notifyDataSetChanged()
+        linearChart.invalidate()
 
-        setChartVisibility(true)
+        setLinearChartVisibility(true)
         setChartLoadingProgressBarVisibility(false)
     }
 
     private fun setChartVolumeData(data: InfoWithinTimeRangeEntity) {
+        setLinearChartVisibility(true)
+        setCandlestickChartVisibility(false)
+
         var values = arrayListOf<Entry>()
         data.total_volumes?.list?.forEachIndexed { _, currentRow ->
             values.add(
@@ -306,18 +432,18 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
         chartPriceDataSet.lineWidth = 3f
         chartPriceDataSet.setDrawValues(false)
 
-        if (chart.data == null) {
+        if (linearChart.data == null) {
             val data = LineData(chartPriceDataSet)
-            chart.data = data
+            linearChart.data = data
         } else {
-            chart.clearValues()
-            chart.data.clearValues()
-            chart.data.addDataSet(chartPriceDataSet)
+            linearChart.clearValues()
+            linearChart.data.clearValues()
+            linearChart.data.addDataSet(chartPriceDataSet)
         }
-        chart.notifyDataSetChanged()
-        chart.invalidate()
+        linearChart.notifyDataSetChanged()
+        linearChart.invalidate()
 
-        setChartVisibility(true)
+        setLinearChartVisibility(true)
         setChartLoadingProgressBarVisibility(false)
     }
 
@@ -332,6 +458,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     }
 
     private fun updatePriceTrends() {
+        if(chartValues.isEmpty())
+            return
+
         val trend: Float = ((chartValues.last().y / chartValues.first().y) - 1.0f) * 100.0f
         val df = DecimalFormat("#.##")
 
@@ -355,7 +484,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
     private fun assignViewsVariablesChart() {
         val currentView = requireView()
-        chart = currentView.findViewById(R.id.chart)
+        linearChart = currentView.findViewById(R.id.linearChart)
+        candlestickChart = currentView.findViewById(R.id.candlestickChart)
         groupChartWithOptions = currentView.findViewById(R.id.groupChartWithOptions)
         groupChartMinMaxAvgPrices = currentView.findViewById(R.id.groupChartMinMaxAvgPrices)
         progressBarChartLoading = currentView.findViewById(R.id.progressBarChartLoading)
@@ -374,9 +504,9 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             requireActivity().findViewById(R.id.tvCryptocurrencyDate)
     }
 
-    fun setChartVisibility(visible: Boolean) {
+    fun setLinearChartVisibility(visible: Boolean) {
         if (visible) {
-            chart.axisLeft.setDrawLabels(true)
+            linearChart.axisLeft.setDrawLabels(true)
             groupChartWithOptions.postDelayed(Runnable { //show with delay
                 groupChartWithOptions.visibility = View.VISIBLE
                 groupChartMinMaxAvgPrices.visibility = View.VISIBLE
@@ -385,12 +515,20 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
             chartPriceDataSet.isVisible = false
             groupChartWithOptions.visibility = View.GONE
             groupChartMinMaxAvgPrices.visibility = View.GONE
-            chart.invalidate()
+            linearChart.invalidate()
+        }
+    }
+
+    private fun setCandlestickChartVisibility(visible: Boolean) {
+        if (visible) {
+            candlestickChart.visibility = View.VISIBLE
+        } else {
+            candlestickChart.visibility = View.GONE
         }
     }
 
     private fun setChartAxisLabelsVisibility(visible: Boolean) {
-        chart.axisLeft.setDrawLabels(visible)
+        linearChart.axisLeft.setDrawLabels(visible)
     }
 
     private fun setChartLoadingProgressBarVisibility(visible: Boolean) { //for cached data
@@ -412,8 +550,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     }
 
     fun hideMarker() {
-        if (this::chart.isInitialized) {
-            chart.let {
+        if (this::linearChart.isInitialized) {
+            linearChart.let {
                 it.highlightValue(null)
             }
         }
@@ -421,7 +559,8 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
 
     fun getGlobalVisibleRectOfChart(): Rect {
         var rect = Rect()
-        chart.getGlobalVisibleRect(rect)
+        linearChart.getGlobalVisibleRect(rect)
         return rect
     }
 }
+

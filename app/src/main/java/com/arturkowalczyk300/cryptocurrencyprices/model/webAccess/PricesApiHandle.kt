@@ -36,4 +36,11 @@ interface PricesApiHandle {
         @Query("from") unixTimeFrom: Long, //e.g. 1654370519 - 04.06.2022 192:21:59
         @Query("to") unixTimeTo: Long, //e.g. 1656962519 - 04.07.2022 192:21:59
     ): Call<PriceHistoryResponse>
+
+    @GET("api/v3/coins/{currency}/ohlc")
+    fun getOhlcData(
+        @Path("currency") currencySymbol: String,
+        @Query("vs_currency") vsCurrency: String,
+        @Query("days") days: Int
+    ): Call<Array<Array<Long>>>
 }

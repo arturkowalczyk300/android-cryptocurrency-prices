@@ -15,13 +15,19 @@ class Repository @Inject constructor(
     private val webService: CryptocurrencyPricesWebService,
     private val database: CryptocurrencyPricesDatabase,
 ) {
-    private var _chartDataObserved = false
     private var _cryptocurrencyChartData = MutableLiveData<InfoWithinTimeRangeEntity?>()
     private val cryptocurrencyChartData: LiveData<InfoWithinTimeRangeEntity?> =
         _cryptocurrencyChartData
 
+    private var _cryptocurrencyOhlcData = MutableLiveData<InfoWithinTimeRangeEntity?>()
+    private val cryptocurrencyOhlcData: LiveData<InfoWithinTimeRangeEntity?> =
+        _cryptocurrencyOhlcData
+
     private var _lastChartDataFromDaoRef: LiveData<List<InfoWithinTimeRangeEntity>>? = null
     private var _lastChartDataFromDaoObserver: Observer<List<InfoWithinTimeRangeEntity>?>? = null
+
+    private var _lastOhlcDataFromDaoRef: LiveData<List<InfoWithinTimeRangeEntity>>? = null
+    private var _lastOhlcDataFromDaoObserver: Observer<List<InfoWithinTimeRangeEntity>?>? = null
 
     private fun addCryptocurrency(entity: CryptocurrencyEntity) {
         runBlocking {
@@ -54,13 +60,21 @@ class Repository @Inject constructor(
         database!!.userDao()!!.addCryptocurrencyPrice(entity)
     }
 
-    private suspend fun addCryptocurrencyInfoWithinTimeRange(entity: InfoWithinTimeRangeEntity) {
+    private suspend fun addCryptocurrencyInfoWithinTimeRange(
+        entity: InfoWithinTimeRangeEntity,
+        ohlcData: Boolean = false,
+    ) {
         if (entity.daysCount > 0)
-            database!!.userDao()!!.deleteAllCryptocurrenciesInfoInGivenDaysCount(
-                entity.cryptocurrencyId,
-                entity.daysCount
-            )
-
+            if (ohlcData)
+                database!!.userDao()!!.deleteAllOhlcDataInGivenDaysCount(
+                    entity.cryptocurrencyId,
+                    entity.daysCount
+                )
+            else
+                database!!.userDao()!!.deleteAllCryptocurrenciesInfoInGivenDaysCount(
+                    entity.cryptocurrencyId,
+                    entity.daysCount
+                )
         database!!.userDao()!!.addCryptocurrencyInfoWithinTimeRange(entity)
     }
 
@@ -102,6 +116,42 @@ class Repository @Inject constructor(
         }
 
         return cryptocurrencyChartData
+    }
+
+    fun getCryptocurrencyOhlcData(
+        cryptocurrencyId: String? = null,
+        daysCount: Int? = null,
+    ): LiveData<InfoWithinTimeRangeEntity?> {
+        if (cryptocurrencyId != null
+            && daysCount != null
+        ) { //update data, if parameters are given
+            val observer: androidx.lifecycle.Observer<List<InfoWithinTimeRangeEntity>?> =
+                object : androidx.lifecycle.Observer<List<InfoWithinTimeRangeEntity>?> {
+                    override fun onChanged(currenciesOhlcData: List<InfoWithinTimeRangeEntity>?) {
+                        if (currenciesOhlcData != null) {
+
+                            _cryptocurrencyOhlcData.value = currenciesOhlcData
+                                .filter { it.cryptocurrencyId == cryptocurrencyId && it.daysCount == daysCount }
+                                .maxByOrNull { it.updateDate.time }
+                        }
+                    }
+                }
+
+            _lastOhlcDataFromDaoObserver?.let {
+                removeChartDataObserver(_lastOhlcDataFromDaoObserver!!)
+            }
+
+            _lastOhlcDataFromDaoRef = database!!.userDao()!!
+                .getInfoOfCryptocurrencyOhlc(
+                    cryptocurrencyId,
+                    daysCount
+                ).also {
+                    it.observeForever(observer)
+                    _lastOhlcDataFromDaoObserver = observer
+                }
+        }
+
+        return cryptocurrencyOhlcData
     }
 
     private fun removeChartDataObserver(observer: Observer<List<InfoWithinTimeRangeEntity>?>) {
@@ -179,18 +229,19 @@ class Repository @Inject constructor(
 
     suspend fun updateCryptocurrenciesInfoWithinDateRange(
         currencySymbol: String, vs_currency: String, unixTimeFrom: Long,
-        unixTimeTo: Long, candlestickMode: Boolean
+        unixTimeTo: Long, ohlcChartMode: Boolean, ohlcChartModeDays: Int = 0,
     ) {
-        val liveData = webService.requestPriceHistoryForDateRange(
+        val liveData = webService.requestPriceHistory(
             currencySymbol,
             vs_currency,
             unixTimeFrom,
             unixTimeTo,
-            candlestickMode
+            ohlcChartMode,
+            ohlcChartModeDays
         )
         if (!liveData.hasActiveObservers())
             liveData.observeForever { response ->
-                if (response != null && response?.archivalPrices?.isNotEmpty() != null) {
+                if (response != null && response.archivalPrices?.isNotEmpty() != null) { //TODO: modify this to handle ohlc data
 
                     val list: List<ParameterAtTime> =
                         response.archivalPrices!!.map {
@@ -231,8 +282,37 @@ class Repository @Inject constructor(
                                 market_caps = marketCaps,
                                 total_volumes = totalVolume,
                                 updateDate = Date(),
-                                candlestickData = null
+                                ohlcData = null
                             )
+                        )
+                    }
+                } else if (response != null && response.ohlcData?.isNotEmpty() != null) {
+                    val ohlcData =
+                        response.ohlcData!!.map {
+                            OhlcDataEntity(
+                                it.time,
+                                it.open,
+                                it.high,
+                                it.low,
+                                it.close
+                            )
+                        }
+
+                    runBlocking {
+                        addCryptocurrencyInfoWithinTimeRange(
+                            InfoWithinTimeRangeEntity(
+                                index = 0, //auto-increment, no need to specify manually
+                                cryptocurrencyId = response.currencySymbol,
+                                timeRangeFrom = response.unixTimeFrom,
+                                timeRangeTo = response.unixTimeTo,
+                                daysCount = (((response.unixTimeTo - response.unixTimeFrom) / 3600 / 24).toInt()),
+                                prices = null,
+                                market_caps = null,
+                                total_volumes = null,
+                                updateDate = Date(),
+                                ohlcData = ohlcData
+                            ),
+                            ohlcData = true
                         )
                     }
                 }

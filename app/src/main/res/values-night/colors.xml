@@ -10,4 +10,7 @@
     <color name="gray">#6B6262</color>
     <color name="spinner_background">#302D2D</color>
     <color name="chart_font_color">#939292</color>
+    <color name="colorLightGray2">#5D5F58</color>
+    <color name="colorRed">#9E170D</color>
+    <color name="colorAccent">#1B6019</color>
 </resources>

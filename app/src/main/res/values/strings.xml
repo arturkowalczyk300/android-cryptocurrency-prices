@@ -44,6 +44,7 @@
     <string name="OK">OK</string>
     <string name="radioButtonModeVolume">Volume</string>
     <string name="radioButtonModeNormal">Normal</string>
+    <string name="radioButtonModeCandlestick">Candlestick</string>
     <string-array name="alertTypes">
         <item>Alert when current value is bigger</item>
         <item>Alert when current value is smaller</item>
