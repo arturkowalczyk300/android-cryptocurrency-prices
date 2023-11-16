@@ -295,6 +295,7 @@ class ChartFragment : Fragment(R.layout.fragment_chart) {
     }
 
     private fun initializeCandlestickChart() {
+        candlestickChart.setBackgroundColor(Color.TRANSPARENT)
         candlestickChart.isHighlightPerDragEnabled = true
         candlestickChart.setDrawBorders(true)
 //        candlestickChart.setBorderColor(resources.getColor(R.color.lightGray))
