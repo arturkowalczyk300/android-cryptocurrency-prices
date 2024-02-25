@@ -42,6 +42,10 @@
     <string name="enableAlerts">Enable alerts</string>
     <string name="error_occured">Error has occured!</string>
     <string name="OK">OK</string>
+    <string name="eula_title">EULA</string>
+    <string name="eula_content">By using this application, you accept the absence of warranty for its correct operation - the application is provided \'as is\'. The author bears no responsibility for any potential damages</string>
+    <string name="eula_button_agree">Agree</string>
+    <string name="eula_exit">Exit</string>
     <string-array name="alertTypes">
         <item>Alert when current value is bigger</item>
         <item>Alert when current value is smaller</item>

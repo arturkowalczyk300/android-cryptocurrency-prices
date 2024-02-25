@@ -75,10 +75,12 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
                 true
             }
+
             R.id.action_refresh -> {
                 viewModel.requestUpdateAllData()
                 true
             }
+
             else ->
                 super.onOptionsItemSelected(item)
         }
@@ -86,6 +88,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val eulaDialog = EulaDialog(this)
+        eulaDialog.show()
+
         DateFormatterUtil.customDateOnlyFormat = getString(R.string.defaultDateFormat)
         DateFormatterUtil.customDateWithTimeFormat = getString(R.string.defaultDateTimeFormat)
 
@@ -157,6 +163,7 @@ class MainActivity : AppCompatActivity() {
                     etDate.visibility = View.GONE
                     viewModel.showArchivalData = false
                 }
+
                 R.id.radioButtonDateArchival -> {
                     etDate.visibility = View.VISIBLE
                     viewModel.showArchivalData = true
@@ -210,15 +217,19 @@ class MainActivity : AppCompatActivity() {
                                 R.string.REQUEST_PRICE_HISTORY_FOR_DATE_RANGE_FAILURE,
                                 additionalInfo
                             )
+
                         REQUEST_CRYPTOCURRENCIES_LIST_FAILURE ->
                             getString(
                                 R.string.REQUEST_CRYPTOCURRENCIES_LIST_FAILURE,
                                 additionalInfo
                             )
+
                         REQUEST_PRICE_DATA_FAILURE ->
                             getString(R.string.REQUEST_PRICE_DATA_FAILURE, additionalInfo)
+
                         REQUEST_EXCEEDED_API_RATE_LIMIT ->
                             getString(R.string.REQUEST_EXCEEDED_API_RATE_LIMIT)
+
                         else ->
                             getString(R.string.UNKNOWN_FAILURE)
                     }
@@ -389,7 +400,12 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, AlarmReceiver::class.java)
         intent.action = PRICE_ALERT_INTENT_ACTION
         val pendingIntent =
-            PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getBroadcast(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
         val alarmManager = this.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.setInexactRepeating(
             AlarmManager.RTC_WAKEUP,
